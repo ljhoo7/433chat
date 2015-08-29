@@ -1,14 +1,7 @@
 ////////////////////////////////////////
 // 다음은 서버와 클라이언트 간 데이터를 주고 받을 때 사용하는 패킷을 정의한 헤더입니다.
-#pragma once
 
 #pragma once
-
-#include <stdio.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <winsock2.h>
 
 #define PKTLEN 512
 

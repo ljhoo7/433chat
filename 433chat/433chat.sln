@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "433chat_server", "433chat_server\433chat_server.vcxproj", "{B6493988-87EB-4BC2-A477-A719FC23F109}"
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "433chat_client", "433chat_client\433chat_client.vcxproj", "{B9C69203-A1DB-4E1A-AC57-366BA80E1063}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "433chat_client", "433chat_client\433chat_client.vcxproj", "{EDE6C4A6-5780-42CC-AEB3-336F9FEA477C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "433chat_server", "433chat_server\433chat_server.vcxproj", "{6AE5FDF4-E16D-400D-9108-9AD271868328}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +11,14 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B6493988-87EB-4BC2-A477-A719FC23F109}.Debug|Win32.ActiveCfg = Debug|Win32
-		{B6493988-87EB-4BC2-A477-A719FC23F109}.Debug|Win32.Build.0 = Debug|Win32
-		{B6493988-87EB-4BC2-A477-A719FC23F109}.Release|Win32.ActiveCfg = Release|Win32
-		{B6493988-87EB-4BC2-A477-A719FC23F109}.Release|Win32.Build.0 = Release|Win32
-		{EDE6C4A6-5780-42CC-AEB3-336F9FEA477C}.Debug|Win32.ActiveCfg = Debug|Win32
-		{EDE6C4A6-5780-42CC-AEB3-336F9FEA477C}.Debug|Win32.Build.0 = Debug|Win32
-		{EDE6C4A6-5780-42CC-AEB3-336F9FEA477C}.Release|Win32.ActiveCfg = Release|Win32
-		{EDE6C4A6-5780-42CC-AEB3-336F9FEA477C}.Release|Win32.Build.0 = Release|Win32
+		{B9C69203-A1DB-4E1A-AC57-366BA80E1063}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B9C69203-A1DB-4E1A-AC57-366BA80E1063}.Debug|Win32.Build.0 = Debug|Win32
+		{B9C69203-A1DB-4E1A-AC57-366BA80E1063}.Release|Win32.ActiveCfg = Release|Win32
+		{B9C69203-A1DB-4E1A-AC57-366BA80E1063}.Release|Win32.Build.0 = Release|Win32
+		{6AE5FDF4-E16D-400D-9108-9AD271868328}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6AE5FDF4-E16D-400D-9108-9AD271868328}.Debug|Win32.Build.0 = Debug|Win32
+		{6AE5FDF4-E16D-400D-9108-9AD271868328}.Release|Win32.ActiveCfg = Release|Win32
+		{6AE5FDF4-E16D-400D-9108-9AD271868328}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
