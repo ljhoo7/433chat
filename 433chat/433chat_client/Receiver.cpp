@@ -7,6 +7,9 @@ double block = 1000 / fps;
 extern SOCKET			sock;
 extern CReceiver		*g_cReceivingManager;
 
+extern char				*nickname;
+extern int				room_num;
+
 DWORD WINAPI ReceivingThread(LPVOID arg)
 {
 	static std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
@@ -26,10 +29,10 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 			t_packet tmppakt;
 			retval = 0;
 
-			retval = recv(sock, (char*)&tmppakt, sizeof(t_packet), 0);
+			retval = recvn(sock, (char*)&tmppakt, sizeof(t_packet), 0);
 
 			if(retval == SOCKET_ERROR)
-				err_quit("ReceivingThread()_data error");
+				err_quit("ReceivingThread() error");
 
 			g_cReceivingManager->MyReceiveMessage(tmppakt, retval);
 
@@ -48,6 +51,7 @@ bool CReceiver::MyReceiveMessage(t_packet& tmppacket, const int retval)
 			tmppacket.m_chat.str[retval] = '\0';
 			printf("[TCP 클라이언트] %d바이트를 받았습니다.\n", retval);
 			printf("[받은 데이터] %s\n", tmppacket.m_chat.str);
+			printf("['%s'의 보낼 데이터] ", nickname);
 		break;
 	}
 	return true;

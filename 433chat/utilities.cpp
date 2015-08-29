@@ -39,7 +39,7 @@ int recvn(SOCKET s, char *buf, int len, int flags)
 		if (received == SOCKET_ERROR)
 			return SOCKET_ERROR;
 		else if (received == 0)
-			break;
+			return SOCKET_ERROR;
 		left -= received;
 		ptr += received;
 	}

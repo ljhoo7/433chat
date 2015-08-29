@@ -71,16 +71,16 @@ int main(int argc, char *argv[])
 					addrlen = sizeof(clientaddr);
 					client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
 					FD_SET(client_sock, &socks);
-					printf("connected client: %d\n", i);
+					printf("connected client: %d\n", client_sock);
 				}
 				else
 				{
-					str_len = recv(sockNum, (char*)&buf, sizeof(t_packet), 0);
-					if(str_len == 0)
+					str_len = recvn(sockNum, (char*)&buf, sizeof(t_packet), 0);
+					if(str_len == SOCKET_ERROR)
 					{
 						FD_CLR(sockNum, &socks);
 						closesocket(sockNum);
-						printf("closed client:%d\n", i);
+						printf("closed client:%d\n", socks.fd_array[i]);
 					}
 					else
 					{
