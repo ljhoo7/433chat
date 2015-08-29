@@ -20,8 +20,23 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	nickname = argv[3];
 	room_num = atoi(argv[4]);
+
+	// 룸넘버가 0 ~ ROOM_MAX 사이 구간에 있는 숫자인지 체크해서 아니면 접속 거부
+	if(room_num >= ROOM_MAX || room_num < 0)
+	{
+		printf("A room number must be in this range : 0 ~ %d\n", ROOM_MAX);
+		return 0;
+	}
+
+	nickname = argv[3];
+
+	// 닉네임 길이 제한
+	if(strlen(nickname) > STRSIZE - 1)
+	{
+		printf("The size of your nickname must be in this range : 1 ~ %d\n", STRSIZE - 1);
+		return 0;
+	}
 
 	// 리시빙 매니저 생성
 	g_cReceivingManager = new CReceiver();
@@ -51,6 +66,20 @@ int main(int argc, char *argv[])
 	char buf[STRSIZE];
 	int len;
 
+	// 접속 데이터
+	t_packet tmp_packet;
+	tmp_packet.m_join.type = pkt_type::pt_join;
+	tmp_packet.m_join.length = sizeof(t_packet);
+	tmp_packet.m_join.room_num = room_num;
+
+	// 접속 데이터 보내기
+	retval = send(sock, (char*)&tmp_packet, sizeof(t_packet), 0);
+	if (retval == SOCKET_ERROR){
+		err_display("send()");
+		return 0;
+	}
+	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
+
 	// 서버와 데이터 통신
 	while (1){
 		// 데이터 입력
@@ -68,9 +97,10 @@ int main(int argc, char *argv[])
 		t_packet tmp_packet;
 		tmp_packet.m_chat.type = pkt_type::pt_chat;
 		tmp_packet.m_chat.length = sizeof(t_packet);
+		tmp_packet.m_chat.room_num = room_num;
 		strcpy(tmp_packet.m_chat.str, buf);
 
-		// 데이터 보내기
+		// 채팅 데이터 보내기
 		retval = send(sock, (char*)&tmp_packet, sizeof(t_packet), 0);
 		if (retval == SOCKET_ERROR){
 			err_display("send()");

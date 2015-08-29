@@ -8,8 +8,11 @@ SOCKETINFO *SocketInfoArray[FD_SETSIZE];
 BOOL AddSocketInfo(SOCKET sock);
 void RemoveSocketInfo(int nIndex);
 
+// 채팅룸
+fd_set reads[ROOM_MAX];
+
 // 패킷 처리 함수
-void paket_handling(t_packet pkt, int i, fd_set reads);
+void paket_handling(t_packet pkt, int i, SOCKET sock);
 
 int main(int argc, char *argv[])
 {
@@ -84,11 +87,11 @@ int main(int argc, char *argv[])
 					}
 					else
 					{
-						paket_handling(buf, i, socks);
+						paket_handling(buf, i, sockNum);
 					}
 				}	
 			}
-		} 	
+		}
 	}
 
 	// 윈속 종료
@@ -97,20 +100,36 @@ int main(int argc, char *argv[])
 }
 
 // 패킷 처리 함수
-void paket_handling(t_packet pkt, int i, fd_set reads)
+void paket_handling(t_packet pkt, int i, SOCKET sock)
 {
-	int m;
+	int m, nRoom;
 	t_packet result_pkt;
 	switch(pkt.m_any.type)
 	{
 		case pt_chat:
-			for(m = 0; m < reads.fd_count; ++m)
+			nRoom = pkt.m_chat.room_num;
+
+			// 멀티 쓰레드로 처리할 부분 : 같은 방 인원들에게 메세지 뿌리기
+			for(m = 0; m < reads[nRoom].fd_count; ++m)
 			{
-				if( m != i )
+				if( reads[nRoom].fd_array[m] != sock )
 				{
-					send(reads.fd_array[m], (char*)&pkt, sizeof(t_packet), 0);
+					send(reads[nRoom].fd_array[m], (char*)&pkt, sizeof(t_packet), 0);
 				}
 			}
+			break;
+		case pt_join:
+			// 멀티 쓰레드로 처리할 부분 : 접속하려는 방에 같은 닉네임의 사람이 있는지
+			/*for(m = 0; m < reads[nRoom].fd_count; ++m)
+			{
+				if( reads[nRoom].fd_array[m] != sock )
+				{
+					
+				}
+			}*/
+			
+			nRoom = pkt.m_join.room_num;
+			FD_SET(sock, &reads[nRoom]);
 			break;
 	}
 }

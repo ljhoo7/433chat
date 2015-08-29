@@ -5,16 +5,19 @@
 
 #pragma comment(lib, "ws2_32")
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <vector>
 #include <chrono>
+#include <climits>
 #include <WinSock2.h>
 
 #define SERVERIP   "127.0.0.1"
 #define SERVERPORT 9000
 #define BUFSIZE    512
+#define ROOM_MAX   99999
 
 #include "protocol.h"
 
