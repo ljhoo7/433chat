@@ -1,8 +1,20 @@
+#include "headers.h"
 #include "..\utilities.h"
+
+SOCKET sock;
+CReceiver *g_cReceivingManager;
+
+DWORD WINAPI ReceivingThread(LPVOID arg);
 
 int main(int argc, char *argv[])
 {
 	int retval;
+
+	// 리시빙 매니저 생성
+	g_cReceivingManager = new CReceiver();
+
+	// 리시버 스레드 구동
+	HANDLE hReceiving = CreateThread(NULL, 0, ReceivingThread, NULL, 0, NULL);
 
 	// 윈속 초기화
 	WSADATA wsa;
@@ -10,7 +22,7 @@ int main(int argc, char *argv[])
 		return 1;
 
 	// socket()
-	SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == INVALID_SOCKET) err_quit("socket()");
 
 	// connect()
@@ -23,7 +35,7 @@ int main(int argc, char *argv[])
 	if (retval == SOCKET_ERROR) err_quit("connect()");
 
 	// 데이터 통신에 사용할 변수
-	char buf[BUFSIZE + 1];
+	char buf[STRSIZE];
 	int len;
 
 	// 서버와 데이터 통신
@@ -40,28 +52,25 @@ int main(int argc, char *argv[])
 		if (strlen(buf) == 0)
 			break;
 
+		t_packet tmp_packet;
+		tmp_packet.m_chat.type = pkt_type::pt_chat;
+		tmp_packet.m_chat.length = sizeof(t_packet);
+		strcpy(tmp_packet.m_chat.str, buf);
+
 		// 데이터 보내기
-		retval = send(sock, buf, strlen(buf), 0);
+		retval = send(sock, (char*)&tmp_packet, sizeof(t_packet), 0);
 		if (retval == SOCKET_ERROR){
 			err_display("send()");
 			break;
 		}
 		printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
-
-		// 데이터 받기
-		retval = recvn(sock, buf, retval, 0);
-		if (retval == SOCKET_ERROR){
-			err_display("recv()");
-			break;
-		}
-		else if (retval == 0)
-			break;
-
-		// 받은 데이터 출력
-		buf[retval] = '\0';
-		printf("[TCP 클라이언트] %d바이트를 받았습니다.\n", retval);
-		printf("[받은 데이터] %s\n", buf);
 	}
+
+	// 리시버 스레드 종료
+	CloseHandle(hReceiving);
+
+	// 리시빙 매니저 해지
+	delete g_cReceivingManager;
 
 	// closesocket()
 	closesocket(sock);

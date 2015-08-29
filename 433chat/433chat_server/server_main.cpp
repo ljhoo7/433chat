@@ -1,3 +1,4 @@
+#include "headers.h"
 #include "..\utilities.h"
 
 int nTotalSockets = 0;
@@ -6,6 +7,9 @@ SOCKETINFO *SocketInfoArray[FD_SETSIZE];
 // 소켓 관리 함수
 BOOL AddSocketInfo(SOCKET sock);
 void RemoveSocketInfo(int nIndex);
+
+// 패킷 처리 함수
+void paket_handling(t_packet pkt, int i, fd_set reads);
 
 int main(int argc, char *argv[])
 {
@@ -39,85 +43,76 @@ int main(int argc, char *argv[])
 	if(retval == SOCKET_ERROR) err_display("ioctlsocket()");
 
 	// 데이터 통신에 사용할 변수
-	FD_SET rset, wset;
+	FD_SET socks, cpy_socks;
 	SOCKET client_sock;
 	SOCKADDR_IN clientaddr;
-	int addrlen, i;
+	int addrlen, str_len;
+	t_packet buf;
+
+	FD_ZERO(&socks);
+	FD_SET(listen_sock, &socks);
 
 	while(1){
-		// 소켓 셋 초기화
-		FD_ZERO(&rset);
-		FD_ZERO(&wset);
-		FD_SET(listen_sock, &rset);
-		for(i=0; i<nTotalSockets; i++){
-			if(SocketInfoArray[i]->recvbytes > SocketInfoArray[i]->sendbytes)
-				FD_SET(SocketInfoArray[i]->sock, &wset);
-			else
-				FD_SET(SocketInfoArray[i]->sock, &rset);
-		}
+		cpy_socks = socks;
 
 		// select()
-		retval = select(0, &rset, &wset, NULL, NULL);
-		if(retval == SOCKET_ERROR) err_quit("select()");
-
-		// 소켓 셋 검사(1): 클라이언트 접속 수용
-		if(FD_ISSET(listen_sock, &rset)){
-			addrlen = sizeof(clientaddr);
-			client_sock = accept(listen_sock, (SOCKADDR *)&clientaddr, &addrlen);
-			if(client_sock == INVALID_SOCKET){
-				err_display("accept()");
-			}
-			else{
-				printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
-					inet_ntoa(clientaddr.sin_addr), ntohs(clientaddr.sin_port));
-				// 소켓 정보 추가
-				AddSocketInfo(client_sock);
-			}
-		}
-
-		// 소켓 셋 검사(2): 데이터 통신
-		for(i=0; i<nTotalSockets; i++){
-			SOCKETINFO *ptr = SocketInfoArray[i];
-			if(FD_ISSET(ptr->sock, &rset)){
-				// 데이터 받기
-				retval = recv(ptr->sock, ptr->buf, BUFSIZE, 0);
-				if(retval == SOCKET_ERROR){
-					err_display("recv()");
-					RemoveSocketInfo(i);
-					continue;
+		retval = select(0, &cpy_socks, 0, NULL, NULL);
+		if(retval == SOCKET_ERROR)
+			err_quit("select()");
+		if(retval == 0)
+			continue;
+		for(int i = 0; i < socks.fd_count; i++)
+		{
+			int sockNum = socks.fd_array[i];
+			if(FD_ISSET(sockNum, &cpy_socks))
+			{
+				if(sockNum == listen_sock)
+				{
+					addrlen = sizeof(clientaddr);
+					client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
+					FD_SET(client_sock, &socks);
+					printf("connected client: %d\n", i);
 				}
-				else if(retval == 0){
-					RemoveSocketInfo(i);
-					continue;
-				}
-				ptr->recvbytes = retval;
-				// 받은 데이터 출력
-				addrlen = sizeof(clientaddr);
-				getpeername(ptr->sock, (SOCKADDR *)&clientaddr, &addrlen);
-				ptr->buf[retval] = '\0';
-				printf("[TCP/%s:%d] %s\n", inet_ntoa(clientaddr.sin_addr),
-					ntohs(clientaddr.sin_port), ptr->buf);
+				else
+				{
+					str_len = recv(sockNum, (char*)&buf, sizeof(t_packet), 0);
+					if(str_len == 0)
+					{
+						FD_CLR(sockNum, &socks);
+						closesocket(sockNum);
+						printf("closed client:%d\n", i);
+					}
+					else
+					{
+						paket_handling(buf, i, socks);
+					}
+				}	
 			}
-			if(FD_ISSET(ptr->sock, &wset)){
-				// 데이터 보내기
-				retval = send(ptr->sock, ptr->buf + ptr->sendbytes, 
-					ptr->recvbytes - ptr->sendbytes, 0);
-				if(retval == SOCKET_ERROR){
-					err_display("send()");
-					RemoveSocketInfo(i);
-					continue;
-				}
-				ptr->sendbytes += retval;
-				if(ptr->recvbytes == ptr->sendbytes){
-					ptr->recvbytes = ptr->sendbytes = 0;
-				}
-			}
-		}
+		} 	
 	}
 
 	// 윈속 종료
 	WSACleanup();
 	return 0;
+}
+
+// 패킷 처리 함수
+void paket_handling(t_packet pkt, int i, fd_set reads)
+{
+	int m;
+	t_packet result_pkt;
+	switch(pkt.m_any.type)
+	{
+		case pt_chat:
+			for(m = 0; m < reads.fd_count; ++m)
+			{
+				if( m != i )
+				{
+					send(reads.fd_array[m], (char*)&pkt, sizeof(t_packet), 0);
+				}
+			}
+			break;
+	}
 }
 
 // 소켓 정보 추가

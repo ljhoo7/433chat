@@ -4,12 +4,9 @@
 #pragma once
 
 #define PKTLEN 512
+#define STRSIZE	   508
 
 enum pkt_type { pt_any, pt_create, pt_destroy, pt_join, pt_leave, pt_chat };
-
-typedef struct{
-	float x, y, z;
-}USER_COORD;
 
 typedef struct{
 	short length;
@@ -45,8 +42,8 @@ typedef struct{
 	short length;
 	short type;
 
-
-
+	// 최대 507 개 문자 (개행 문자 포함 508개 )
+	char str[STRSIZE];
 }t_chat;
 
 typedef union{

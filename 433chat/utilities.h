@@ -8,13 +8,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <vector>
+#include <chrono>
 #include <WinSock2.h>
-
-#include "protocol.h"
 
 #define SERVERIP   "127.0.0.1"
 #define SERVERPORT 9000
 #define BUFSIZE    512
+
+#include "protocol.h"
 
 // 소켓 정보 저장을 위한 구조체와 변수
 struct SOCKETINFO
