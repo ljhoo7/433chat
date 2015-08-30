@@ -49,7 +49,7 @@ bool CReceiver::MyReceiveMessage(t_packet& tmppacket, const int retval)
 	case pkt_type::pt_chat:
 			// 받은 데이터 출력
 			tmppacket.m_chat.str[retval] = '\0';
-			printf("[TCP 클라이언트] %d바이트를 받았습니다.\n", retval);
+			printf("\n[TCP 클라이언트] %d바이트를 받았습니다.\n", retval);
 			printf("[받은 데이터] %s\n", tmppacket.m_chat.str);
 			printf("['%s'의 보낼 데이터] ", nickname);
 		break;

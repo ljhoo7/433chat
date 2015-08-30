@@ -77,12 +77,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\utilities.cpp" />
+    <ClCompile Include="InterServer.cpp" />
+    <ClCompile Include="Receiver.cpp" />
     <ClCompile Include="server_main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\protocol.h" />
     <ClInclude Include="..\utilities.h" />
     <ClInclude Include="headers.h" />
+    <ClInclude Include="InterServer.h" />
+    <ClInclude Include="Receiver.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

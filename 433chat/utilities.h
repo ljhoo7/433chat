@@ -30,6 +30,14 @@ struct SOCKETINFO
 	int sendbytes;
 };
 
+// 메세지 뿌리는 스레드에 넘길 자료구조
+typedef struct thread_data
+{
+	SOCKET		sock;
+	int			room_num;
+	t_packet	pkt;
+}thread_data;
+
 // 소켓 함수 오류 출력 후 종료
 void err_quit(char *msg);
 
