@@ -19,6 +19,8 @@ int		room_num;
 char	*ip;
 char	*port;
 
+HANDLE *hBot;
+
 DWORD WINAPI BotThread(LPVOID arg);
 DWORD WINAPI ReceivingThread(LPVOID arg);
 DWORD WINAPI BotThread(LPVOID arg);
@@ -56,8 +58,9 @@ int main(int argc, char *argv[])
 	ip = argv[1];
 	port = argv[2];
 
-	HANDLE *hBot = new HANDLE[bot_cnt];
-	HANDLE *hHandleBot = new HANDLE[bot_cnt / MAXIMUM_WAIT_OBJECTS];
+	int remain = bot_cnt / MAXIMUM_WAIT_OBJECTS;
+	hBot = new HANDLE[bot_cnt];
+	HANDLE *hHandleBot = new HANDLE[remain];
 
 	// º¿ ¸¸µé±â
 	for (int m = 0; m < bot_cnt; ++m)
@@ -65,12 +68,12 @@ int main(int argc, char *argv[])
 		hBot[m] = CreateThread(NULL, 0, BotThread, (LPVOID)&m, 0, NULL);
 	}
 
-	for (int m = 0; m < bot_cnt / MAXIMUM_WAIT_OBJECTS; ++m)
+	for (int m = 0; m < remain; ++m)
 	{
-		
+		hHandleBot[m] = CreateThread(NULL, 0, WaitThread, (LPVOID)&m, 0, NULL);
 	}
 
-	WaitForMultipleObjects(bot_cnt, hBot, TRUE, INFINITE);
+	WaitForMultipleObjects(remain, hHandleBot, TRUE, INFINITE);
 
 	for(int m = 0; m < bot_cnt; ++m)
 	{
@@ -83,7 +86,7 @@ int main(int argc, char *argv[])
 DWORD WINAPI WaitThread(LPVOID arg)
 {
 	int grade = *(int*)arg;
-	WaitForMultipleObjects(bot_cnt, hBot + (MAXIMUM_WAIT_OBJECTS * , TRUE, INFINITE);
+	WaitForMultipleObjects(bot_cnt % MAXIMUM_WAIT_OBJECTS, hBot + (MAXIMUM_WAIT_OBJECTS * grade), TRUE, INFINITE);
 }
 
 DWORD WINAPI BotThread(LPVOID arg)
