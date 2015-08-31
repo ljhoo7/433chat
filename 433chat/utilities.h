@@ -5,6 +5,8 @@
 
 #pragma comment(lib, "ws2_32")
 
+#define FD_SETSIZE 1024
+
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
@@ -19,7 +21,6 @@
 #define SERVERPORT2 9001
 #define BUFSIZE		512
 #define ROOM_MAX	99999
-#define BOT_MAX		FD_SETSIZE
 
 #include "protocol.h"
 

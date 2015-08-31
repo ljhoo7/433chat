@@ -5,9 +5,6 @@
 
 int block;
 
-SOCKET sock;
-CReceiver *g_cReceivingManager;
-
 char	garbage_strs[STR_NUM][20] = 
 { "Hello World ~ !\0"
 , "4:33 intern\0"
@@ -16,10 +13,14 @@ char	garbage_strs[STR_NUM][20] =
 , "Trash Message\0"
 , "I'm a programmer\0" };
 
-char	*bot_name;
+int		bot_cnt;
 int		room_num;
 
+char	*ip;
+char	*port;
+
 DWORD WINAPI ReceivingThread(LPVOID arg);
+DWORD WINAPI BotThread(LPVOID arg);
 
 // 사용법 : 프로그램명 + 서버주소 + 포트번호 + 봇 이름 + 방번호 + 대기시간
 int main(int argc, char *argv[])
@@ -34,7 +35,7 @@ int main(int argc, char *argv[])
 
 	if (argc != 6)
 	{
-		fputs("usage:(program_name) (chat_server_ip) (port) (bot_name) (room_num) (wait_time)\n", stdout);
+		fputs("usage:(program_name) (chat_server_ip) (port) (bot_cnt) (room_num) (wait_time)\n", stdout);
 		return 0;
 	}
 
@@ -47,22 +48,44 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	bot_name = argv[3];
-
-	// 닉네임 길이 제한
-	if (strlen(bot_name) > STRSIZE - 1)
-	{
-		printf("The size of your bot name must be in this range : 1 ~ %d\n", STRSIZE - 1);
-		return 0;
-	}
-
+	bot_cnt = atoi(argv[3]);
 	block = atoi(argv[5]);
 
-	// 리시빙 매니저 생성
-	g_cReceivingManager = new CReceiver();
+	ip = argv[1];
+	port = argv[2];
 
-	// 리시버 스레드 구동
-	HANDLE hReceiving = CreateThread(NULL, 0, ReceivingThread, NULL, 0, NULL);
+	HANDLE *hBot = new HANDLE[bot_cnt];
+
+	int m;
+
+	// 봇 만들기
+	for (m = 0; m < bot_cnt; ++m)
+	{
+		hBot[m] = CreateThread(NULL, 0, BotThread, (LPVOID)&m, 0, NULL);
+	}
+
+	WaitForMultipleObjects(bot_cnt, hBot, TRUE, INFINITE);
+
+	for(int m = 0; m < bot_cnt; ++m)
+	{
+		CloseHandle(hBot[m]);
+	}
+
+	return 1;
+}
+
+DWORD WINAPI BotThread(LPVOID arg)
+{
+	SOCKET sock;
+	int m = *(int*)arg;
+
+	static std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
+	std::chrono::system_clock::duration tmp;
+	std::chrono::milliseconds tmp2;
+
+	long long time;
+	int retval = 0;
+	int size = 0;
 
 	// 윈속 초기화
 	WSADATA wsa;
@@ -77,8 +100,8 @@ int main(int argc, char *argv[])
 	SOCKADDR_IN serveraddr;
 	ZeroMemory(&serveraddr, sizeof(serveraddr));
 	serveraddr.sin_family = AF_INET;
-	serveraddr.sin_addr.s_addr = inet_addr(argv[1]);//SERVERIP);
-	serveraddr.sin_port = htons(atoi(argv[2]));//SERVERPORT);
+	serveraddr.sin_addr.s_addr = inet_addr(ip);//SERVERIP);
+	serveraddr.sin_port = htons(atoi(port));//SERVERPORT);
 	retval = connect(sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
 	if (retval == SOCKET_ERROR) err_quit("connect()");
 
@@ -92,25 +115,27 @@ int main(int argc, char *argv[])
 	tmp_packet.m_join.length = sizeof(t_packet);
 	tmp_packet.m_join.room_num = room_num;
 
+	// 리시버 스레드 구동
+	HANDLE hReceiving = CreateThread(NULL, 0, ReceivingThread, (LPVOID)&sock, 0, NULL);
+
 	// 접속 데이터 보내기
 	retval = send(sock, (char*)&tmp_packet, sizeof(t_packet), 0);
 	if (retval == SOCKET_ERROR){
 		err_display("send()");
 		return 0;
 	}
-	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
 
-	// 서버와 데이터 통신
-	while (1){
+	while (1)
+	{
 		tmp = std::chrono::system_clock::now() - start_time;
 		tmp2 = std::chrono::duration_cast<std::chrono::milliseconds>(tmp);
 		time = tmp2.count();
-		if (block <= time){
-			// 데이터 입력
-			/*printf("['%s'의 보낼 데이터] ", bot_name);
-			if (fgets(buf, BUFSIZE + 1, stdin) == NULL)
-				break;*/
+		if (block <= time)
+		{
 			int str_num = rand() % STR_NUM;
+
+			// 보낼 데이터 생성
+			//printf("['%s'의 보낸 데이터] %s", ("bot" + std::to_string(m)).c_str(), garbage_strs[str_num]);
 
 			if (strlen(buf) == 0)
 				break;
@@ -127,7 +152,6 @@ int main(int argc, char *argv[])
 				err_display("send()");
 				break;
 			}
-			printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
 
 			start_time = std::chrono::system_clock::now();
 		}
@@ -136,13 +160,9 @@ int main(int argc, char *argv[])
 	// 리시버 스레드 종료
 	CloseHandle(hReceiving);
 
-	// 리시빙 매니저 해지
-	delete g_cReceivingManager;
-
 	// closesocket()
 	closesocket(sock);
 
 	// 윈속 종료
 	WSACleanup();
-	return 1;
 }

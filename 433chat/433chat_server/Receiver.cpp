@@ -59,9 +59,9 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 	if(retval == SOCKET_ERROR) err_quit("listen()");
 
 	// 넌블로킹 소켓으로 전환
-	u_long on = 1;
+	/*u_long on = 1;
 	retval = ioctlsocket(listen_sock, FIONBIO, &on);
-	if(retval == SOCKET_ERROR) err_display("ioctlsocket()");
+	if(retval == SOCKET_ERROR) err_display("ioctlsocket()");*/
 
 	// 데이터 통신에 사용할 변수
 	FD_SET socks, cpy_socks;
@@ -87,7 +87,7 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 				err_quit("select()");
 			if(retval == 0)
 				continue;
-			for(int i = 0; i < cpy_socks.fd_count; i++)
+			for(int i = 0; i < socks.fd_count; i++)
 			{
 				int sockNum = socks.fd_array[i];
 				if(FD_ISSET(sockNum, &cpy_socks))
@@ -97,7 +97,7 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 						addrlen = sizeof(clientaddr);
 						client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
 						FD_SET(client_sock, &socks);
-						printf("connected client: %d\n", client_sock);
+						printf("connected client: %d, cnt : %d\n", client_sock, socks.fd_count);
 					}
 					else
 					{
@@ -106,7 +106,7 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 						{
 							FD_CLR(sockNum, &socks);
 							closesocket(sockNum);
-							printf("closed client:%d\n", socks.fd_array[i]);
+							printf("closed client:%d, cnt : %d\n", socks.fd_array[i], socks.fd_count);
 						}
 						else
 						{
@@ -192,7 +192,6 @@ DWORD WINAPI SpreadingThread(LPVOID arg)
 		{
 			send(reads[tData->room_num].fd_array[m], (char*)&tData->pkt, sizeof(t_packet), 0);
 		}
-
 	}
 
 	return 0;
