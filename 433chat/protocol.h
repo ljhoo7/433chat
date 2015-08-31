@@ -6,7 +6,7 @@
 #define PKTLEN 512
 #define STRSIZE	   512
 
-enum pkt_type { pt_any, pt_join, pt_chat, pt_interserver };
+enum pkt_type { pt_any, pt_join, pt_chat };
 
 typedef struct{
 	short length;
