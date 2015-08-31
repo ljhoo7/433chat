@@ -7,7 +7,7 @@ public:
 	Reciever();
 	~Reciever();
 
-	void start(int port, int backlog, void(*callback)(UserToken& token));
+	void start(int port, int backlog, void(*callback)(UserToken* token));
 	void process();
 
 private:
@@ -23,7 +23,7 @@ private:
 public:
 
 private:
-	void(*callback)(UserToken& token);
+	void(*callback)(UserToken* token);
 	SOCKET listenSocket;
 	SOCKADDR_IN serveraddr;
 

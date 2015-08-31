@@ -1,5 +1,6 @@
 #pragma once
 #include "433Net.h"
+#include "Player.h"
 
 int nTotalSockets = 0;
 
@@ -8,8 +9,16 @@ unsigned long	g_nIp;
 // port
 int				g_nPort;
 Reciever* server;
+std::vector<Player> playerList;
 
-void accept_callback(UserToken& token){
+void accept_callback(UserToken* token){
+	Player* p = new Player();
+	token->peer = p;
+
+	p->token = *token;
+	playerList.push_back(*p);
+
+
 	return;
 }
 

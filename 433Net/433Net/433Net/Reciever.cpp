@@ -9,7 +9,7 @@ Reciever::~Reciever(){
 
 }
 
-void Reciever::start(int port, int backlog, void(*callback)(UserToken& token)){
+void Reciever::start(int port, int backlog, void(*callback)(UserToken* token)){
 	printf("start\n");
 
 	int retval;
@@ -74,6 +74,7 @@ void Reciever::process(){
 		
 		if (block <= time){
 			acceptProcess();
+			UserToken a = userList.front();
 			recieveProcess();
 
 			start_time = std::chrono::system_clock::now();
@@ -93,8 +94,10 @@ void Reciever::acceptProcess(){
 		UserToken *user = new UserToken(clientSocket, clientaddr, NULL);
 		printf("connected client: %d\n", clientSocket);
 
+		this->callback(user);
 		addUserList(*user);
-		this->callback(*user);
+		
+
 	}
 	
 }
@@ -103,6 +106,7 @@ void Reciever::recieveProcess(){
 	for (iter = userList.begin(); iter != userList.end(); iter++){
 		
 		if (FD_ISSET(iter->clientSocket, &copy_set)){
+
 			if (!iter->recieveProcess()){
 				UserToken user = *iter;
 				deleteUserList(*iter);

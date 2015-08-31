@@ -8,10 +8,8 @@ public:
 	int roomNum;
 	UserToken token;
 
-	Player(std::string nickname, int roomNum, UserToken token){
-		this->nickname = nickname;
-		this->roomNum = roomNum;
-		this->token = token;
+	Player(){
+		roomNum = -1;
 	}
 
 	void send_msg(char *buf, int size){

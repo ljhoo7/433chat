@@ -72,9 +72,7 @@ void UserToken::on_msg(char* buf, int size){
 			printf("[받은 데이터] %s\n", pkt.m_chat.str);
 			break;
 	}*/
-
 	if (peer != NULL){
-		printf("recieve msg %d\n", size);
 		peer->recieve_msg(buf, size);
 	}
 }
