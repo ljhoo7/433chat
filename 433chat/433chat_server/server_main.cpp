@@ -24,28 +24,40 @@ DWORD WINAPI ReceivingThread(LPVOID arg);
 // 서버간 통신을 위한 스레드
 DWORD WINAPI InterServerThread(LPVOID arg);
 
+SOCKET the_other_sock;
+
+int g_nIsListen;
+
 int main(int argc, char *argv[])
 {
 	int retval;
 
-	if(argc != 3)
+	if(argc != 4)
 	{
-		fputs("usage:(program_name) (the_other_server_ip) (port)\n",stdout);
+		fputs("usage:(program_name) (0=listen,1=connect) (the_other_server_ip) (port)\n",stdout);
 		return 0;
 	}
 
-	g_nIp = inet_addr(argv[1]);
+	g_nIsListen = atoi(argv[1]);
 
-	g_nPort = atoi(argv[2]);
+	if (!(g_nIsListen != 0 || g_nIsListen != 1))
+	{
+		fputs("The second argument must be zero or one.\n", stdout);
+	}
+
+	g_nIp = inet_addr(argv[2]);
+
+	g_nPort = atoi(argv[3]);
 
 	// 리시브 매니저
 	g_cReceivingManager = new CReceiver();
 
 	HANDLE hHandle[2];
-	hHandle[0] = CreateThread(NULL, 0, ReceivingThread, 0, 0, NULL);
-	hHandle[1] = CreateThread(NULL, 0, InterServerThread, 0, 0, NULL);
 
-	WaitForMultipleObjects(2, hHandle, TRUE, INFINITE);
+	hHandle[1] = CreateThread(NULL, 0, InterServerThread, 0, 0, NULL);
+	hHandle[0] = CreateThread(NULL, 0, ReceivingThread, 0, 0, NULL);
+
+	WaitForMultipleObjects(1, hHandle, TRUE, INFINITE);
 
 	CloseHandle(hHandle[0]);
 	CloseHandle(hHandle[1]);
