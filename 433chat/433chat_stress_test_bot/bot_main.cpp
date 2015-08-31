@@ -19,8 +19,10 @@ int		room_num;
 char	*ip;
 char	*port;
 
+DWORD WINAPI BotThread(LPVOID arg);
 DWORD WINAPI ReceivingThread(LPVOID arg);
 DWORD WINAPI BotThread(LPVOID arg);
+DWORD WINAPI WaitThread(LPVOID arg);
 
 // 사용법 : 프로그램명 + 서버주소 + 포트번호 + 봇 이름 + 방번호 + 대기시간
 int main(int argc, char *argv[])
@@ -55,13 +57,17 @@ int main(int argc, char *argv[])
 	port = argv[2];
 
 	HANDLE *hBot = new HANDLE[bot_cnt];
-
-	int m;
+	HANDLE *hHandleBot = new HANDLE[bot_cnt / MAXIMUM_WAIT_OBJECTS];
 
 	// 봇 만들기
-	for (m = 0; m < bot_cnt; ++m)
+	for (int m = 0; m < bot_cnt; ++m)
 	{
 		hBot[m] = CreateThread(NULL, 0, BotThread, (LPVOID)&m, 0, NULL);
+	}
+
+	for (int m = 0; m < bot_cnt / MAXIMUM_WAIT_OBJECTS; ++m)
+	{
+		
 	}
 
 	WaitForMultipleObjects(bot_cnt, hBot, TRUE, INFINITE);
@@ -72,6 +78,12 @@ int main(int argc, char *argv[])
 	}
 
 	return 1;
+}
+
+DWORD WINAPI WaitThread(LPVOID arg)
+{
+	int grade = *(int*)arg;
+	WaitForMultipleObjects(bot_cnt, hBot + (MAXIMUM_WAIT_OBJECTS * , TRUE, INFINITE);
 }
 
 DWORD WINAPI BotThread(LPVOID arg)
