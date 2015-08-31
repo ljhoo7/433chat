@@ -1,6 +1,7 @@
 #pragma once
 #include "433Net.h"
 #include "Player.h"
+#include "RoomManager.h"
 
 int nTotalSockets = 0;
 
@@ -10,6 +11,8 @@ unsigned long	g_nIp;
 int				g_nPort;
 Reciever* server;
 std::vector<Player> playerList;
+
+RoomManager roomManager;
 
 void accept_callback(UserToken* token){
 	Player* p = new Player();

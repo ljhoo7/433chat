@@ -88,7 +88,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="player.cpp" />
     <ClCompile Include="Reciever.cpp" />
+    <ClCompile Include="room.cpp" />
     <ClCompile Include="usertoken.cpp" />
     <ClCompile Include="utilities.cpp" />
   </ItemGroup>
