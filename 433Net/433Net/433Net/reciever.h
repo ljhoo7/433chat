@@ -1,10 +1,5 @@
-
-#include <WinSock2.h>
-#include <stdio.h>
-#include <thread>
-#include <list>
-
-#include "usertoken.h";
+#pragma once
+#include "utilities.h"
 
 class Reciever{
 

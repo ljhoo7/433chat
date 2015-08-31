@@ -96,6 +96,7 @@ void Reciever::addUserList(UserToken user){
 
 }
 
+
 void Reciever::deleteUserList(UserToken user){
 	FD_CLR(user.clientSoket, &reads);
 	userList.remove(user);

@@ -14,17 +14,21 @@
 #include <climits>
 #include <WinSock2.h>
 
-#define SERVERIP   "127.0.0.1"
-#pragma once
-
-#pragma comment(lib, "ws2_32")
-
+#include <stdio.h>
+#include <thread>
+#include <list>
 
 #define SERVERIP   "127.0.0.1"
 #define SERVERPORT 9000
 #define BUFSIZE    512
 #define ROOM_MAX   99999
+#define HEADER_SIZE 2
 
+class Receiver;
+class UserToken;
+
+#include "reciever.h"
+#include "usertoken.h"
 
 // 소켓 함수 오류 출력 후 종료
 void err_quit(char *msg);
