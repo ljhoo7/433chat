@@ -33,6 +33,8 @@ bool UserToken::recieveProcess(){
 			
 			memcpy(&remainBytes, buf, sizeof(short));
 			size = (int)(remainBytes);
+
+			printf("받은 데이터 %d\n", size);
 		}
 		bool check =  read_until();
 		if (remainBytes <= 0){
