@@ -87,7 +87,7 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 				err_quit("select()");
 			if(retval == 0)
 				continue;
-			for(int i = 0; i < socks.fd_count; i++)
+			for(int i = 0; i < cpy_socks.fd_count; i++)
 			{
 				int sockNum = socks.fd_array[i];
 				if(FD_ISSET(sockNum, &cpy_socks))
