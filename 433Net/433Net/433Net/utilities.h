@@ -26,9 +26,11 @@
 
 class Receiver;
 class UserToken;
+class IPeer;
 
 #include "reciever.h"
 #include "usertoken.h"
+#include "protocol.h"
 
 // 소켓 함수 오류 출력 후 종료
 void err_quit(char *msg);

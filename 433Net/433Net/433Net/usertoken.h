@@ -1,27 +1,38 @@
 #pragma once
 #include "utilities.h"
 
+class IPeer{
+public:
+	virtual void recieve_msg(char* buf, int size) = 0;
+	virtual void send_msg(char* buf, int size) = 0;
+};
+
 class UserToken{
 public:
-	SOCKET clientSoket;
+	SOCKET clientSocket;
 	SOCKADDR_IN clientAddr;
 	
 
 	char buf[BUFSIZE];
 	int position;
 	short remainBytes;
+	int size;
 
+	IPeer* peer;
 
 public:
-	UserToken(SOCKET clientSocket, SOCKADDR_IN clientAddr);
+	UserToken(SOCKET clientSocket, SOCKADDR_IN clientAddr, IPeer* peer);
 	~UserToken();
 
 	bool operator==(const UserToken& right);
 
 private:
-	void read_until();
+	bool read_until();
+	void start_send();
 
 public:
-	void recieveProcess();
-	void on_msg(char* buf);
+	bool recieveProcess();
+	void on_msg(char* buf, int size);
+	void send_msg(char *buf, int len);
+
 };

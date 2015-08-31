@@ -8,20 +8,19 @@ public:
 	~Reciever();
 
 	void start(int port, int backlog, void(*callback)(UserToken& token));
-
+	void process();
 
 private:
 	void addUserList(UserToken user);
 	void deleteUserList(UserToken user);
 
 
-	void process();
+	
 	void recieveProcess();
 	void acceptProcess();
 
 
 public:
-
 
 private:
 	void(*callback)(UserToken& token);
@@ -29,6 +28,7 @@ private:
 	SOCKADDR_IN serveraddr;
 
 	FD_SET reads;
+	FD_SET copy_set;
 	std::list<UserToken> userList;
 
 };

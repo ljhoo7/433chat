@@ -78,11 +78,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="433Net.h" />
+    <ClInclude Include="Player.h" />
+    <ClInclude Include="protocol.h" />
     <ClInclude Include="reciever.h" />
     <ClInclude Include="usertoken.h" />
     <ClInclude Include="utilities.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="Reciever.cpp" />
     <ClCompile Include="usertoken.cpp" />
     <ClCompile Include="utilities.cpp" />
