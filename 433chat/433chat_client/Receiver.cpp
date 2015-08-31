@@ -20,8 +20,9 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 	int retval = 0;
 	int size = 0, sum = 0;
 
-	t_join tmpJoin;
-	t_chat tmpChat;
+	t_join	tmpJoin;
+	t_chat	tmpChat;
+	t_leave tmpLeave;
 
 	while(1)		
 	{
@@ -41,33 +42,44 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 				err_quit("ReceivingThread() error");
 			sum += retval;
 
-			retval = recvn(sock, (char*)&type, sizeof(short), 0);
+			std::cout << length << std::endl;
+
+			int remain = length - sizeof(short);
+
+			char *datum = new char[remain];
+
+			retval = recvn(sock, (char*)&datum, remain, 0);
 			if (retval == SOCKET_ERROR)
 				err_quit("ReceivingThread() error");
 			sum += retval;
 
-			char *datum = new char[length];
-
-			retval = recvn(sock, (char*)&datum, length, 0);
-			if (retval == SOCKET_ERROR)
-				err_quit("ReceivingThread() error");
-			sum += retval;
+			memcpy(&type, datum, sizeof(short));
 
 			switch ((pkt_type)type)
 			{
 			case pkt_type::pt_chat:
 				ZeroMemory(&tmpChat, sizeof(t_chat));
-				memcpy((&tmpChat) + 4, datum, length);
+				memcpy((&tmpChat) + sizeof(short), datum, remain);
 
 				printf("\n[TCP 클라이언트] %d바이트를 받았습니다.\n", sum);
 				printf("[받은 데이터] %s\n", tmpChat.str);
-				printf("['%s'의 보낼 데이터] ", nickname);
+				printf("[%s의 %d번 방에서의 대화] ", nickname, room_num);
 				break;
 			case pkt_type::pt_join:
 				ZeroMemory(&tmpJoin, sizeof(t_join));
-				memcpy((&tmpJoin) + 4, datum, length);
+				memcpy((&tmpJoin) + sizeof(short), datum, remain);
+
+				printf("%s님이 %d번 방에 입장하셨습니다. ", tmpJoin.nickname, tmpJoin.room_num);
+				break;
+			case pkt_type::pt_leave:
+				ZeroMemory(&tmpLeave, sizeof(t_leave));
+				memcpy((&tmpLeave) + sizeof(short), datum, remain);
+				
+				printf("%s님이 %d번 방에서 퇴실하셨습니다. ", tmpLeave.nickname, tmpLeave.room_num);
 				break;
 			}
+
+			delete datum;
 
 			start_time = std::chrono::system_clock::now();
 		}
