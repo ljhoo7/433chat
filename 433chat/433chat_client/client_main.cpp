@@ -14,16 +14,16 @@ int main(int argc, char *argv[])
 {
 	int retval;
 
-	if(argc != 5)
+	if (argc != 5)
 	{
-		fputs("usage:(program_name) (chat_server_ip) (port) (nick) (room_num)\n",stdout);
+		fputs("usage:(program_name) (chat_server_ip) (port) (nick) (room_num)\n", stdout);
 		return 0;
 	}
 
 	room_num = atoi(argv[4]);
 
 	// 룸넘버가 0 ~ ROOM_MAX 사이 구간에 있는 숫자인지 체크해서 아니면 접속 거부
-	if(room_num >= ROOM_MAX || room_num < 0)
+	if (room_num >= ROOM_MAX || room_num < 0)
 	{
 		printf("A room number must be in this range : 0 ~ %d\n", ROOM_MAX);
 		return 0;
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 	nickname = argv[3];
 
 	// 닉네임 길이 제한
-	if(strlen(nickname) > STRSIZE - 1)
+	if (strlen(nickname) > STRSIZE - 1)
 	{
 		printf("The size of your nickname must be in this range : 1 ~ %d\n", STRSIZE - 1);
 		return 0;
@@ -68,12 +68,14 @@ int main(int argc, char *argv[])
 
 	// 접속 데이터
 	t_join tmp_packet;
-	tmp_packet.length = sizeof(t_join) - sizeof(short) - sizeof(short);
+	int size = sizeof(t_join);
+	std::cout << size << std::endl;
+	tmp_packet.length = size;
 	tmp_packet.type = pkt_type::pt_join;
 	tmp_packet.room_num = room_num;
 
 	// 접속 데이터 보내기
-	retval = send(sock, (char*)&tmp_packet, sizeof(t_join), 0);
+	retval = send(sock, (char*)&tmp_packet, size, 0);
 	if (retval == SOCKET_ERROR){
 		err_display("send()");
 		return 0;
@@ -96,13 +98,15 @@ int main(int argc, char *argv[])
 			break;
 
 		t_chat tmp_packet;
-		tmp_packet.length = len + sizeof(int);
+		int size = len + sizeof(int)+sizeof(short)+sizeof(short);
+		std::cout << size << std::endl;
+		tmp_packet.length = size;
 		tmp_packet.type = pkt_type::pt_chat;
 		tmp_packet.room_num = room_num;
 		strcpy(tmp_packet.str, buf);
 
 		// 채팅 데이터 보내기
-		retval = send(sock, (char*)&tmp_packet, len + 20, 0);
+		retval = send(sock, (char*)&tmp_packet, size, 0);
 		if (retval == SOCKET_ERROR){
 			err_display("send()");
 			break;
