@@ -18,8 +18,11 @@ void accept_callback(UserToken* token){
 	p->token = *token;
 	playerList.push_back(*p);
 
-
 	return;
+}
+
+void remove_callback(UserToken* token){
+	/* 메모리 누수 막아야댐 이거 좀있다 하자! */
 }
 
 DWORD WINAPI recieve_process(LPVOID arg){

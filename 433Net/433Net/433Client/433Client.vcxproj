@@ -11,16 +11,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{5F087A4D-9A26-46B2-A29A-B9156E48AF24}</ProjectGuid>
+    <ProjectGuid>{E635AD56-22C9-44E0-8089-7A9E5BC00990}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>My433Net</RootNamespace>
+    <RootNamespace>My433Client</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -78,19 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="433Net.h" />
-    <ClInclude Include="Player.h" />
-    <ClInclude Include="protocol.h" />
-    <ClInclude Include="reciever.h" />
-    <ClInclude Include="RoomManager.h" />
-    <ClInclude Include="usertoken.h" />
-    <ClInclude Include="utilities.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Reciever.cpp" />
-    <ClCompile Include="usertoken.cpp" />
-    <ClCompile Include="utilities.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

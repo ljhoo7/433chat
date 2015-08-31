@@ -69,11 +69,11 @@ int main(int argc, char *argv[])
 	// 접속 데이터
 	t_packet tmp_packet;
 	tmp_packet.m_join.type = pkt_type::pt_join;
-	tmp_packet.m_join.length = sizeof(t_packet);
+	tmp_packet.m_join.length = sizeof(t_join);
 	tmp_packet.m_join.room_num = room_num;
 
 	// 접속 데이터 보내기
-	retval = send(sock, (char*)&tmp_packet, sizeof(t_packet), 0);
+	retval = send(sock, (char*)&tmp_packet, sizeof(t_join), 0);
 	if (retval == SOCKET_ERROR){
 		err_display("send()");
 		return 0;
@@ -89,19 +89,20 @@ int main(int argc, char *argv[])
 
 		// '\n' 문자 제거
 		len = strlen(buf);
-		if (buf[len - 1] == '\n')
-			buf[len - 1] = '\0';
+		buf[len] = 0;
+		/*if (buf[len - 1] == '\n')
+			buf[len - 1] = '\0';*/
 		if (strlen(buf) == 0)
 			break;
 
 		t_packet tmp_packet;
 		tmp_packet.m_chat.type = pkt_type::pt_chat;
-		tmp_packet.m_chat.length = sizeof(t_packet);
+		tmp_packet.m_chat.length = len+8;
 		tmp_packet.m_chat.room_num = room_num;
 		strcpy(tmp_packet.m_chat.str, buf);
 
 		// 채팅 데이터 보내기
-		retval = send(sock, (char*)&tmp_packet, sizeof(t_packet), 0);
+		retval = send(sock, (char*)&tmp_packet, len+8, 0);
 		if (retval == SOCKET_ERROR){
 			err_display("send()");
 			break;

@@ -33,11 +33,13 @@ bool UserToken::recieveProcess(){
 			
 			memcpy(&remainBytes, buf, sizeof(short));
 			size = (int)(remainBytes);
+			remainBytes -= HEADER_SIZE;
+			printf("remain : %d\n", remainBytes);
 		}
 		bool check =  read_until();
 		if (remainBytes <= 0){
 			position = 0;
-
+			printf("remain : %d\n", remainBytes);
 			on_msg(buf, size);
 		}
 		return check;

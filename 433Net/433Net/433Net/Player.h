@@ -23,7 +23,7 @@ public:
 		switch (pkt.m_any.type)
 		{
 		case pkt_type::pt_chat:
-			pkt.m_chat.str[size] = '\0';
+			pkt.m_chat.str[size-8] = '\0';
 			printf("[TCP 클라이언트] %d바이트를 받았습니다.\n", size);
 			printf("[받은 데이터] %s\n", pkt.m_chat.str);
 			break;
