@@ -9,6 +9,13 @@ extern CReceiver		*g_cReceivingManager;
 // 채팅룸
 extern fd_set			reads[ROOM_MAX];
 
+extern SOCKET the_other_sock;
+
+extern unsigned long g_nIp;
+extern int g_nPort;
+
+extern int g_nIsListen;
+
 // 패킷 처리 함수
 void paket_handling(t_packet pkt, int i, SOCKET sock);
 
@@ -40,7 +47,10 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 	ZeroMemory(&serveraddr, sizeof(serveraddr));
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	serveraddr.sin_port = htons(SERVERPORT);
+	if (g_nIsListen)
+		serveraddr.sin_port = htons(SERVERPORT1);
+	else
+		serveraddr.sin_port = htons(SERVERPORT2);
 	retval = bind(listen_sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
 	if(retval == SOCKET_ERROR) err_quit("bind()");
 
@@ -124,7 +134,7 @@ CReceiver::~CReceiver(void)
 // 패킷 처리 함수
 void paket_handling(t_packet pkt, int i, SOCKET sock)
 {
-	int nRoom;
+	int nRoom, retval;
 	t_packet result_pkt;
 	thread_data tData;
 	HANDLE hSpreading;
@@ -145,6 +155,10 @@ void paket_handling(t_packet pkt, int i, SOCKET sock)
 			CloseHandle(hSpreading);
 			
 			//DeleteCriticalSection(&cs);
+			
+			// 상대 서버와 연결이 되어있다면 챗팅 메세지를 보내준다.
+			if (the_other_sock != NULL)
+				send(the_other_sock, (char*)&pkt, sizeof(t_packet), 0);
 			
 			break;
 		case pt_join:
@@ -178,6 +192,7 @@ DWORD WINAPI SpreadingThread(LPVOID arg)
 		{
 			send(reads[tData->room_num].fd_array[m], (char*)&tData->pkt, sizeof(t_packet), 0);
 		}
+
 	}
 
 	return 0;
