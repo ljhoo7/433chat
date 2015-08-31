@@ -75,6 +75,11 @@ int main(int argc, char *argv[])
 
 	WaitForMultipleObjects(remain, hHandleBot, TRUE, INFINITE);
 
+	for (int m = 0; m < remain; ++m)
+	{
+		CloseHandle(hHandleBot[m]);
+	}
+
 	for(int m = 0; m < bot_cnt; ++m)
 	{
 		CloseHandle(hBot[m]);
@@ -87,6 +92,8 @@ DWORD WINAPI WaitThread(LPVOID arg)
 {
 	int grade = *(int*)arg;
 	WaitForMultipleObjects(bot_cnt % MAXIMUM_WAIT_OBJECTS, hBot + (MAXIMUM_WAIT_OBJECTS * grade), TRUE, INFINITE);
+
+	return 0;
 }
 
 DWORD WINAPI BotThread(LPVOID arg)
