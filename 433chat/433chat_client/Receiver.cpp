@@ -18,7 +18,10 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 	
 	long long time;
 	int retval = 0;
-	int size = 0;
+	int size = 0, sum = 0;
+
+	t_join tmpJoin;
+	t_chat tmpChat;
 
 	while(1)		
 	{
@@ -26,33 +29,48 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 		tmp2 = std::chrono::duration_cast<std::chrono::milliseconds>(tmp);
 		time = tmp2.count();
 		if (block <= time){
-			t_packet tmppakt;
+
+			sum = 0;
+
 			retval = 0;
 
-			retval = recvn(sock, (char*)&tmppakt, sizeof(t_packet), 0);
+			short length, type;
 
+			retval = recvn(sock, (char*)&length, sizeof(short), 0);
 			if(retval == SOCKET_ERROR)
 				err_quit("ReceivingThread() error");
+			sum += retval;
 
-			g_cReceivingManager->MyReceiveMessage(tmppakt, retval);
+			retval = recvn(sock, (char*)&type, sizeof(short), 0);
+			if (retval == SOCKET_ERROR)
+				err_quit("ReceivingThread() error");
+			sum += retval;
+
+			char *datum = new char[length];
+
+			retval = recvn(sock, (char*)&datum, length, 0);
+			if (retval == SOCKET_ERROR)
+				err_quit("ReceivingThread() error");
+			sum += retval;
+
+			switch ((pkt_type)type)
+			{
+			case pkt_type::pt_chat:
+				ZeroMemory(&tmpChat, sizeof(t_chat));
+				memcpy((&tmpChat) + 2, datum, length);
+
+				printf("\n[TCP 클라이언트] %d바이트를 받았습니다.\n", sum);
+				printf("[받은 데이터] %s\n", tmpChat.str);
+				printf("['%s'의 보낼 데이터] ", nickname);
+				break;
+			case pkt_type::pt_join:
+				ZeroMemory(&tmpJoin, sizeof(t_join));
+				memcpy((&tmpJoin) + 2, datum, length);
+				break;
+			}
 
 			start_time = std::chrono::system_clock::now();
 		}
-	}
-	return true;
-}
-
-bool CReceiver::MyReceiveMessage(t_packet& tmppacket, const int retval)
-{
-	switch(tmppacket.m_any.type)
-	{
-	case pkt_type::pt_chat:
-			// 받은 데이터 출력
-			tmppacket.m_chat.str[retval] = '\0';
-			printf("\n[TCP 클라이언트] %d바이트를 받았습니다.\n", retval);
-			printf("[받은 데이터] %s\n", tmppacket.m_chat.str);
-			printf("['%s'의 보낼 데이터] ", nickname);
-		break;
 	}
 	return true;
 }
