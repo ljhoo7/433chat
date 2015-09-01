@@ -22,7 +22,7 @@ void Player::recieve_msg(char* buf, int size){
 		case pkt_type::pt_chat:
 		{
 			//pkt.m_chat.str[size - 8] = '\0';
-			printf("[TCP 클라이언트] %d바이트를 받았습니다.\n", size);
+			//printf("[TCP 클라이언트] %d바이트를 받았습니다.\n", size);
 			//printf("[받은 데이터] %s\n", pkt.m_chat.str);
 			Room* room = roomManager.findRoom(pkt.m_chat.room_num);
 			if (room != NULL) room->broadcast_msg(buf, size);
@@ -80,6 +80,17 @@ void Player::remove(){
 		printf("No ROOM!\n");
 		return;
 	}
+	if (the_other_sock != NULL){
+		t_leave msg;
+		msg.length = sizeof(msg.length) + sizeof(msg.room_num)
+			+ sizeof(msg.type) + this->nickname.size();
+		msg.room_num = this->roomNum;
+		msg.type = pkt_type::pt_leave;
+		memcpy(msg.nickname, this->nickname.c_str(), this->nickname.size());
+		send(the_other_sock, (char*)&msg, msg.length, 0);
+	}
+	
+
 	if (room != NULL) room->playerQuit(this, true);
 
 	printf("remove in room...\n");

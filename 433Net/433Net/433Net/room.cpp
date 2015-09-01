@@ -51,4 +51,4 @@ void Room::broadcast_msg(char* msg, int size){
 	for (iter = players.begin(); iter != players.end(); iter++){
 		(*iter)->send_msg(msg, size);
 	}
-}}
+}

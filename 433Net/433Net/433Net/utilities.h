@@ -3,6 +3,8 @@
 
 #pragma once
 
+#define FD_SETSIZE 1024
+
 #pragma comment(lib, "ws2_32")
 
 #include <iostream>

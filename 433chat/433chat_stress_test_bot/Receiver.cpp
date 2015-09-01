@@ -26,15 +26,18 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 		tmp2 = std::chrono::duration_cast<std::chrono::milliseconds>(tmp);
 		time = tmp2.count();
 		if (block <= time){
-			t_packet tmppakt;
 			retval = 0;
 
-			retval = recvn(sock, (char*)&tmppakt, sizeof(t_packet), 0);
+			short length;
+			retval = recvn(sock, (char*)&length, sizeof(short), 0);
+			char *tmppakt = new char[length - 2];
+
+			retval = recvn(sock, (char*)&tmppakt, length - 2, 0);
 
 			if (retval == SOCKET_ERROR)
 				err_quit("ReceivingThread() error");
 
-			MyReceiveMessage(tmppakt, retval);
+			//MyReceiveMessage(tmppakt, retval);
 
 			start_time = std::chrono::system_clock::now();
 		}
