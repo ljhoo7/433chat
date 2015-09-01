@@ -3,8 +3,8 @@
 
 #pragma once
 
-#define PKTLEN		512
-#define STRSIZE		512
+#define PKTLEN 512
+#define STRSIZE	512
 
 enum pkt_type { pt_any, pt_create, pt_destroy, pt_join, pt_leave, pt_chat, pt_interserver };
 
@@ -49,14 +49,15 @@ typedef struct{
 
 	int room_num;
 	// 최대 511 개 문자 (개행 문자 포함 512개 )
-	char str[STRSIZE];
+	char nickname[20];
+	char str[STRSIZE-20];
 }t_chat;
 
 typedef union{
-	t_any			m_any;
-	t_create		m_create;
-	//t_destroy	m_destroy;
-	t_join			m_join;
-	t_leave			m_leave;
-	t_chat			m_chat;
+	t_any         m_any;
+	t_create      m_create;
+	t_destroy   m_destroy;
+	t_join         m_join;
+	t_leave         m_leave;
+	t_chat         m_chat;
 }t_packet;

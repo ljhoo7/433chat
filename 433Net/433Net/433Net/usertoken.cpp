@@ -34,12 +34,10 @@ bool UserToken::recieveProcess(){
 			memcpy(&remainBytes, buf, sizeof(short));
 			size = (int)(remainBytes);
 			remainBytes -= HEADER_SIZE;
-			printf("remain : %d\n", remainBytes);
 		}
 		bool check =  read_until();
 		if (remainBytes <= 0){
 			position = 0;
-			printf("remain : %d\n", remainBytes);
 			on_msg(buf, size);
 		}
 		return check;
@@ -71,24 +69,12 @@ bool UserToken::read_until(){
 }
 
 void UserToken::on_msg(char* buf, int size){
-	/* packet handling*/
-/*	t_packet pkt;
-	memcpy(&pkt, buf, size);
-	switch (pkt.m_any.type)
-	{
-		case pkt_type::pt_chat:
-			pkt.m_chat.str[size] = '\0';
-			printf("[TCP 클라이언트] %d바이트를 받았습니다.\n", size);
-			printf("[받은 데이터] %s\n", pkt.m_chat.str);
-			break;
-	}*/
+
 	if (peer != NULL){
 		peer->recieve_msg(buf, size);
 	}
 }
 
 void UserToken::send_msg(char *buf, int len){
-
-	printf("%d바이트 보냈는데유\n", len);
 	send(clientSocket, buf, len, 0);
 }

@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 
 	room_num = -1;
 
-	printf("[접속할 서버의 ip주소] ", nickname);
+	printf("[접속할 서버의 ip주소] ");
 	if (fgets(buf, BUFSIZE + 1, stdin) == NULL)
 		return 0;
 	int wanted = strlen(buf);
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 
 	unsigned long ip = inet_addr(subed);
 
-	printf("[접속할 서버의 port] ", nickname);
+	printf("[접속할 서버의 port] ");
 	if (fgets(buf, BUFSIZE + 1, stdin) == NULL)
 		return 0;
 	wanted = strlen(buf) - 1;
@@ -69,8 +69,6 @@ int main(int argc, char *argv[])
 		// 데이터 입력
 		if ((!strcmp("",nickname)) || room_num == -1)
 			printf("[명령어] ");
-		else
-			printf("[방에서의 대화] ");
 		if (fgets(buf, BUFSIZE + 1, stdin) == NULL)
 			break;
 
@@ -231,11 +229,12 @@ int main(int argc, char *argv[])
 				break;
 
 			t_chat tmp_packet;
-			int size = len + sizeof(int)+sizeof(short)+sizeof(short);
+			int size = len + 20 + sizeof(int)+sizeof(short)+sizeof(short);
 			tmp_packet.length = size;
 			tmp_packet.type = pkt_type::pt_chat;
 			tmp_packet.room_num = room_num;
 			strcpy(tmp_packet.str, buf);
+			strcpy(tmp_packet.nickname, nickname);
 
 			// 채팅 데이터 보내기
 			retval = send(sock, (char*)&tmp_packet, size, 0);
@@ -243,7 +242,7 @@ int main(int argc, char *argv[])
 				err_display("send()");
 				break;
 			}
-			printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
+		//	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
 		}
 	}
 
