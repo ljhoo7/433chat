@@ -110,7 +110,6 @@ DWORD WINAPI InterServerThread(LPVOID arg)
 			short length;
 			int str_len = recvn(the_other_sock, (char*)&length, sizeof(short), 0);
 
-			printf("%d\n", str_len);
 
 			if (str_len == SOCKET_ERROR)
 			{
@@ -119,12 +118,10 @@ DWORD WINAPI InterServerThread(LPVOID arg)
 				return true;
 			}
 
-			printf("size:%d\n", length);
 
 			int remain = length - 2;
 			str_len = recvn(the_other_sock, (char*)buf, remain, 0);
 
-			printf("%d\n", str_len);
 
 			if (str_len == SOCKET_ERROR)
 			{

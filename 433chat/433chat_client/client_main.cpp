@@ -195,6 +195,32 @@ int main(int argc, char *argv[])
 					room_num = -1;
 				}
 			}
+			else if (subedstr == "dest")
+			{
+				int t_room_num;
+				sscanf(tmpstr.c_str(), "destroy %d\n", &t_room_num);
+
+				if (t_room_num < 0)
+				{
+					fputs("방번호는 0 이상이어야 됩니다.\n", stdout);
+					continue;
+				}
+
+				// 방 생성 데이터
+				t_destroy tmp_packet;
+				int size = sizeof(t_destroy);
+				tmp_packet.length = size;
+				tmp_packet.type = pkt_type::pt_destroy;
+				tmp_packet.room_num = t_room_num;
+
+				// 방 생성 데이터 보내기
+				retval = send(sock, (char*)&tmp_packet, size, 0);
+				if (retval == SOCKET_ERROR){
+					err_display("send()");
+					return 0;
+				}
+				printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
+			}
 			else
 			{
 				if (room_num > -1)
