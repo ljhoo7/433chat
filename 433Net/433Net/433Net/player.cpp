@@ -43,8 +43,8 @@ void Player::recieve_msg(char* buf, int size){
 		case pkt_type::pt_leave:
 		{
 			pkt.m_join.nickname[size - 8] = '\0';
-			this->nickname = pkt.m_join.nickname;
-			roomManager.enterRoom(this, pkt.m_leave.room_num);
+			this->nickname = pkt.m_leave.nickname;
+			roomManager.leaveRoom(this, pkt.m_leave.room_num);
 			break;
 		}
 		case pkt_type::pt_destroy:
@@ -53,4 +53,11 @@ void Player::recieve_msg(char* buf, int size){
 			break;
 		}
 	}
+}
+
+void Player::remove(){
+	Room* room = roomManager.findRoom(this->roomNum);
+	room->playerQuit(this);
+
+	printf("remove in room...\n");
 }

@@ -13,4 +13,6 @@ public:
 	void send_msg(char *buf, int size);
 
 	void recieve_msg(char* buf, int size);
+
+	void remove();
 };

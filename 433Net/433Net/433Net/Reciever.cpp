@@ -129,5 +129,6 @@ void Reciever::addUserList(UserToken user){
 void Reciever::deleteUserList(UserToken user){
 	FD_CLR(user.clientSocket, &reads);
 	userList.remove(user);
+	user.remove();
 	closesocket(user.clientSocket);
 }

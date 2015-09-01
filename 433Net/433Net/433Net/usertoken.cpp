@@ -46,6 +46,14 @@ bool UserToken::recieveProcess(){
 	}
 }
 
+void UserToken::remove(){
+	if (this->peer != NULL){
+		this->peer->remove();
+
+		delete this->peer;
+	}
+}
+
 bool UserToken::read_until(){
 	int read_size = recv(clientSocket, buf + position, remainBytes, 0);
 	//printf("%d\n", read_size);

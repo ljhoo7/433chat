@@ -5,6 +5,7 @@ class IPeer{
 public:
 	virtual void recieve_msg(char* buf, int size) = 0;
 	virtual void send_msg(char* buf, int size) = 0;
+	virtual void remove() = 0;
 };
 
 class UserToken{
@@ -36,5 +37,5 @@ public:
 	bool recieveProcess();
 	void on_msg(char* buf, int size);
 	void send_msg(char *buf, int len);
-
+	void remove();
 };
