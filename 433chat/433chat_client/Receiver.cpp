@@ -42,8 +42,6 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 				err_quit("ReceivingThread() error");
 			sum += retval;
 
-			//std::cout << length << std::endl;
-
 			int remain = length - sizeof(short);
 
 			char *datum = new char[remain + 1];
@@ -62,7 +60,6 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 				datum[remain] = '\0';
 				memcpy(&tmpChat.type, datum, remain + 1);
 
-			//	printf("\n[TCP 클라이언트] %d바이트를 받았습니다.\n", sum);
 				printf("[%s] %s\n", tmpChat.nickname, tmpChat.str);
 				break;
 			case pkt_type::pt_join:

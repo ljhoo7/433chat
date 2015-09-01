@@ -2,6 +2,8 @@
 
 extern RoomManager roomManager;
 
+extern SOCKET the_other_sock;
+
 Room::Room(int roomNumber){
 	this->roomNumber = roomNumber;
 }
@@ -43,10 +45,11 @@ void Room::playerQuit(Player* player){
 
 void Room::broadcast_msg(char* msg, int size){
 	std::list<Player*>::iterator iter;
-	printf("%d 번호 방에 %d명 접속중\n", roomNumber, players.size());
+	//printf("%d 번호 방에 %d명 접속중\n", roomNumber, players.size());
 	for (iter = players.begin(); iter != players.end(); iter++){
 		(*iter)->send_msg(msg, size);
 	}
 }
 
 
+}

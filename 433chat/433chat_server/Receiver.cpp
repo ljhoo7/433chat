@@ -154,6 +154,7 @@ void paket_handling(t_packet pkt, int i, SOCKET sock)
 
 			CloseHandle(hSpreading);
 			
+
 			//DeleteCriticalSection(&cs);
 			
 			// 상대 서버와 연결이 되어있다면 챗팅 메세지를 보내준다.

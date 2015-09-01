@@ -1,10 +1,13 @@
 #include "utilities.h"
+#include "RoomManager.h"
 
 int fps = 30;
 double block = 1000 / fps;
 
 SOCKET the_other_sock;
 extern int g_nIsListen;
+
+extern RoomManager roomManager;
 
 DWORD WINAPI InterServerThread(LPVOID arg)
 {
@@ -37,8 +40,8 @@ DWORD WINAPI InterServerThread(LPVOID arg)
 			SOCKADDR_IN serveraddr;
 			ZeroMemory(&serveraddr, sizeof(serveraddr));
 			serveraddr.sin_family = AF_INET;
-			serveraddr.sin_addr.s_addr = g_nIp;//SERVERIP);
-			serveraddr.sin_port = htons(g_nPort);
+			serveraddr.sin_addr.s_addr = inet_addr(SERVERIP);
+			serveraddr.sin_port = htons(INTERSERVERPORT);
 
 			retval = connect(the_other_sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
 			if (retval == SOCKET_ERROR)err_quit("connect()");
@@ -62,7 +65,7 @@ DWORD WINAPI InterServerThread(LPVOID arg)
 			ZeroMemory(&serveraddr, sizeof(serveraddr));
 			serveraddr.sin_family = AF_INET;
 			serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
-			serveraddr.sin_port = htons(g_nPort);
+			serveraddr.sin_port = htons(INTERSERVERPORT);
 			retval = bind(listen_sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
 
 			// listen()
@@ -85,7 +88,7 @@ DWORD WINAPI InterServerThread(LPVOID arg)
 		}
 	}
 
-	printf("InterServer Thread has been activated with %ld\n", g_nIp);
+	printf("InterServer Thread has been activated.\n");
 
 	// 3개 이상 서버 간의 데이터 통신에 사용할 변수
 	/*FD_SET socks, cpy_socks;
@@ -103,26 +106,40 @@ DWORD WINAPI InterServerThread(LPVOID arg)
 		tmp2 = std::chrono::duration_cast<std::chrono::milliseconds>(tmp);
 		time = tmp2.count();
 		if (block <= time){
-			t_packet buf;
-			int str_len = recvn(the_other_sock, (char*)&buf, sizeof(t_packet), 0);
+			char buf[PKTLEN];
+			int length;
+			int str_len = recvn(the_other_sock, (char*)&length, sizeof(short), 0);
 			if (str_len == SOCKET_ERROR)
 			{
 				closesocket(the_other_sock);
 				printf("closed the other server.\n");
 				return true;
 			}
-			else
+
+			int remain = length - 2;
+			str_len = recvn(the_other_sock, (char*)buf, remain, 0);
+
+			if (str_len == SOCKET_ERROR)
 			{
-				thread_data tData;
+				closesocket(the_other_sock);
+				printf("closed the other server.\n");
+				return true;
+			}
 
-				tData.room_num = buf.m_chat.room_num;
-				tData.pkt = buf;
-				tData.sock = NULL;
-
-				HANDLE hSpreading = CreateThread(NULL, 0, SpreadingThread,
-					(LPVOID)&tData, 0, NULL);
-
-				CloseHandle(hSpreading);
+			switch ((short)buf)
+			{
+			case pkt_type::pt_chat:
+				t_chat tmpChat;
+				tmpChat.length = length;
+				memcpy(&tmpChat.type, buf, remain);
+				roomManager.findRoom(tmpChat.room_num)->broadcast_msg((char*)&tmpChat, tmpChat.length);
+				break;
+			case pkt_type::pt_create:
+				t_create tmpCreate;
+				tmpChat.length = length;
+				memcpy(&tmpCreate.type, buf, remain);
+				roomManager.findRoom(tmpCreate.room_num)->broadcast_msg((char*)&tmpCreate, tmpCreate.length);
+				break;
 			}
 
 			start_time = std::chrono::system_clock::now();

@@ -18,9 +18,19 @@
 #include <thread>
 #include <list>
 
+#include "protocol.h"
+
+// 메세지 뿌리는 스레드에 넘길 자료구조
+typedef struct thread_data
+{
+	SOCKET		sock;
+	t_chat		pkt;
+}thread_data;
+
 #define SERVERIP   "127.0.0.1"
 #define SERVERPORT1 9000
 #define SERVERPORT2 9001
+#define INTERSERVERPORT 11024
 #define BUFSIZE    512
 #define ROOM_MAX   99999
 #define HEADER_SIZE 2
@@ -31,7 +41,6 @@ class IPeer;
 
 #include "reciever.h"
 #include "usertoken.h"
-#include "protocol.h"
 
 // 소켓 함수 오류 출력 후 종료
 void err_quit(char *msg);
