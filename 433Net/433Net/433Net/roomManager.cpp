@@ -6,6 +6,7 @@ void RoomManager::printInfo(){
 	for (iter = rooms.begin(); iter != rooms.end(); iter++){
 		printf("방 %d에 %d명 접속 중\n", (*iter)->roomNumber, (*iter)->players.size());
 	}
+	printf("\n");
 }
 
 void RoomManager::createRoom(int roomNumber){
@@ -36,6 +37,7 @@ Room* RoomManager::findRoom(int roomNumber){
 			return (*iter);
 		}
 	}
+
 	return NULL;
 }
 

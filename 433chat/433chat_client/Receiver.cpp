@@ -71,7 +71,7 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 				memcpy(&tmpJoin.type, datum, remain + 1);
 
 		//		printf("\n[TCP 클라이언트] %d바이트를 받았습니다.\n", sum);
-				printf("%s님이 %d번 방에 입장하셨습니다. ", tmpJoin.nickname, tmpJoin.room_num);
+				printf("%s님이 %d번 방에 입장하셨습니다.\n", tmpJoin.nickname, tmpJoin.room_num);
 				break;
 			case pkt_type::pt_leave:
 				//ZeroMemory(&tmpLeave, sizeof(t_leave));
@@ -79,7 +79,7 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 				memcpy(&tmpLeave.type, datum, remain + 1);
 				
 			//	printf("\n[TCP 클라이언트] %d바이트를 받았습니다.\n", sum);
-				printf("%s님이 방에서 퇴실하셨습니다. ", tmpLeave.nickname);
+				printf("%s님이 방에서 퇴실하셨습니다.\n", tmpLeave.nickname);
 				break;
 			}
 
