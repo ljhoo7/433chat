@@ -30,6 +30,7 @@ void Room::playerEnter(Player* player){
 	players.push_back(player);
 }
 
+
 void Room::playerQuit(Player* player, bool msg){
 	player->roomNum = -1;
 	players.remove(player);
@@ -38,6 +39,7 @@ void Room::playerQuit(Player* player, bool msg){
 	packet.length = (player->nickname).size() + 4;
 	packet.type = pkt_type::pt_leave;
 	memcpy(packet.nickname, (player->nickname).c_str(), (player->nickname).size());
+
 	if (msg) broadcast_msg((char *)&packet, (player->nickname).size() + 4);
 
 	/* 나갔다고 알리기 */
@@ -49,4 +51,4 @@ void Room::broadcast_msg(char* msg, int size){
 	for (iter = players.begin(); iter != players.end(); iter++){
 		(*iter)->send_msg(msg, size);
 	}
-}
+}}

@@ -47,10 +47,11 @@ void Player::recieve_msg(char* buf, int size){
 		case pkt_type::pt_create:
 		{	
 			roomManager.createRoom(pkt.m_create.room_num);
-
+// 연동되고 있는 서버가 한 대 더 있다면 방 생성 메세지를 보내준다.
 			if (the_other_sock != NULL)
-				send(the_other_sock, (char*)&pkt, size, 0);
-			break;
+			{
+				send(the_other_sock, buf, size, 0);
+			}			break;
 		}
 		case pkt_type::pt_leave:
 		{

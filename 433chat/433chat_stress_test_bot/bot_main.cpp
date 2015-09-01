@@ -15,11 +15,16 @@ char	garbage_strs[STR_NUM][20] =
 
 int		bot_cnt;
 int		room_num;
+char	nickname[STRSIZE], buf2[STRSIZE];
+
+bool	isFirst;
 
 char	*ip;
 char	*port;
 
 HANDLE *hBot;
+
+CRITICAL_SECTION cs;
 
 DWORD WINAPI BotThread(LPVOID arg);
 DWORD WINAPI ReceivingThread(LPVOID arg);
@@ -29,6 +34,8 @@ DWORD WINAPI WaitThread(LPVOID arg);
 // 사용법 : 프로그램명 + 서버주소 + 포트번호 + 봇 이름 + 방번호 + 대기시간
 int main(int argc, char *argv[])
 {
+	isFirst = true;
+
 	static std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
 	std::chrono::system_clock::duration tmp;
 	std::chrono::milliseconds tmp2;
@@ -62,10 +69,13 @@ int main(int argc, char *argv[])
 	hBot = new HANDLE[bot_cnt];
 	HANDLE *hHandleBot = new HANDLE[remain];
 
+	InitializeCriticalSection(&cs);
+
 	// 봇 만들기
 	for (int m = 0; m < bot_cnt; ++m)
 	{
 		hBot[m] = CreateThread(NULL, 0, BotThread, (LPVOID)&m, 0, NULL);
+		Sleep(1000);
 	}
 
 	for (int m = 0; m < remain; ++m)
@@ -74,6 +84,8 @@ int main(int argc, char *argv[])
 	}
 
 	WaitForMultipleObjects(remain, hHandleBot, TRUE, INFINITE);
+
+	DeleteCriticalSection(&cs);
 
 	for (int m = 0; m < remain; ++m)
 	{
@@ -131,17 +143,51 @@ DWORD WINAPI BotThread(LPVOID arg)
 	char buf[STRSIZE];
 	int len;
 
-	// 접속 데이터
-	t_packet tmp_packet;
-	tmp_packet.m_join.type = pkt_type::pt_join;
-	tmp_packet.m_join.length = sizeof(t_packet);
-	tmp_packet.m_join.room_num = room_num;
-
 	// 리시버 스레드 구동
 	HANDLE hReceiving = CreateThread(NULL, 0, ReceivingThread, (LPVOID)&sock, 0, NULL);
 
-	// 접속 데이터 보내기
-	retval = send(sock, (char*)&tmp_packet, sizeof(t_packet), 0);
+	EnterCriticalSection(&cs);
+	if (isFirst)
+	{
+		isFirst = false;
+
+		// 방 생성 데이터
+		t_create tmp_packet;
+		int size = sizeof(t_create);
+		tmp_packet.length = size;
+		tmp_packet.type = pkt_type::pt_create;
+		tmp_packet.room_num = room_num;
+
+		// 방 생성 데이터 보내기
+		retval = send(sock, (char*)&tmp_packet, size, 0);
+		if (retval == SOCKET_ERROR){
+			err_display("send()");
+			return 0;
+		}
+	}
+	LeaveCriticalSection(&cs);
+
+	strcpy(buf2,("bot_" + std::to_string(m)).c_str());
+	strcpy(nickname, buf2);
+
+	// '\n' 문자 제거
+	len = strlen(buf2);
+
+	if (buf2[len - 1] == '\n')
+		buf2[len - 1] = '\0';
+	if (strlen(buf2) == 0)
+		return 0;
+
+	// 입실 데이터
+	t_join tmp_packet;
+	size = len + sizeof(int)+sizeof(short)+sizeof(short);
+	tmp_packet.length = size;
+	tmp_packet.type = pkt_type::pt_join;
+	tmp_packet.room_num = room_num;
+	strcpy(tmp_packet.nickname, buf2);
+
+	// 입실 데이터 보내기
+	retval = send(sock, (char*)&tmp_packet, size, 0);
 	if (retval == SOCKET_ERROR){
 		err_display("send()");
 		return 0;
@@ -156,20 +202,18 @@ DWORD WINAPI BotThread(LPVOID arg)
 		{
 			int str_num = rand() % STR_NUM;
 
-			// 보낼 데이터 생성
-			//printf("['%s'의 보낸 데이터] %s", ("bot" + std::to_string(m)).c_str(), garbage_strs[str_num]);
-
 			if (strlen(buf) == 0)
 				break;
 
-			t_packet tmp_packet;
-			tmp_packet.m_chat.type = pkt_type::pt_chat;
-			tmp_packet.m_chat.length = sizeof(t_packet);
-			tmp_packet.m_chat.room_num = room_num;
-			strcpy(tmp_packet.m_chat.str, garbage_strs[str_num]);
+			t_chat tmp_packet;
+			int size = len + 20 + sizeof(int)+sizeof(short)+sizeof(short);
+			tmp_packet.type = pkt_type::pt_chat;
+			tmp_packet.length = sizeof(t_packet);
+			tmp_packet.room_num = room_num;
+			strcpy(tmp_packet.str, garbage_strs[str_num]);
 
 			// 채팅 데이터 보내기
-			retval = send(sock, (char*)&tmp_packet, sizeof(t_packet), 0);
+			retval = send(sock, (char*)&tmp_packet, size, 0);
 			if (retval == SOCKET_ERROR){
 				err_display("send()");
 				break;

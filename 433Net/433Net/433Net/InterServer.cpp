@@ -109,20 +109,14 @@ DWORD WINAPI InterServerThread(LPVOID arg)
 			char buf[PKTLEN];
 			short length;
 			int str_len = recvn(the_other_sock, (char*)&length, sizeof(short), 0);
-
-
 			if (str_len == SOCKET_ERROR)
 			{
 				closesocket(the_other_sock);
 				printf("closed the other server.\n");
 				return true;
 			}
-
-
 			int remain = length - 2;
 			str_len = recvn(the_other_sock, (char*)buf, remain, 0);
-
-
 			if (str_len == SOCKET_ERROR)
 			{
 				closesocket(the_other_sock);
@@ -135,7 +129,7 @@ DWORD WINAPI InterServerThread(LPVOID arg)
 
 			switch (type)
 			{
-				case pkt_type::pt_chat:
+case pkt_type::pt_chat:
 				{
 					t_chat tmpChat;
 					tmpChat.length = length;
@@ -178,8 +172,7 @@ DWORD WINAPI InterServerThread(LPVOID arg)
 					memcpy(&tmpDestroy.type, buf, remain);
 					roomManager.destroyRoom(tmpDestroy.room_num);
 					break;
-				}
-			}
+				}			}
 
 			start_time = std::chrono::system_clock::now();
 		}
