@@ -66,4 +66,6 @@ void Player::remove(){
 	room->playerQuit(this);
 
 	printf("remove in room...\n");
+
+	delete this;
 }

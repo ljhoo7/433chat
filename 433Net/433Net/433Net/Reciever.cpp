@@ -134,4 +134,5 @@ void Reciever::deleteUserList(UserToken user){
 	userList.remove(user);
 	user.remove();
 	closesocket(user.clientSocket);
+	delete this;
 }
