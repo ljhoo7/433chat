@@ -75,16 +75,7 @@ void RoomManager::createRoom(int roomNumber){
 	}
 	Room* room = new Room(roomNumber);
 
-	// 연동되고 있는 서버가 한 대 더 있다면 방 생성 메세지를 보내준다.
-	if (the_other_sock != NULL)
-	{
-		t_create result_pkt;
-		result_pkt.length = sizeof(t_create);
-		result_pkt.type = pkt_type::pt_create;
-		result_pkt.room_num = roomNumber;
-		
-		send(the_other_sock, (char*)&result_pkt, sizeof(t_packet), 0);
-	}
+	
 
 	//enterRoom(p, roomNumber);
 	rooms.insert(iter, room);

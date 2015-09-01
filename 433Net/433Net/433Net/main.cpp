@@ -33,7 +33,7 @@ DWORD WINAPI recieve_process(LPVOID arg){
 }
 int main(int argc, char *argv[])
 {
-	/*if (argc != 2)
+	if (argc != 2)
 	{
 		puts("usage : (program_name) (0=listen,1=connect)\n");
 		return 0;
@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 	if (g_nIsListen != 0 && g_nIsListen != 1)
 	{
 		puts("The second argument must be zero or one.\n");
-	}*/
+	}
 
 	// 리시브 매니저
 	server = new Reciever();
