@@ -6,7 +6,37 @@
 #define PKTLEN 512
 #define STRSIZE	512
 
-enum pkt_type { pt_any, pt_create, pt_destroy, pt_join, pt_leave, pt_chat, pt_interserver };
+enum pkt_type {
+	pt_any,
+	pt_create,
+	pt_destroy,
+	pt_join,
+	pt_leave,
+	pt_chat,
+	pt_interserver,
+};
+
+/*
+typedef struct{
+short length;
+short type;
+}t_join_success;
+
+typedef struct{
+short length;
+short type;
+}t_join_fail;
+
+typedef struct{
+short length;
+short type;
+}t_create_success;
+
+typedef struct{
+short length;
+short type;
+}t_create_fail;
+*/
 
 typedef struct{
 	short length;
@@ -40,6 +70,7 @@ typedef struct{
 	short length;
 	short type;
 
+	int room_num;
 	char nickname[STRSIZE];
 }t_leave;
 
@@ -50,7 +81,7 @@ typedef struct{
 	int room_num;
 	// 최대 511 개 문자 (개행 문자 포함 512개 )
 	char nickname[20];
-	char str[STRSIZE-20];
+	char str[STRSIZE - 20];
 }t_chat;
 
 typedef union{

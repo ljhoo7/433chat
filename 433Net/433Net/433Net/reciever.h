@@ -11,8 +11,8 @@ public:
 	void process();
 
 private:
-	void addUserList(UserToken user);
-	void deleteUserList(UserToken user);
+	void addUserList(UserToken* user);
+	void deleteUserList(UserToken* user);
 
 
 	
@@ -29,6 +29,6 @@ private:
 
 	FD_SET reads;
 	FD_SET copy_set;
-	std::list<UserToken> userList;
+	std::list<UserToken*> userList;
 
 };

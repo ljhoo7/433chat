@@ -31,6 +31,8 @@ void RoomManager::createRoom(int roomNumber){
 }
 
 Room* RoomManager::findRoom(int roomNumber){
+	if (roomNumber == -1) return NULL;
+
 	std::list<Room*>::iterator iter;
 	for (iter = rooms.begin(); iter != rooms.end(); iter++){
 		if ((*iter)->roomNumber == roomNumber){
@@ -60,8 +62,11 @@ void RoomManager::destroyRoom(int roomNumber){
 
 void RoomManager::leaveRoom(Player* p, int roomNumber){
 	Room* room = findRoom(roomNumber);
-	if (room == NULL) return;
-	room->playerQuit(p);
+	if (room == NULL){
+		printf("No ROOM!\n");
+		return;
+	}
+	room->playerQuit(p, true);
 
 	printInfo();
 }

@@ -77,7 +77,6 @@ void Reciever::process(){
 		
 		if (block <= time){
 			acceptProcess();
-			UserToken a = userList.front();
 			recieveProcess();
 
 			start_time = std::chrono::system_clock::now();
@@ -98,20 +97,20 @@ void Reciever::acceptProcess(){
 		printf("connected client: %d\n", clientSocket);
 
 		this->callback(user);
-		addUserList(*user);
+		addUserList(user);
 		
 
 	}
 	
 }
 void Reciever::recieveProcess(){
-	std::list<UserToken>::iterator iter;
+	std::list<UserToken*>::iterator iter;
 	for (iter = userList.begin(); iter != userList.end(); iter++){
 		
-		if (FD_ISSET(iter->clientSocket, &copy_set)){
+		if (FD_ISSET((*iter)->clientSocket, &copy_set)){
 
-			if (!iter->recieveProcess()){
-				UserToken user = *iter;
+			if (!(*iter)->recieveProcess()){
+				UserToken user = **iter;
 				deleteUserList(*iter);
 				printf("closed client:%d\n", user.clientSocket);
 				
@@ -122,17 +121,18 @@ void Reciever::recieveProcess(){
 
 }
 
-void Reciever::addUserList(UserToken user){
-	FD_SET(user.clientSocket, &reads);
+void Reciever::addUserList(UserToken* user){
+	FD_SET(user->clientSocket, &reads);
 	userList.push_back(user);
 
 }
 
 
-void Reciever::deleteUserList(UserToken user){
-	FD_CLR(user.clientSocket, &reads);
+void Reciever::deleteUserList(UserToken* user){
+	FD_CLR(user->clientSocket, &reads);
 	userList.remove(user);
-	user.remove();
-	closesocket(user.clientSocket);
-	delete this;
+	user->remove();
+	closesocket(user->clientSocket);
+
+	delete user;
 }

@@ -39,11 +39,17 @@ void Player::recieve_msg(char* buf, int size){
 			pkt.m_join.nickname[size - 8] = '\0';
 			this->nickname = pkt.m_join.nickname;
 			roomManager.enterRoom(this, pkt.m_join.room_num);
+
+			if (the_other_sock != NULL)
+				send(the_other_sock, (char*)&pkt, size, 0);
 			break;
 		}
 		case pkt_type::pt_create:
 		{	
 			roomManager.createRoom(pkt.m_create.room_num);
+
+			if (the_other_sock != NULL)
+				send(the_other_sock, (char*)&pkt, size, 0);
 			break;
 		}
 		case pkt_type::pt_leave:
@@ -51,11 +57,17 @@ void Player::recieve_msg(char* buf, int size){
 			pkt.m_join.nickname[size - 8] = '\0';
 			this->nickname = pkt.m_leave.nickname;
 			roomManager.leaveRoom(this, this->roomNum);
+
+			if (the_other_sock != NULL)
+				send(the_other_sock, (char*)&pkt, size, 0);
 			break;
 		}
 		case pkt_type::pt_destroy:
 		{	
 			roomManager.destroyRoom(pkt.m_destroy.room_num);
+
+			if (the_other_sock != NULL)
+				send(the_other_sock, (char*)&pkt, size, 0);
 			break;
 		}
 	}
@@ -63,9 +75,11 @@ void Player::recieve_msg(char* buf, int size){
 
 void Player::remove(){
 	Room* room = roomManager.findRoom(this->roomNum);
-	room->playerQuit(this);
+	if (room == NULL){
+		printf("No ROOM!\n");
+		return;
+	}
+	if (room != NULL) room->playerQuit(this, true);
 
 	printf("remove in room...\n");
-
-	delete this;
 }

@@ -107,18 +107,25 @@ DWORD WINAPI InterServerThread(LPVOID arg)
 		time = tmp2.count();
 		if (block <= time){
 			char buf[PKTLEN];
-			int length;
+			short length;
 			int str_len = recvn(the_other_sock, (char*)&length, sizeof(short), 0);
+
+			printf("%d\n", str_len);
+
 			if (str_len == SOCKET_ERROR)
 			{
 				closesocket(the_other_sock);
 				printf("closed the other server.\n");
 				return true;
 			}
+
+			printf("size:%d\n", length);
 
 			int remain = length - 2;
 			str_len = recvn(the_other_sock, (char*)buf, remain, 0);
 
+			printf("%d\n", str_len);
+
 			if (str_len == SOCKET_ERROR)
 			{
 				closesocket(the_other_sock);
@@ -126,20 +133,55 @@ DWORD WINAPI InterServerThread(LPVOID arg)
 				return true;
 			}
 
-			switch ((short)buf)
+			short type;
+			memcpy(&type, buf, sizeof(short));
+
+			switch (type)
 			{
-			case pkt_type::pt_chat:
-				t_chat tmpChat;
-				tmpChat.length = length;
-				memcpy(&tmpChat.type, buf, remain);
-				roomManager.findRoom(tmpChat.room_num)->broadcast_msg((char*)&tmpChat, tmpChat.length);
-				break;
-			case pkt_type::pt_create:
-				t_create tmpCreate;
-				tmpChat.length = length;
-				memcpy(&tmpCreate.type, buf, remain);
-				roomManager.findRoom(tmpCreate.room_num)->broadcast_msg((char*)&tmpCreate, tmpCreate.length);
-				break;
+				case pkt_type::pt_chat:
+				{
+					t_chat tmpChat;
+					tmpChat.length = length;
+					memcpy(&tmpChat.type, buf, remain);
+					roomManager.findRoom(tmpChat.room_num)->broadcast_msg((char*)&tmpChat, tmpChat.length);
+					break;
+				}
+				case pkt_type::pt_create:{
+
+			
+					t_create tmpCreate;
+					tmpCreate.length = length;
+					memcpy(&tmpCreate.type, buf, remain);
+					roomManager.createRoom(tmpCreate.room_num);
+					break;
+				}
+				case pkt_type::pt_join:{
+					t_join tmpJoin;
+					tmpJoin.length = length;
+					memcpy(&tmpJoin.type, buf, remain);
+					Room* room = roomManager.findRoom(tmpJoin.room_num);
+
+
+					room->broadcast_msg((char *)&tmpJoin, length);
+					break;
+				}
+				case pkt_type::pt_leave:{
+					t_leave tmpLeave;
+					tmpLeave.length = length;
+					memcpy(&tmpLeave.type, buf, remain);
+					Room* room = roomManager.findRoom(tmpLeave.room_num);
+					
+					room->broadcast_msg((char *)&tmpLeave, length);
+					break;
+				}
+				
+				case pkt_type::pt_destroy:{
+					t_destroy tmpDestroy;
+					tmpDestroy.length = length;
+					memcpy(&tmpDestroy.type, buf, remain);
+					roomManager.destroyRoom(tmpDestroy.room_num);
+					break;
+				}
 			}
 
 			start_time = std::chrono::system_clock::now();

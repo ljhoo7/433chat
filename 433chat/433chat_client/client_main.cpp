@@ -177,9 +177,10 @@ int main(int argc, char *argv[])
 
 					// 퇴실 데이터
 					t_leave tmp_packet;
-					int size = len + sizeof(short)+sizeof(short);
+					int size = len + sizeof(short)+sizeof(short)+ sizeof(int);
 					tmp_packet.length = size;
 					tmp_packet.type = pkt_type::pt_leave;
+					tmp_packet.room_num = room_num;
 					strcpy(tmp_packet.nickname, buf2);
 
 					// 퇴실 데이터 보내기

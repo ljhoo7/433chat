@@ -13,7 +13,7 @@ public:
 
 	void playerEnter(Player* player);
 
-	void playerQuit(Player* player);
+	void playerQuit(Player* player, bool msg);
 
 	void broadcast_msg(char* msg, int size);
 
