@@ -80,5 +80,7 @@ void UserToken::on_msg(char* buf, int size){
 }
 
 void UserToken::send_msg(char *buf, int len){
+
+	printf("%d바이트 보냈는데유\n", len);
 	send(clientSocket, buf, len, 0);
 }

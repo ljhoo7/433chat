@@ -30,7 +30,7 @@ void Player::recieve_msg(char* buf, int size){
 
 		case pkt_type::pt_join:
 		{	
-			pkt.m_join.nickname[size - 6] = '\0';
+			pkt.m_join.nickname[size - 8] = '\0';
 			this->nickname = pkt.m_join.nickname;
 			roomManager.enterRoom(this, pkt.m_join.room_num);
 			break;
@@ -42,7 +42,7 @@ void Player::recieve_msg(char* buf, int size){
 		}
 		case pkt_type::pt_leave:
 		{
-			pkt.m_join.nickname[size - 6] = '\0';
+			pkt.m_join.nickname[size - 8] = '\0';
 			this->nickname = pkt.m_join.nickname;
 			roomManager.enterRoom(this, pkt.m_leave.room_num);
 			break;
