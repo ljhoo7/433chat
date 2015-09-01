@@ -2,6 +2,8 @@
 
 extern RoomManager roomManager;
 
+extern SOCKET the_other_sock;
+
 Room::Room(int roomNumber){
 	this->roomNumber = roomNumber;
 }
@@ -44,7 +46,7 @@ void Room::playerQuit(Player* player){
 
 void Room::broadcast_msg(char* msg, int size){
 	std::list<Player*>::iterator iter;
-	printf("%d 번호 방에 %d명 접속중\n", roomNumber, players.size());
+	//printf("%d 번호 방에 %d명 접속중\n", roomNumber, players.size());
 	for (iter = players.begin(); iter != players.end(); iter++){
 		(*iter)->send_msg(msg, size);
 	}
@@ -65,6 +67,18 @@ void RoomManager::createRoom(int roomNumber){
 		}
 	}
 	Room* room = new Room(roomNumber);
+
+	// 연동되고 있는 서버가 한 대 더 있다면 방 생성 메세지를 보내준다.
+	if (the_other_sock != NULL)
+	{
+		t_create result_pkt;
+		result_pkt.length = sizeof(t_create);
+		result_pkt.type = pkt_type::pt_create;
+		result_pkt.room_num = roomNumber;
+		
+		send(the_other_sock, (char*)&result_pkt, sizeof(t_packet), 0);
+	}
+
 	//enterRoom(p, roomNumber);
 	rooms.insert(iter, room);
 }

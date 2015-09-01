@@ -3,6 +3,8 @@
 
 extern RoomManager roomManager;
 
+extern SOCKET the_other_sock;
+
 Player::Player(){
 	roomNum = -1;
 }
@@ -24,6 +26,10 @@ void Player::recieve_msg(char* buf, int size){
 			printf("[받은 데이터] %s\n", pkt.m_chat.str);
 			Room* room = roomManager.findRoom(pkt.m_chat.room_num);
 			if (room != NULL) room->broadcast_msg(buf, size);
+
+			// 상대 서버와 연결이 되어있다면 챗팅 메세지를 보내준다.
+			if (the_other_sock != NULL)
+				send(the_other_sock, (char*)&pkt, size, 0);
 
 			break;
 		}

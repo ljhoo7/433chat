@@ -42,8 +42,6 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 				err_quit("ReceivingThread() error");
 			sum += retval;
 
-			std::cout << length << std::endl;
-
 			int remain = length - sizeof(short);
 
 			char *datum = new char[remain + 1];

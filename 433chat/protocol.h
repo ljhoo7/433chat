@@ -40,7 +40,6 @@ typedef struct{
 	short length;
 	short type;
 
-	int room_num;
 	char nickname[STRSIZE];
 }t_leave;
 
