@@ -33,11 +33,10 @@ void Room::playerQuit(Player* player){
 	players.remove(player);
 
 	t_leave packet;
-	packet.length = sizeof(packet);
+	packet.length = (player->nickname).size() + 4;
 	packet.type = pkt_type::pt_leave;
-	packet.room_num = this->roomNumber;
 	memcpy(packet.nickname, (player->nickname).c_str(), (player->nickname).size());
-	broadcast_msg((char *)&packet, sizeof(packet));
+	broadcast_msg((char *)&packet, (player->nickname).size() + 4);
 
 	/* 나갔다고 알리기 */
 }
@@ -50,6 +49,14 @@ void Room::broadcast_msg(char* msg, int size){
 	}
 }
 
+
+void RoomManager::printInfo(){
+	std::list<Room*>::iterator iter;
+	printf("\n\n현재 방 목록\n");
+	for (iter = rooms.begin(); iter != rooms.end(); iter++){
+		printf("방 %d에 %d명 접속 중\n", (*iter)->roomNumber, (*iter)->players.size());
+	}
+}
 
 void RoomManager::createRoom(int roomNumber){
 	std::list<Room*>::iterator iter;
@@ -67,6 +74,9 @@ void RoomManager::createRoom(int roomNumber){
 	Room* room = new Room(roomNumber);
 	//enterRoom(p, roomNumber);
 	rooms.insert(iter, room);
+
+	printInfo();
+
 }
 
 Room* RoomManager::findRoom(int roomNumber){
@@ -83,6 +93,8 @@ void RoomManager::enterRoom(Player* p, int roomNumber){
 	Room* room = findRoom(roomNumber);
 	if (room == NULL) return;
 	room->playerEnter(p);
+
+	printInfo();
 }
 
 void RoomManager::destroyRoom(int roomNumber){
@@ -90,6 +102,8 @@ void RoomManager::destroyRoom(int roomNumber){
 	rooms.remove(room);
 
 	delete room;
+
+	printInfo();
 }
 
 void RoomManager::leaveRoom(Player* p, int roomNumber){
@@ -97,5 +111,5 @@ void RoomManager::leaveRoom(Player* p, int roomNumber){
 	if (room == NULL) return;
 	room->playerQuit(p);
 
-	delete room;
+	printInfo();
 }

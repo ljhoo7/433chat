@@ -22,10 +22,10 @@ typedef struct{
 }t_create;
 
 typedef struct{
-   short length;
-   short type;
+	short length;
+	short type;
 
-   int room_num;
+	int room_num;
 }t_destroy;
 
 typedef struct{
@@ -40,7 +40,6 @@ typedef struct{
 	short length;
 	short type;
 
-	int room_num;
 	char nickname[STRSIZE];
 }t_leave;
 
@@ -50,7 +49,8 @@ typedef struct{
 
 	int room_num;
 	// 최대 511 개 문자 (개행 문자 포함 512개 )
-	char str[STRSIZE];
+	char nickname[20];
+	char str[STRSIZE - 20];
 }t_chat;
 
 typedef union{

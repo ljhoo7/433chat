@@ -31,7 +31,7 @@ public:
 	Room* findRoom(int roomNumber);
 	void leaveRoom(Player* p, int roomNumber);
 	void enterRoom(Player* p, int roomNumber);
-
+	void printInfo();
 	
 	
 };
