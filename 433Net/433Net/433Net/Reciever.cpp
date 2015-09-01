@@ -1,6 +1,8 @@
 #include "reciever.h"
 #include "utilities.h"
 
+extern int g_nIsListen;
+
 Reciever::Reciever(){
 	this->callback = NULL;
 }
@@ -17,15 +19,16 @@ void Reciever::start(int port, int backlog, void(*callback)(UserToken* token)){
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
 		err_quit("WSAStartup() error!");
 
-
 	listenSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (listenSocket == INVALID_SOCKET) err_quit("socket()");
-
 	
 	ZeroMemory(&serveraddr, sizeof(serveraddr));
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	serveraddr.sin_port = htons(SERVERPORT);
+	if (g_nIsListen)
+		serveraddr.sin_port = htons(SERVERPORT1);
+	else
+		serveraddr.sin_port = htons(SERVERPORT2);
 
 	retval = bind(listenSocket, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
 	if (retval == SOCKET_ERROR) err_quit("bind()");

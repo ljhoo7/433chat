@@ -80,7 +80,7 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 				memcpy(&tmpLeave.type, datum, remain + 1);
 				
 				printf("\n[TCP 클라이언트] %d바이트를 받았습니다.\n", sum);
-				printf("%s님이 %d번 방에서 퇴실하셨습니다. ", tmpLeave.nickname, tmpLeave.room_num);
+				printf("%s님이 방에서 퇴실하셨습니다. ", tmpLeave.nickname);
 				break;
 			}
 
