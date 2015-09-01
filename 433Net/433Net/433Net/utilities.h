@@ -19,7 +19,8 @@
 #include <list>
 
 #define SERVERIP   "127.0.0.1"
-#define SERVERPORT 9000
+#define SERVERPORT1 9000
+#define SERVERPORT2 9001
 #define BUFSIZE    512
 #define ROOM_MAX   99999
 #define HEADER_SIZE 2

@@ -157,13 +157,15 @@ int main(int argc, char *argv[])
 				}
 				else
 				{
-					sscanf(tmpstr.c_str(), "leave %d %s\n", &room_num, buf2);
+					sscanf(tmpstr.c_str(), "leave\n");
 
 					if (room_num < 0)
 					{
 						fputs("방번호는 0 이상이어야 됩니다.\n", stdout);
 						continue;
 					}
+
+					strcpy(buf2, nickname);
 
 					// '\n' 문자 제거
 					len = strlen(buf2);
@@ -177,10 +179,9 @@ int main(int argc, char *argv[])
 
 					// 퇴실 데이터
 					t_leave tmp_packet;
-					int size = len + sizeof(int)+sizeof(short)+sizeof(short);
+					int size = len + sizeof(short)+sizeof(short);
 					tmp_packet.length = size;
 					tmp_packet.type = pkt_type::pt_leave;
-					tmp_packet.room_num = room_num;
 					strcpy(tmp_packet.nickname, buf2);
 
 					// 퇴실 데이터 보내기
