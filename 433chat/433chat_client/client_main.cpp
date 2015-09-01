@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 		if ((!strcmp("",nickname)) || room_num == -1)
 			printf("[명령어] ");
 		else
-			printf("[%s의 %d번 방에서의 대화] ", nickname, room_num);
+			printf("[방에서의 대화] ");
 		if (fgets(buf, BUFSIZE + 1, stdin) == NULL)
 			break;
 

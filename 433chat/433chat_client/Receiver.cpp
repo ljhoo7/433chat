@@ -64,7 +64,7 @@ DWORD WINAPI ReceivingThread(LPVOID arg)
 
 				printf("\n[TCP 클라이언트] %d바이트를 받았습니다.\n", sum);
 				printf("[받은 데이터] %s\n", tmpChat.str);
-				printf("[%s의 %d번 방에서의 대화] ", nickname, room_num);
+				printf("[방에서의 대화] ");
 				break;
 			case pkt_type::pt_join:
 				//ZeroMemory(&tmpJoin, sizeof(t_join));
