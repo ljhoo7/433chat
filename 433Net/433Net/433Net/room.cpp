@@ -36,11 +36,13 @@ void Room::playerQuit(Player* player, bool msg){
 	players.remove(player);
 
 	t_leave packet;
-	packet.length = (player->nickname).size() + 4;
+	int size = (player->nickname).size() + 8;
+	packet.length = size;
+	packet.room_num = player->roomNum;
 	packet.type = pkt_type::pt_leave;
 	memcpy(packet.nickname, (player->nickname).c_str(), (player->nickname).size());
 
-	if (msg) broadcast_msg((char *)&packet, (player->nickname).size() + 4);
+	if (msg) broadcast_msg((char *)&packet, size);
 
 	/* 나갔다고 알리기 */
 }

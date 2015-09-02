@@ -20,23 +20,35 @@ int main(int argc, char *argv[])
 
 	room_num = -1;
 
-	printf("[접속할 서버의 ip주소] ");
-	if (fgets(buf, BUFSIZE + 1, stdin) == NULL)
-		return 0;
-	int wanted = strlen(buf);
-	subed = new char[wanted];
-	memcpy(subed, buf, wanted);
+	unsigned long ip;
+	int wanted;
 
-	unsigned long ip = inet_addr(subed);
+	do
+	{
+		printf("[접속할 서버의 ip주소] ");
+		if (fgets(buf, BUFSIZE + 1, stdin) == NULL)
+			return 0;
+		wanted = strlen(buf);
+		subed = new char[wanted];
+		memcpy(subed, buf, wanted);
 
-	printf("[접속할 서버의 port] ");
-	if (fgets(buf, BUFSIZE + 1, stdin) == NULL)
-		return 0;
-	wanted = strlen(buf) - 1;
-	subed = new char[wanted];
-	memcpy(subed, buf, wanted);
+		ip = inet_addr(subed);
+	}
+	while(ip == INADDR_NONE);
 
-	int port = atoi(subed);
+	int port;
+
+	do
+	{
+		printf("[접속할 서버의 port] ");
+		if (fgets(buf, BUFSIZE + 1, stdin) == NULL)
+			return 0;
+		wanted = strlen(buf) - 1;
+		subed = new char[wanted];
+		memcpy(subed, buf, wanted);
+
+		port = atoi(subed);
+	} while (port < 1025 || port > 65535);
 
 	// 리시빙 매니저 생성
 	g_cReceivingManager = new CReceiver();
@@ -80,7 +92,13 @@ int main(int argc, char *argv[])
 			if (subedstr == "crea")
 			{
 				int t_room_num;
-				sscanf(tmpstr.c_str(), "create %d\n", &t_room_num);
+
+				int sscanf_result = sscanf(tmpstr.c_str(), "create %d\n", &t_room_num);
+
+				if (sscanf_result != 1)
+				{
+					fputs("The 'create' command has been used incorrectly !\n", stdout);
+				}
 
 				if (t_room_num < 0)
 				{
@@ -107,7 +125,12 @@ int main(int argc, char *argv[])
 			{
 				if (room_num == -1)
 				{
-					sscanf(tmpstr.c_str(), "join %d %s\n", &room_num, buf2);
+					int sscanf_result = sscanf(tmpstr.c_str(), "join %d %s\n", &room_num, buf2);
+
+					if (sscanf_result != 2)
+					{
+						fputs("The 'join' command has been used incorrectly !\n", stdout);
+					}
 
 					if (room_num < 0)
 					{
@@ -155,7 +178,12 @@ int main(int argc, char *argv[])
 				}
 				else
 				{
-					sscanf(tmpstr.c_str(), "leave\n");
+					int sscanf_result = sscanf(tmpstr.c_str(), "leave\n");
+
+					if (sscanf_result != 0)
+					{
+						fputs("The 'leave' command has been used incorrectly !\n", stdout);
+					}
 
 					if (room_num < 0)
 					{
@@ -198,7 +226,12 @@ int main(int argc, char *argv[])
 			else if (subedstr == "dest")
 			{
 				int t_room_num;
-				sscanf(tmpstr.c_str(), "destroy %d\n", &t_room_num);
+				int sscanf_result = sscanf(tmpstr.c_str(), "destroy %d\n", &t_room_num);
+
+				if (sscanf_result != 1)
+				{
+					fputs("The 'destroy' command has been used incorrectly !\n", stdout);
+				}
 
 				if (t_room_num < 0)
 				{
