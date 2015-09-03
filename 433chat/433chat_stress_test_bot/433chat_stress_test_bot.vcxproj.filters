@@ -19,6 +19,9 @@
     <Filter Include="공유 헤더 파일">
       <UniqueIdentifier>{5769ea41-0162-4266-9ec0-989ba417cb3a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="공유 헤더 파일\StatePattern">
+      <UniqueIdentifier>{55903f18-e453-48ce-84c8-8e0c4386d444}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\protocol.h">
@@ -32,6 +35,12 @@
     </ClInclude>
     <ClInclude Include="headers.h">
       <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\State.h">
+      <Filter>공유 헤더 파일\StatePattern</Filter>
+    </ClInclude>
+    <ClInclude Include="..\StateMachine.h">
+      <Filter>공유 헤더 파일\StatePattern</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

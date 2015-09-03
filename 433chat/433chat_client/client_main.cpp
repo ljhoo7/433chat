@@ -111,6 +111,10 @@ int main(int argc, char *argv[])
 				int size = sizeof(t_create);
 				tmp_packet.length = size;
 				tmp_packet.type = pkt_type::pt_create;
+				//std::chrono::steady_clock::duration tmptime = std::chrono::steady_clock::now().time_since_epoch();
+				//tmp_packet.time_stamp = tmptime.count();
+				//std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::to_tmp_packet.time_stamp);
+				//std::cout << tmp_packet.time_stamp << std::endl;
 				tmp_packet.room_num = t_room_num;
 
 				// 방 생성 데이터 보내기

@@ -77,6 +77,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\protocol.h" />
+    <ClInclude Include="..\State.h" />
+    <ClInclude Include="..\StateMachine.h" />
     <ClInclude Include="..\utilities.h" />
     <ClInclude Include="headers.h" />
     <ClInclude Include="Receiver.h" />

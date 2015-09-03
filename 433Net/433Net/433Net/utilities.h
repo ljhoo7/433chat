@@ -29,7 +29,7 @@ typedef struct thread_data
 	t_chat		pkt;
 }thread_data;
 
-#define SERVERIP   "127.0.0.1"
+#define SERVERIP   "127.0.0.1"//"10.100.50.10"
 #define SERVERPORT1 9000
 #define SERVERPORT2 9001
 #define INTERSERVERPORT 11024

@@ -15,6 +15,7 @@
 #include <chrono>
 #include <climits>
 #include <WinSock2.h>
+#include <ctime>
 
 #define SERVERIP   "127.0.0.1"
 #define SERVERPORT1 9000
@@ -23,6 +24,8 @@
 #define ROOM_MAX	99999
 
 #include "protocol.h"
+#include "State.h"
+#include "StateMachine.h"
 
 // 소켓 정보 저장을 위한 구조체와 변수
 struct SOCKETINFO
