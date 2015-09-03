@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{5F087A4D-9A26-46B2-A29A-B9156E48AF24}</ProjectGuid>
+    <ProjectGuid>{34A18277-B0F0-4132-9CD5-63F79B291EAB}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>My433Net</RootNamespace>
   </PropertyGroup>
@@ -27,7 +27,7 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -78,22 +78,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="433Net.h" />
-    <ClInclude Include="Player.h" />
+    <ClInclude Include="bufPoolManager.h" />
+    <ClInclude Include="interServer.h" />
+    <ClInclude Include="logic.h" />
+    <ClInclude Include="packet.h" />
+    <ClInclude Include="player.h" />
     <ClInclude Include="protocol.h" />
     <ClInclude Include="reciever.h" />
     <ClInclude Include="room.h" />
-    <ClInclude Include="RoomManager.h" />
+    <ClInclude Include="roomManager.h" />
     <ClInclude Include="usertoken.h" />
     <ClInclude Include="utilities.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="InterServer.cpp" />
+    <ClCompile Include="bufPoolManager.cpp" />
+    <ClCompile Include="interServer.cpp" />
+    <ClCompile Include="logic.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="player.cpp" />
-    <ClCompile Include="Reciever.cpp" />
-    <ClCompile Include="room.cpp" />
-    <ClCompile Include="roomManager.cpp" />
+    <ClCompile Include="Packet.cpp" />
+    <ClCompile Include="reciever.cpp" />
     <ClCompile Include="usertoken.cpp" />
     <ClCompile Include="utilities.cpp" />
   </ItemGroup>

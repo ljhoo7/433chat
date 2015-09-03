@@ -14,13 +14,16 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="공유 소스 파일">
-      <UniqueIdentifier>{c9216831-3e5b-470f-830b-dfcc4a8eb638}</UniqueIdentifier>
+      <UniqueIdentifier>{8b80737c-3cdf-4c90-9eda-93654b8fc56f}</UniqueIdentifier>
     </Filter>
     <Filter Include="공유 헤더 파일">
-      <UniqueIdentifier>{51d69662-97b0-4e77-9330-83286d09797f}</UniqueIdentifier>
+      <UniqueIdentifier>{b38c186e-7a4f-41a8-8799-b116ec904ac4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="utilities.h">
+      <Filter>공유 헤더 파일</Filter>
+    </ClInclude>
     <ClInclude Include="protocol.h">
       <Filter>공유 헤더 파일</Filter>
     </ClInclude>
@@ -30,27 +33,30 @@
     <ClInclude Include="usertoken.h">
       <Filter>공유 헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="utilities.h">
-      <Filter>공유 헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="433Net.h">
-      <Filter>공유 헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="RoomManager.h">
+    <ClInclude Include="player.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="room.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="roomManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="bufPoolManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="logic.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="packet.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="interServer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="Reciever.cpp">
+    <ClCompile Include="reciever.cpp">
       <Filter>공유 소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="usertoken.cpp">
@@ -59,16 +65,19 @@
     <ClCompile Include="utilities.cpp">
       <Filter>공유 소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="room.cpp">
+    <ClCompile Include="interServer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="player.cpp">
+    <ClCompile Include="bufPoolManager.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="roomManager.cpp">
+    <ClCompile Include="logic.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="InterServer.cpp">
+    <ClCompile Include="main.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Packet.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

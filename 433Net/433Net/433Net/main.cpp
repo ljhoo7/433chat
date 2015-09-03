@@ -1,64 +1,64 @@
 #pragma once
-#include "433Net.h"
-#include "Player.h"
-#include "RoomManager.h"
+#include "utilities.h"
+#include "interServer.h"
+#include "logic.h"
 
-int nTotalSockets = 0;
-int g_nIsListen;
+InterServer listen_server;
+InterServer connect_server;
+LogicHandle logicHandle;
 
-// ip
-unsigned long	g_nIp;
-// port
-int				g_nPort;
-Reciever* server;
-
-RoomManager roomManager;
-
-void accept_callback(UserToken* token){
-	Player* p = new Player();
-	token->peer = p;
-	p->token = *token;
-	return;
-}
-
-DWORD WINAPI InterServerThread(LPVOID arg);
-
-void remove_callback(UserToken* token){
-	/* 메모리 누수 막아야댐 이거 좀있다 하자! */
-}
-
-DWORD WINAPI recieve_process(LPVOID arg){
-	server->process();
-	return 0;
-}
 int main(int argc, char *argv[])
 {
-	if (argc != 2)
-	{
-		puts("usage : (program_name) (0=listen,1=connect)\n");
+	int listen_port;
+	int connect_port;
+	
+	WSADATA wsa;
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+		err_quit("WSAStartup() error!");
+
+	if (argc != 3){
+		printf("error command\n");
 		return 0;
 	}
-	
-	g_nIsListen = atoi(argv[1]);
 
-	if (g_nIsListen != 0 && g_nIsListen != 1)
-	{
-		puts("The second argument must be zero or one.\n");
+	listen_port = atoi(argv[1]);
+	connect_port = atoi(argv[2]);
+
+	listen_server.start(1, listen_port);
+
+	std::thread logic_thread(&LogicHandle::process, &logicHandle);
+	
+
+	while (true){
+		std::string input;
+		//ZeroMemory(temp, sizeof(temp));
+		std::getline(std::cin, input);
+
+		if (listen_server.the_other_sock == NULL){
+			if (input=="connect"){
+				connect_server.start(0, connect_port);
+			}
+		}
+		else{
+			if (input == "disconnect"){
+				listen_server.disconnect();
+			}
+		}
+
+		if (connect_server.the_other_sock == NULL){
+			if (input == "disconnect"){
+				connect_server.disconnect();
+			}
+		}
+
+		if (input == "quit"){
+			break;
+		}
+
 	}
 
-	// 리시브 매니저
-	server = new Reciever();
-	server->start(9001, 100, accept_callback);
-	
-	HANDLE hHandle[2];
-	hHandle[0] = CreateThread(NULL, 0, recieve_process, 0, 0, NULL);
-	hHandle[1] = CreateThread(NULL, 0, InterServerThread, 0, 0, NULL);
-	// 윈속 종료
-
-	WaitForMultipleObjects(2, hHandle, TRUE, INFINITE);
-	CloseHandle(hHandle[0]);
-	CloseHandle(hHandle[1]);
+	listen_server.listen_thread.join();
+	logic_thread.join();
 	WSACleanup();
 	return 0;
 }
-

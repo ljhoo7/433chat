@@ -1,94 +1,120 @@
-////////////////////////////////////////
-// 다음은 서버와 클라이언트 간 데이터를 주고 받을 때 사용하는 패킷을 정의한 헤더입니다.
-
 #pragma once
 
-#define PKTLEN 512
-#define STRSIZE	512
+#include "utilities.h"
+#define PKTLEN 1024
+#define STRSIZE	1024
+#define NICK_SIZE 20
 
-enum pkt_type { 
-	pt_any, 
-	pt_create, 
-	pt_destroy, 
-	pt_join, 
-	pt_leave, 
-	pt_chat, 
-	pt_interserver,
+enum ssType {
+	pkt_create,
+	pkt_destroy,
+	pkt_join,
+	pkt_leave,
+	pkt_chat,
+	pkt_connect,
+	pkt_disconnect,
+	pkt_heartbeats,
+	pkt_heartbeats_response,
+	pkt_room_info_send,
+	pkt_player_info_send,
+	pkt_room_info_success,
+	pkt_room_info_failure,
+	pkt_player_info_success,
+	pkt_player_info_failure,
 };
 
-/*
 typedef struct{
-	short length;
-	short type;
-}t_join_success;
-
-typedef struct{
-	short length;
-	short type;
-}t_join_fail;
+	unsigned short type;
+	int client_socket;
+	unsigned short room_num;
+} ss_create;
 
 typedef struct{
-	short length;
-	short type;
-}t_create_success;
+	unsigned short type;
+	int client_socket;
+	unsigned short room_num;
+} ss_destroy;
 
 typedef struct{
-	short length;
-	short type;
-}t_create_fail;
-*/
+	unsigned short type;
+	int client_socket;
+	unsigned short room_num;
+	char nickname[NICK_SIZE];
+} ss_join;
 
 typedef struct{
-	short length;
-	short type;
-	char payload[PKTLEN - 4];
-}t_any;
+	unsigned short type;
+	int client_socket;
+	unsigned short room_num;
+	char nickname[NICK_SIZE];
+	unsigned int token;
+} ss_leave;
 
 typedef struct{
-	short length;
-	short type;
-
-	int room_num;
-}t_create;
-
-typedef struct{
-	short length;
-	short type;
-
-	int room_num;
-}t_destroy;
+	unsigned short type;
+	unsigned short length;
+	int client_socket;
+	unsigned short room_num;
+	char nickname[NICK_SIZE];
+	unsigned int token;
+	std::string msg;
+} ss_chat; 
 
 typedef struct{
-	short length;
-	short type;
-
-	int room_num;
-	char nickname[STRSIZE];
-}t_join;
+	unsigned short type;
+	int client_socket;
+} ss_connect;
 
 typedef struct{
-	short length;
-	short type;
-
-	int room_num;
-	char nickname[STRSIZE];
-}t_leave;
+	unsigned short type;
+	int client_socket;
+} ss_disconnect;
 
 typedef struct{
-	short length;
-	short type;
+	unsigned short type;
+} ss_heartbeats;
 
-	int room_num;
-	// 최대 511 개 문자 (개행 문자 포함 512개 )
+typedef struct{
+	unsigned short type;
+} ss_heartbeats_response;
+
+typedef struct{
+	unsigned short room_num;
+} room_info;
+
+typedef struct{
+	unsigned short type;
+	unsigned short length;
+	unsigned short room_cnt;
+	room_info* room_infos;
+} ss_room_info_send;
+
+typedef struct{
+	int client_socket;
+	unsigned short room_num;
 	char nickname[20];
-	char str[STRSIZE - 20];
-}t_chat;
+	unsigned int token;
+} player_info;
 
-typedef union{
-	t_any         m_any;
-	t_create      m_create;
-	t_destroy   m_destroy;
-	t_join         m_join;
-	t_leave         m_leave;
-	t_chat         m_chat;
-}t_packet;
+typedef struct{
+	unsigned short type;
+	unsigned short length;
+	unsigned short player_cnt;
+	player_info* player_infos;
+} ss_player_info_send;
+
+typedef struct{
+	unsigned short type;
+} ss_room_info_success;
+
+typedef struct{
+	unsigned short type;
+} ss_room_info_failure;
+
+typedef struct{
+	unsigned short type;
+} ss_player_info_success;
+
+typedef struct{
+	unsigned short type;
+} ss_player_info_failure;

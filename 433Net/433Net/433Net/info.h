@@ -1,0 +1,1 @@
+#define OTHER_SERVERIP   "127.0.0.1"

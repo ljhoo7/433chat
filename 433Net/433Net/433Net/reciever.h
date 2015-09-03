@@ -14,8 +14,6 @@ private:
 	void addUserList(UserToken* user);
 	void deleteUserList(UserToken* user);
 
-
-	
 	void recieveProcess();
 	void acceptProcess();
 

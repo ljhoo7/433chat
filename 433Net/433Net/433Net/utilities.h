@@ -1,11 +1,16 @@
-//////////////////////////////////////////////////////////////
-// 여러 유틸리티들 모음
-
 #pragma once
+#pragma comment(lib, "ws2_32")
+
+#define SERVERIP   "127.0.0.1"
+#define CONNECTIP "127.0.0.1"
 
 #define FD_SETSIZE 1024
+#define BUFSIZE 1024
+#define ROOM_MAX 100
+#define TOTAL_PLAYER 1000
 
-#pragma comment(lib, "ws2_32")
+#define PLAYER_MAX 10 // one room
+#define HEADER_SIZE 2
 
 #include <iostream>
 #include <cstdio>
@@ -15,40 +20,27 @@
 #include <chrono>
 #include <climits>
 #include <WinSock2.h>
-
 #include <stdio.h>
 #include <thread>
 #include <list>
+#include <queue>
 
 #include "protocol.h"
 
-// 메세지 뿌리는 스레드에 넘길 자료구조
-typedef struct thread_data
-{
-	SOCKET		sock;
-	t_chat		pkt;
-}thread_data;
-
-#define SERVERIP   "127.0.0.1"
-#define SERVERPORT1 9000
-#define SERVERPORT2 9001
-#define INTERSERVERPORT 11024
-#define BUFSIZE    512
-#define ROOM_MAX   99999
-#define HEADER_SIZE 2
-
 class Receiver;
-class UserToken;
 class IPeer;
+class UserToken;
+class Packet;
+class BufPoolManager;
+class PacketPoolManager;
+class LogicHandle;
+class InterServer;
 
-#include "reciever.h"
-#include "usertoken.h"
-
-// 소켓 함수 오류 출력 후 종료
+// socket func error print and exit
 void err_quit(char *msg);
 
-// 소켓 함수 오류 출력
+// socket func error print only
 void err_display(char *msg);
 
-// 사용자 정의 데이터 수신 함수
+// custom define recieve func
 int recvn(SOCKET s, char *buf, int len, int flags);

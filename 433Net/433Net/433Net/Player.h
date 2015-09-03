@@ -1,8 +1,8 @@
 #pragma once
-#include "433Net.h"
+#include "utilities.h"
 
 class Player : public IPeer{
-	
+
 public:
 	std::string nickname;
 	int roomNum;
@@ -10,9 +10,8 @@ public:
 
 	Player();
 
+	bool recieveProcess();
 	void send_msg(char *buf, int size);
-
 	void recieve_msg(char* buf, int size);
-
 	void remove();
 };

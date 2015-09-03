@@ -20,27 +20,30 @@ bool UserToken::operator==(const UserToken& right){
 }
 
 bool UserToken::recieveProcess(){
-	
-	if (position < HEADER_SIZE){
-		if (position == 0){
-			remainBytes = HEADER_SIZE;
+	if (this->peer != NULL){
+		return this->peer->recieveProcess();
+	}else{
+		if (position < HEADER_SIZE){
+			if (position == 0){
+				remainBytes = HEADER_SIZE;
+			}
+
+			return read_until();
 		}
-		
-		return read_until();
-	}
-	else{
-		if (position == HEADER_SIZE){
-			
-			memcpy(&remainBytes, buf, sizeof(short));
-			size = (int)(remainBytes);
-			remainBytes -= HEADER_SIZE;
+		else{
+			if (position == HEADER_SIZE){
+
+				memcpy(&remainBytes, buf, sizeof(short));
+				size = (int)(remainBytes);
+				remainBytes -= HEADER_SIZE;
+			}
+			bool check = read_until();
+			if (remainBytes <= 0){
+				position = 0;
+				on_msg(buf, size);
+			}
+			return check;
 		}
-		bool check =  read_until();
-		if (remainBytes <= 0){
-			position = 0;
-			on_msg(buf, size);
-		}
-		return check;
 	}
 }
 

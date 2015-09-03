@@ -3,6 +3,7 @@
 
 class IPeer{
 public:
+	virtual bool recieveProcess();
 	virtual void recieve_msg(char* buf, int size) = 0;
 	virtual void send_msg(char* buf, int size) = 0;
 	virtual void remove() = 0;
@@ -12,7 +13,7 @@ class UserToken{
 public:
 	SOCKET clientSocket;
 	SOCKADDR_IN clientAddr;
-	
+
 
 	char buf[BUFSIZE];
 	int position;
