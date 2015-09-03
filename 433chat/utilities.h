@@ -1,6 +1,3 @@
-//////////////////////////////////////////////////////////////
-// 여러 유틸리티들 모음
-
 #pragma once
 
 #pragma comment(lib, "ws2_32")
@@ -16,39 +13,39 @@
 #include <climits>
 #include <WinSock2.h>
 #include <ctime>
+#include <thread>
+#include <future>
+#include <exception>
+#include <stdexcept>
 
 #define SERVERIP   "127.0.0.1"
+
 #define SERVERPORT1 9000
 #define SERVERPORT2 9001
-#define BUFSIZE		512
-#define ROOM_MAX	99999
 
-#include "protocol.h"
+#define ROOM_MAX	1000
+#define USER_MAX	100
+
+#include "Protocol.h"
 #include "State.h"
 #include "StateMachine.h"
 
-// 소켓 정보 저장을 위한 구조체와 변수
-struct SOCKETINFO
-{
-	SOCKET sock;
-	char buf[BUFSIZE+1];
-	int recvbytes;
-	int sendbytes;
-};
-
-// 메세지 뿌리는 스레드에 넘길 자료구조
+// For sending some data through the argument of thread function
 typedef struct thread_data
 {
 	SOCKET		sock;
 	int			room_num;
-	t_packet	pkt;
+	char*		pkt;
 }thread_data;
 
-// 소켓 함수 오류 출력 후 종료
+// Print Socket Error and quit
 void err_quit(char *msg);
 
-// 소켓 함수 오류 출력
+// Print Socket Error
 void err_display(char *msg);
 
-// 사용자 정의 데이터 수신 함수
+// Customized packet receiving function
 int recvn(SOCKET s, char *buf, int len, int flags);
+
+// Get The last readable thread error message
+static CHAR* getLastErrorText(CHAR *pBuf, ULONG bufSize);

@@ -76,19 +76,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\utilities.cpp" />
+    <ClCompile Include="..\Utilities.cpp" />
     <ClCompile Include="ClientStates.cpp" />
-    <ClCompile Include="client_main.cpp" />
-    <ClCompile Include="Receiver.cpp" />
+    <ClCompile Include="Client_main.cpp" />
+    <ClCompile Include="Client.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\protocol.h" />
+    <ClInclude Include="..\Protocol.h" />
     <ClInclude Include="..\State.h" />
     <ClInclude Include="..\StateMachine.h" />
-    <ClInclude Include="..\utilities.h" />
+    <ClInclude Include="..\Utilities.h" />
     <ClInclude Include="ClientStates.h" />
-    <ClInclude Include="headers.h" />
-    <ClInclude Include="Receiver.h" />
+    <ClInclude Include="Headers.h" />
+    <ClInclude Include="Client.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
