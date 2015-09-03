@@ -1,12 +1,15 @@
-#include "Headers.h"
+#include "Predeclaration.h"
 #include "..\Utilities.h"
+#include "Headers.h"
 
 DWORD WINAPI ReceivingThread(LPVOID arg);
 
-CClient::CClient() : m_nRoom_num(-1), m_pStateMachine(nullptr), nickname(""), hReceiving(NULL), sock(NULL), m_nToken(-1)
+CClient::CClient() : m_nRoom_num(-1), m_pStateMachine(nullptr), hReceiving(NULL), sock(NULL), m_nToken(-1)
 , m_nTmpJoinRoom_num(-1)
 , m_pReceivingThread(nullptr)
 {
+	strcpy(nickname, "");
+
 	// local variables
 	int retval, port;
 	unsigned long ip;
@@ -115,6 +118,8 @@ void CClient::ReceivingThread()
 	int fps = 30;
 	double block = 1000 / fps;
 
+	char *buf;
+
 	long long time;
 	int retval = 0;
 	std::string tmpStr;
@@ -148,13 +153,15 @@ void CClient::ReceivingThread()
 				err_quit("ReceivingThread() error on receiving the type.");
 			sum += retval;
 
-			if (GetStateMachine()->CurrentState == CLobby::Instance())
+			if (GetStateMachine()->CurrentState() == CCreate_Response_Wait::Instance())
 			{
 				switch ((pkt_type)type)
 				{
 				case pkt_type::pt_create_success:
 
 					std::cout << "Successfully created !!" << std::endl;
+
+					GetStateMachine()->ChangeState(CLobby::Instance());
 
 					break;
 				case pkt_type::pt_create_failure:
@@ -166,7 +173,15 @@ void CClient::ReceivingThread()
 
 					printFailSignal((fail_signal)tmpCreateFailure.fail_signal);
 
+					GetStateMachine()->ChangeState(CLobby::Instance());
+
 					break;
+				}
+			}
+			else if (GetStateMachine()->CurrentState() == CDestroy_Response_Wait::Instance())
+			{
+				switch ((pkt_type)type)
+				{
 				case pkt_type::pt_destroy_success:
 
 					std::cout << "Successfully destroyed !!" << std::endl;
@@ -181,7 +196,15 @@ void CClient::ReceivingThread()
 
 					printFailSignal((fail_signal)tmpDestroyFailure.fail_signal);
 
+					GetStateMachine()->ChangeState(CLobby::Instance());
+
 					break;
+				}
+			}
+			else if (GetStateMachine()->CurrentState() == CDestroy_Response_Wait::Instance())
+			{
+				switch ((pkt_type)type)
+				{
 				case pkt_type::pt_join_success:
 
 					retval = recvn(sock, (char*)&tmpJoinSuccess, sizeof(t_join_success)-sizeof(unsigned short), 0);
@@ -193,6 +216,8 @@ void CClient::ReceivingThread()
 					SetRoomNumber(GetTmpJoinRoomNumber());
 
 					std::cout << "Successfully destroyed !!" << std::endl;
+
+					GetStateMachine()->ChangeState(CRoom::Instance());
 					break;
 				case pkt_type::pt_join_failure:
 
@@ -203,18 +228,18 @@ void CClient::ReceivingThread()
 
 					printFailSignal((fail_signal)tmpJoinFailure.fail_signal);
 
+					GetStateMachine()->ChangeState(CLobby::Instance());
 					break;
 				default:
 					std::cout << "You have received a wrong message which you can't read in the 'Lobby' State." << std::endl;
 					break;
 				}
 			}
-			else if (GetStateMachine()->CurrentState == CRoom::Instance())
+			else if (GetStateMachine()->CurrentState() == CLeave_Response_Wait::Instance())
 			{
 				switch ((pkt_type)type)
 				{
 				case pkt_type::pt_leave_success:
-
 					retval = recvn(sock, (char*)&tmpLeaveSuccess, sizeof(t_leave_success)-sizeof(unsigned short), 0);
 					if (retval == SOCKET_ERROR)
 						err_quit("ReceivingThread() error on the receiving the left of the t_leave_success.");
@@ -224,7 +249,14 @@ void CClient::ReceivingThread()
 
 					std::cout << "Successfully leaved !!" << std::endl;
 
+					GetStateMachine()->ChangeState(CLobby::Instance());
 					break;
+				}
+			}
+			else if (GetStateMachine()->CurrentState() == CRoom::Instance())
+			{
+				switch ((pkt_type)type)
+				{
 				case pkt_type::pt_chat_alarm:
 
 					retval = recvn(sock, (char*)&len, sizeof(unsigned short), 0);
@@ -236,7 +268,7 @@ void CClient::ReceivingThread()
 					fixedRemain = 20 + sizeof(unsigned short);
 					strSize = remain - fixedRemain;
 
-					char *buf = new char[remain];
+					buf = new char[remain];
 
 					retval = recvn(sock, (char*)&buf, remain, 0);
 					if (retval == SOCKET_ERROR)
@@ -290,6 +322,7 @@ void CClient::ReceivingThread()
 
 					std::cout << "계시던 대화방이 없어져서 로비로 퇴출당하셨습니다." << std::endl;
 
+					GetStateMachine()->ChangeState(CLobby::Instance());
 					break;
 				default:
 					std::cout << "You have received a wrong message which you can't read in the 'Room' State." << std::endl;
@@ -328,6 +361,8 @@ bool CClient::SendCreateMessage(int num)
 
 	printf("[TCP client] %dbytes were sent.\n", retval);
 
+	GetStateMachine()->ChangeState(CCreate_Response_Wait::Instance());
+
 	return true;
 }
 
@@ -361,6 +396,8 @@ bool CClient::SendDestroyMessage(int num)
 
 	printf("[TCP client] %dbytes were sent.\n", retval);
 
+	GetStateMachine()->ChangeState(CDestroy_Response_Wait::Instance());
+
 	return true;
 }
 bool CClient::SendJoinMessage(int num, char *nick)
@@ -391,6 +428,8 @@ bool CClient::SendJoinMessage(int num, char *nick)
 
 	printf("[TCP client] %dbytes were sent.\n", retval);
 
+	GetStateMachine()->ChangeState(CJoin_Response_Wait::Instance());
+
 	return true;
 }
 bool CClient::SendLeaveMessage()
@@ -415,6 +454,8 @@ bool CClient::SendLeaveMessage()
 	printf("[TCP client] %dbytes were sent.\n", retval);
 
 	SetRoomNumber(-1);
+
+	GetStateMachine()->ChangeState(CLeave_Response_Wait::Instance());
 
 	return true;
 }

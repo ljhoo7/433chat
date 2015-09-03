@@ -89,6 +89,7 @@
     <ClInclude Include="ClientStates.h" />
     <ClInclude Include="Headers.h" />
     <ClInclude Include="Client.h" />
+    <ClInclude Include="Predeclaration.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -8,9 +8,9 @@ private:
 	CLobby& operator=(const CLobby&);
 public:
 	static CLobby* Instance();
-	virtual void Enter(CClient& client);
-	virtual void Exit(CClient& client);
-	virtual void Execute(CClient& client);
+	virtual void Enter(CClient *client);
+	virtual void Exit(CClient *client);
+	virtual void Execute(CClient *client);
 };
 
 class CRoom : public State<CClient>
@@ -21,9 +21,9 @@ private:
 	CRoom& operator=(const CRoom&);
 public:
 	static CRoom* Instance();
-	virtual void Enter(CClient& client);
-	virtual void Exit(CClient& client);
-	virtual void Execute(CClient& client);
+	virtual void Enter(CClient *client);
+	virtual void Exit(CClient *client);
+	virtual void Execute(CClient *client);
 };
 
 class CCreate_Response_Wait : public State<CClient>
@@ -34,9 +34,9 @@ private:
 	CCreate_Response_Wait& operator=(const CCreate_Response_Wait&);
 public:
 	static CCreate_Response_Wait* Instance();
-	virtual void Enter(CClient& client);
-	virtual void Exit(CClient& client);
-	virtual void Execute(CClient& client);
+	virtual void Enter(CClient *client);
+	virtual void Exit(CClient *client);
+	virtual void Execute(CClient *client);
 };
 
 class CDestroy_Response_Wait : public State<CClient>
@@ -47,9 +47,9 @@ private:
 	CDestroy_Response_Wait& operator=(const CDestroy_Response_Wait&);
 public:
 	static CDestroy_Response_Wait* Instance();
-	virtual void Enter(CClient& client);
-	virtual void Exit(CClient& client);
-	virtual void Execute(CClient& client);
+	virtual void Enter(CClient *client);
+	virtual void Exit(CClient *client);
+	virtual void Execute(CClient *client);
 };
 
 class CJoin_Response_Wait : public State<CClient>
@@ -60,9 +60,9 @@ private:
 	CJoin_Response_Wait& operator=(const CJoin_Response_Wait&);
 public:
 	static CJoin_Response_Wait* Instance();
-	virtual void Enter(CClient& client);
-	virtual void Exit(CClient& client);
-	virtual void Execute(CClient& client);
+	virtual void Enter(CClient *client);
+	virtual void Exit(CClient *client);
+	virtual void Execute(CClient *client);
 };
 
 class CLeave_Response_Wait : public State<CClient>
@@ -73,7 +73,7 @@ private:
 	CLeave_Response_Wait& operator=(const CLeave_Response_Wait&);
 public:
 	static CLeave_Response_Wait* Instance();
-	virtual void Enter(CClient& client);
-	virtual void Exit(CClient& client);
-	virtual void Execute(CClient& client);
+	virtual void Enter(CClient *client);
+	virtual void Exit(CClient *client);
+	virtual void Execute(CClient *client);
 };

@@ -1,5 +1,6 @@
-#include "Headers.h"
+#include "Predeclaration.h"
 #include "..\Utilities.h"
+#include "Headers.h"
 
 bool g_bExitSignal;
 

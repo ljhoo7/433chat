@@ -1,5 +1,6 @@
-#include "Headers.h"
+#include "Predeclaration.h"
 #include "..\Utilities.h"
+#include "Headers.h"
 
 extern bool g_bExitSignal;
 
@@ -10,21 +11,21 @@ CLobby* CLobby::Instance()
 	return &instance;
 }
 
-void CLobby::Enter(CClient& client)
+void CLobby::Enter(CClient *client)
 {
 }
 
-void CLobby::Exit(CClient& client)
+void CLobby::Exit(CClient *client)
 {
 }
 
-void CLobby::Execute(CClient& client)
+void CLobby::Execute(CClient *client)
 {
 	std::string buf_str;
 	bool chat = false;
 	int retval;
 
-	int this_room_num = client.GetRoomNumber();
+	int this_room_num = client->GetRoomNumber();
 
 	// Input command
 	if (this_room_num == -1)
@@ -50,7 +51,7 @@ void CLobby::Execute(CClient& client)
 				std::cout << "The 'create' command has been used incorrectly !" << std::endl;
 			}
 
-			client.SendCreateMessage(t_room_num);
+			client->SendCreateMessage(t_room_num);
 		}
 		else if (subedstr == "dest")
 		{
@@ -62,7 +63,7 @@ void CLobby::Execute(CClient& client)
 				fputs("The 'destroy' command has been used incorrectly !\n", stdout);
 			}
 
-			client.SendDestroyMessage(t_room_num);
+			client->SendDestroyMessage(t_room_num);
 		}
 		else if (subedstr == "join")
 		{
@@ -77,7 +78,7 @@ void CLobby::Execute(CClient& client)
 					std::cout << "The 'join' command has been used incorrectly !" << std::endl;
 				}
 
-				client.SendJoinMessage(t_room_num, t_nick);
+				client->SendJoinMessage(t_room_num, t_nick);
 			}
 			else
 			{
@@ -107,21 +108,21 @@ CRoom* CRoom::Instance()
 	return &instance;
 }
 
-void CRoom::Enter(CClient& client)
+void CRoom::Enter(CClient *client)
 {
 }
 
-void CRoom::Exit(CClient& client)
+void CRoom::Exit(CClient *client)
 {
 }
 
-void CRoom::Execute(CClient& client)
+void CRoom::Execute(CClient *client)
 {
 	std::string buf_str;
 	bool chat = false;
 	int retval;
 
-	int this_room_num = client.GetRoomNumber();
+	int this_room_num = client->GetRoomNumber();
 
 	// Input command
 	if (this_room_num == -1)
@@ -151,7 +152,7 @@ void CRoom::Execute(CClient& client)
 					std::cout << "The 'leave' command has been used incorrectly !" << std::endl;
 				}
 
-				client.SendLeaveMessage();
+				client->SendLeaveMessage();
 			}
 		}
 		else if (subedstr == "exit")
@@ -185,7 +186,7 @@ void CRoom::Execute(CClient& client)
 
 	if (chat)
 	{
-		client.SendChatMessage(buf_str.c_str());
+		client->SendChatMessage(buf_str.c_str());
 	}
 }
 
@@ -198,15 +199,15 @@ CDestroy_Response_Wait* CDestroy_Response_Wait::Instance()
 	return &instance;
 }
 
-void CDestroy_Response_Wait::Enter(CClient& client)
+void CDestroy_Response_Wait::Enter(CClient *client)
 {
 }
 
-void CDestroy_Response_Wait::Exit(CClient& client)
+void CDestroy_Response_Wait::Exit(CClient *client)
 {
 }
 
-void CDestroy_Response_Wait::Execute(CClient& client)
+void CDestroy_Response_Wait::Execute(CClient *client)
 {
 }
 
@@ -219,15 +220,15 @@ CJoin_Response_Wait* CJoin_Response_Wait::Instance()
 	return &instance;
 }
 
-void CJoin_Response_Wait::Enter(CClient& client)
+void CJoin_Response_Wait::Enter(CClient *client)
 {
 }
 
-void CJoin_Response_Wait::Exit(CClient& client)
+void CJoin_Response_Wait::Exit(CClient *client)
 {
 }
 
-void CJoin_Response_Wait::Execute(CClient& client)
+void CJoin_Response_Wait::Execute(CClient *client)
 {
 }
 
@@ -240,15 +241,15 @@ CLeave_Response_Wait* CLeave_Response_Wait::Instance()
 	return &instance;
 }
 
-void CLeave_Response_Wait::Enter(CClient& client)
+void CLeave_Response_Wait::Enter(CClient *client)
 {
 }
 
-void CLeave_Response_Wait::Exit(CClient& client)
+void CLeave_Response_Wait::Exit(CClient *client)
 {
 }
 
-void CLeave_Response_Wait::Execute(CClient& client)
+void CLeave_Response_Wait::Execute(CClient *client)
 {
 }
 
@@ -261,15 +262,15 @@ CCreate_Response_Wait* CCreate_Response_Wait::Instance()
 	return &instance;
 }
 
-void CCreate_Response_Wait::Enter(CClient& client)
+void CCreate_Response_Wait::Enter(CClient *client)
 {
 }
 
-void CCreate_Response_Wait::Exit(CClient& client)
+void CCreate_Response_Wait::Exit(CClient *client)
 {
 }
 
-void CCreate_Response_Wait::Execute(CClient& client)
+void CCreate_Response_Wait::Execute(CClient *client)
 {
 	
 }

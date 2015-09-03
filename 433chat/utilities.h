@@ -18,6 +18,11 @@
 #include <exception>
 #include <stdexcept>
 
+template <class entity_type>
+class State;
+template <class entity_type>
+class StateMachine;
+
 #define SERVERIP   "127.0.0.1"
 
 #define SERVERPORT1 9000
