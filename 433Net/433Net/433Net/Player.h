@@ -1,5 +1,8 @@
 #pragma once
 #include "utilities.h"
+#include "logic.h"
+#include "usertoken.h"
+#include "bufPoolManager.h"
 
 class Player : public IPeer{
 
@@ -8,10 +11,19 @@ public:
 	int roomNum;
 	UserToken token;
 
+	int identifier;				// token ( it has the other meaning )
+
+	BufPoolManager poolManager;
+	PacketPoolManager packetPoolManager;
+
 	Player();
 
+	void recieve(char* buf, int size);
 	bool recieveProcess();
 	void send_msg(char *buf, int size);
 	void recieve_msg(char* buf, int size);
 	void remove();
+	void disconnect();
+
+	void packetHandling(Packet *packet);
 };

@@ -9,7 +9,7 @@ Reciever::~Reciever(){
 
 }
 
-void Reciever::start(int port, int backlog, void(*callback)(UserToken* token)){
+void Reciever::start(int port, void(*callback)(UserToken* token)){
 	printf("start\n");
 
 	int retval;

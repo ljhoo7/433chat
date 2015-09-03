@@ -16,6 +16,4 @@ public:
 	void playerQuit(Player* player, bool msg);
 
 	void broadcast_msg(char* msg, int size);
-
-
 };

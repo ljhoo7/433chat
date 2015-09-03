@@ -1,6 +1,8 @@
 #include "logic.h"
 #include "interServer.h"
 #include "packet.h"
+#include "usertoken.h"
+#include "player.h"
 
 AutoResetEvent::AutoResetEvent(bool initial)
 : flag_(initial)
@@ -50,7 +52,8 @@ void LogicHandle::process(){
 			/* wait! */
 			//_event.WaitOne();
 		}
-		Packet* packet = NULL;
+		Packet* packet = nullptr;
+
 		EnterCriticalSection(&operation_lock);
 		if (operation_queue.size() > 0){
 			packet = operation_queue.front();
@@ -58,7 +61,7 @@ void LogicHandle::process(){
 		}
 		LeaveCriticalSection(&operation_lock);
 
-		if (packet != NULL){
+		if (packet != nullptr){
 			if (packet->type == 0){
 				connect_server.packetHandling(packet);
 			}
@@ -66,10 +69,9 @@ void LogicHandle::process(){
 				listen_server.packetHandling(packet);
 			}
 			else if (packet->type == 2){
-				//packet->owner->packetHandling(packet);
+				Player *tPlayer = static_cast<Player *>(packet->owner->peer);
+				tPlayer->packetHandling(packet);
 			}
 		}
-
-		
 	}
 }

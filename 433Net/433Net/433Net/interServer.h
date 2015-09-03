@@ -21,8 +21,6 @@ public:
 private:
 	bool beat_check;
 	
-
-
 public:
 	InterServer();
 	void listenProcess();

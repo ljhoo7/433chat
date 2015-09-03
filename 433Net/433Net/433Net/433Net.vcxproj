@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="bufPoolManager.h" />
+    <ClInclude Include="Client_Protocol.h" />
     <ClInclude Include="interServer.h" />
     <ClInclude Include="logic.h" />
     <ClInclude Include="packet.h" />
@@ -96,7 +97,10 @@
     <ClCompile Include="logic.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Packet.cpp" />
+    <ClCompile Include="player.cpp" />
     <ClCompile Include="reciever.cpp" />
+    <ClCompile Include="room.cpp" />
+    <ClCompile Include="roomManager.cpp" />
     <ClCompile Include="usertoken.cpp" />
     <ClCompile Include="utilities.cpp" />
   </ItemGroup>

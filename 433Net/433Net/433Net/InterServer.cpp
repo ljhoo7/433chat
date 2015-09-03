@@ -18,8 +18,6 @@ void InterServer::start(int type, int port){
 	else{
 		interserver_listen(port);
 	}
-
-
 }
 
 void InterServer::interserver_connect(char* ip, int port){	

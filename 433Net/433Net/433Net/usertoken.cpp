@@ -1,6 +1,8 @@
 #include "usertoken.h"
 
-UserToken::UserToken(SOCKET clientSocket, SOCKADDR_IN clientAddr, IPeer* peer){
+UserToken::UserToken(SOCKET clientSocket, SOCKADDR_IN clientAddr, IPeer* peer)
+:clientSocket(NULL)
+{
 	this->clientSocket = clientSocket;
 	this->clientAddr = clientAddr;
 
@@ -22,28 +24,12 @@ bool UserToken::operator==(const UserToken& right){
 bool UserToken::recieveProcess(){
 	if (this->peer != NULL){
 		return this->peer->recieveProcess();
-	}else{
-		if (position < HEADER_SIZE){
-			if (position == 0){
-				remainBytes = HEADER_SIZE;
-			}
-
-			return read_until();
-		}
-		else{
-			if (position == HEADER_SIZE){
-
-				memcpy(&remainBytes, buf, sizeof(short));
-				size = (int)(remainBytes);
-				remainBytes -= HEADER_SIZE;
-			}
-			bool check = read_until();
-			if (remainBytes <= 0){
-				position = 0;
-				on_msg(buf, size);
-			}
-			return check;
-		}
+	}
+	else
+	{
+		std::cout << "There is a weired UserToken which has no player." << std::endl;
+		
+		return false;
 	}
 }
 

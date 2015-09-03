@@ -7,7 +7,7 @@ public:
 	Reciever();
 	~Reciever();
 
-	void start(int port, int backlog, void(*callback)(UserToken* token));
+	void start(int port, void(*callback)(UserToken* token));
 	void process();
 
 private:
@@ -17,9 +17,6 @@ private:
 	void recieveProcess();
 	void acceptProcess();
 
-
-public:
-
 private:
 	void(*callback)(UserToken* token);
 	SOCKET listenSocket;
@@ -28,5 +25,4 @@ private:
 	FD_SET reads;
 	FD_SET copy_set;
 	std::list<UserToken*> userList;
-
 };

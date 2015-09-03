@@ -3,18 +3,16 @@
 #include "Player.h"
 #include "room.h"
 
-
 class RoomManager{
 public:
 	std::list<Room*> rooms;
-
 public:
-	void createRoom(int roomNumber);
-	void destroyRoom(int roomNumber);
+	int createRoom(int roomNumber);
+	int destroyRoom(int roomNumber);
 	Room* findRoom(int roomNumber);
-	void leaveRoom(Player* p, int roomNumber);
-	void enterRoom(Player* p, int roomNumber);
+	bool leaveRoom(Player* p, int roomNumber);
+	int enterRoom(Player* p, int roomNumber);
 	void printInfo();
 
-
+	bool checkExist(int roomNumber);
 };
