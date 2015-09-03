@@ -49,3 +49,5 @@ int recvn(SOCKET s, char *buf, int len, int flags);
 
 // Get The last readable thread error message
 static CHAR* getLastErrorText(CHAR *pBuf, ULONG bufSize);
+
+void printFailSignal(const fail_signal fail);

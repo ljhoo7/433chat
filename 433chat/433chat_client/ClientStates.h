@@ -1,18 +1,5 @@
 #pragma once
 
-class CNotConnected : public State<CClient>
-{
-private:
-	CNotConnected(){}
-	CNotConnected(const CNotConnected&);
-	CNotConnected& operator=(const CNotConnected&);
-public:
-	static CNotConnected* Instance();
-	virtual void Enter(CClient& client);
-	virtual void Exit(CClient& client);
-	virtual void Execute(CClient& client);
-};
-
 class CLobby : public State<CClient>
 {
 private:
@@ -34,6 +21,58 @@ private:
 	CRoom& operator=(const CRoom&);
 public:
 	static CRoom* Instance();
+	virtual void Enter(CClient& client);
+	virtual void Exit(CClient& client);
+	virtual void Execute(CClient& client);
+};
+
+class CCreate_Response_Wait : public State<CClient>
+{
+private:
+	CCreate_Response_Wait(){}
+	CCreate_Response_Wait(const CCreate_Response_Wait&);
+	CCreate_Response_Wait& operator=(const CCreate_Response_Wait&);
+public:
+	static CCreate_Response_Wait* Instance();
+	virtual void Enter(CClient& client);
+	virtual void Exit(CClient& client);
+	virtual void Execute(CClient& client);
+};
+
+class CDestroy_Response_Wait : public State<CClient>
+{
+private:
+	CDestroy_Response_Wait(){}
+	CDestroy_Response_Wait(const CDestroy_Response_Wait&);
+	CDestroy_Response_Wait& operator=(const CDestroy_Response_Wait&);
+public:
+	static CDestroy_Response_Wait* Instance();
+	virtual void Enter(CClient& client);
+	virtual void Exit(CClient& client);
+	virtual void Execute(CClient& client);
+};
+
+class CJoin_Response_Wait : public State<CClient>
+{
+private:
+	CJoin_Response_Wait(){}
+	CJoin_Response_Wait(const CJoin_Response_Wait&);
+	CJoin_Response_Wait& operator=(const CJoin_Response_Wait&);
+public:
+	static CJoin_Response_Wait* Instance();
+	virtual void Enter(CClient& client);
+	virtual void Exit(CClient& client);
+	virtual void Execute(CClient& client);
+};
+
+class CLeave_Response_Wait : public State<CClient>
+{
+private:
+	CLeave_Response_Wait(){}
+	CLeave_Response_Wait(const CLeave_Response_Wait&);
+	CLeave_Response_Wait& operator=(const CLeave_Response_Wait&);
+public:
+	static CLeave_Response_Wait* Instance();
 	virtual void Enter(CClient& client);
 	virtual void Exit(CClient& client);
 	virtual void Execute(CClient& client);

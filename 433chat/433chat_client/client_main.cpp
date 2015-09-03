@@ -1,8 +1,12 @@
 #include "Headers.h"
 #include "..\Utilities.h"
 
+bool g_bExitSignal;
+
 int main(int argc, char *argv[])
 {
+	g_bExitSignal = false;
+
 	CHECK_FAILURE(
 	std::vector<CClient*> t_vClient;
 
@@ -10,11 +14,11 @@ int main(int argc, char *argv[])
 	CHECK_FAILURE(t_vClient.push_back(new CClient()));
 
 	// Keep Looping for each clients
-	while (1){
+	while (!g_bExitSignal){
 		for (std::vector<CClient*>::iterator iter = t_vClient.begin()
 			; iter != t_vClient.end(); ++iter)
 		{
-			(*iter)->GetStateMachine()->CurrentState()->Execute(**iter);
+			(*iter)->GetStateMachine()->Update();
 		}
 	}
 

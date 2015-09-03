@@ -42,7 +42,7 @@ public:
     ChangeState(m_pPreviousState);
   }
 
-  bool  isInState(const State<entity_type>& st)const
+  bool isInState(const State<entity_type>& st)const
   {
     if (typeid(*m_pCurrentState) == typeid(st)) return true;
     return false;

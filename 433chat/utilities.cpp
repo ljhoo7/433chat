@@ -83,3 +83,22 @@ ULONG bufSize)                     //   buffer size
 	}
 	return(pBuf);
 }
+
+void printFailSignal(const fail_signal fail)
+{
+	switch (fail)
+	{
+	case fail_signal::fs_alreadyexist:
+		std::cout << "Fail : Already exist" << std::endl;
+		break;
+	case fail_signal::fs_no_exist:
+		std::cout << "Fail : No exist" << std::endl;
+		break;
+	case fail_signal::fs_overflow:
+		std::cout << "Fail : Overflow" << std::endl;
+		break;
+	default:
+		std::cout << "Unreadable fail signal." << std::endl;
+		break;
+	}
+}
