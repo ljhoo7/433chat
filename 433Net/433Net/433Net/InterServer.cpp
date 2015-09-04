@@ -1,8 +1,10 @@
 #include "interServer.h"
 #include "logic.h"
 #include "packet.h"
+#include "player.h"
 
 extern LogicHandle logicHandle;
+extern std::list<Player*> g_vPlayers;
 
 InterServer::InterServer() : poolManager(10), packetPoolManager(10), 
 process_thread(), heart_thread(), listen_thread(){
@@ -18,6 +20,10 @@ void InterServer::start(int type, int port){
 	else{
 		interserver_listen(port);
 	}
+}
+
+void InterServer::makeSync(){
+
 }
 
 void InterServer::interserver_connect(char* ip, int port){	
@@ -37,6 +43,8 @@ void InterServer::interserver_connect(char* ip, int port){
 	printf("This server has been connected to the other server by connect().\n");
 
 	printf("InterServer Thread has been activated.\n");
+
+	makeSync();
 
 	process_thread = std::thread(&InterServer::process, this);
 	process_thread.join();
@@ -58,6 +66,8 @@ void InterServer::interserver_listen(int port){
 
 	retval = listen(listen_sock, SOMAXCONN);
 	if (retval == SOCKET_ERROR) err_quit("listen()");
+
+	makeSync();
 
 	listen_thread = std::thread(&InterServer::listenProcess, this);
 }
@@ -116,6 +126,17 @@ void InterServer::process(){
 void InterServer::disconnect(){
 	if (the_other_sock != NULL){
 		printf("closed the other server.\n");
+
+		std::list<Player*>::iterator iter;
+		for (iter = g_vPlayers.begin(); iter != g_vPlayers.end();){
+			if (!(*iter)->isMine){
+				iter = g_vPlayers.erase(iter);
+			}
+			else{
+				iter++;
+			}
+		}
+
 		closesocket(the_other_sock);
 		the_other_sock = NULL;
 	}

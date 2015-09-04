@@ -8,7 +8,6 @@ UserToken::UserToken(SOCKET clientSocket, SOCKADDR_IN clientAddr, IPeer* peer)
 
 	position = 0;
 	remainBytes = 0;
-	size = 0;
 
 	this->peer = peer;
 }

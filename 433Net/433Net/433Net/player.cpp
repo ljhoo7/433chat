@@ -14,9 +14,12 @@ extern InterServer connect_server;
 
 extern int identifier_seed;
 
-Player::Player() : poolManager(10), packetPoolManager(10)
+Player::Player(bool isMine) : poolManager(10), packetPoolManager(10)
 {
-	identifier = identifier_seed++;
+	this->isMine = isMine;
+	this->nickname = "";
+	this->roomNum = -1;
+	this->identifier = identifier_seed++;
 }
 
 bool Player::recieveProcess()
@@ -26,57 +29,82 @@ bool Player::recieveProcess()
 		std::cout << "There is a weired UserToken which has note connecd socket." << std::endl;
 		return false;
 	}
-	char* buf = poolManager.pop();
-	recieve(buf, sizeof(short));
+	char* buf = this->token.buf;
 
-	pkt_type _type = (pkt_type)((unsigned short)(*buf));
-	switch (_type)
-	{
-	case pkt_type::pt_create:
-		recieve(buf + 2, sizeof(t_create)-2);
-		std::cout << "pt_create" << std::endl;
-		break;
-	case pkt_type::pt_destroy:
-		recieve(buf + 2, sizeof(t_destroy)-2);
-		std::cout << "pt_destroy" << std::endl;
-		break;
-	case pkt_type::pt_join:
-		recieve(buf + 2, sizeof(t_join)-2);
-		std::cout << "pt_join" << std::endl;
-		break;
-	case pkt_type::pt_leave:
-		recieve(buf + 2, sizeof(t_leave)-2);
-		std::cout << "pt_leave" << std::endl;
-		break;
-	case pkt_type::pt_chat:
-		recieve(buf + 2, sizeof(short));
-		unsigned short size;
-		memcpy(&size, buf + 2, sizeof(short));
-		recieve(buf + 4, size);
-		std::cout << "pt_chat" << std::endl;
-		break;
-	default:
-		disconnect();
-		return false;
+	if (this->token.position < HEADER_SIZE){
+		if (token.position == 0){
+			token.remainBytes = HEADER_SIZE;
+		}
+		return recieve(buf + token.position, token.remainBytes);
 	}
-
-	Packet* msg = packetPoolManager.pop();
-	msg->type = 2;
-	msg->owner = &this->token;
-	msg->msg = buf;
-
-	logicHandle.enqueue_oper(msg);
-
+	else{
+		if (token.position == HEADER_SIZE){
+			token.var = false;
+			pkt_type _type = (pkt_type)((unsigned short)(*buf));
+			switch (_type)
+			{
+			case pkt_type::pt_create:
+				token.remainBytes = sizeof(t_create)-2;
+				std::cout << "pt_create" << std::endl;
+				break;
+			case pkt_type::pt_destroy:
+				token.remainBytes = sizeof(t_destroy)-2;
+				std::cout << "pt_destroy" << std::endl;
+				break;
+			case pkt_type::pt_join:
+				token.remainBytes = sizeof(t_join)-2;
+				std::cout << "pt_join" << std::endl;
+				break;
+			case pkt_type::pt_leave:
+				token.remainBytes = sizeof(t_leave)-2;
+				std::cout << "pt_leave" << std::endl;
+				break;
+			case pkt_type::pt_chat:
+				token.var = true;
+				token.remainBytes = sizeof(short);
+				std::cout << "pt_chat" << std::endl;
+				break;
+			default:
+				disconnect();
+				return false;
+			}
+		}
+		bool check = recieve(buf + token.position, token.remainBytes);
+		if (token.remainBytes <= 0){
+			if (token.var){
+				if (this->token.position == HEADER_SIZE * 2){
+					memcpy(&token.remainBytes, buf+HEADER_SIZE, sizeof(short));
+					token.remainBytes -= HEADER_SIZE*2;
+				}
+				token.var = false;
+			}else{
+				token.position = 0;
+				char* buf = poolManager.pop();
+				Packet* msg = packetPoolManager.pop();
+				msg->type = 2;
+				msg->owner = &this->token;
+				msg->msg = buf;
+				memcpy(buf, token.buf, sizeof(BUFSIZE));
+				logicHandle.enqueue_oper(msg);
+			}
+		}
+		return check;
+	}
 	return true;
 }
 
-void Player::recieve(char* buf, int size){
-	if (size == 0) return;
+bool Player::recieve(char* buf, int size){
+	if (size == 0) return true;
 	int ret = recv(token.clientSocket, buf, size, 0);
 	if (ret == SOCKET_ERROR){
 		printf("recieve error\n");
 		disconnect();
+		return false;
 	}
+	token.position += ret;
+	token.remainBytes -= ret;
+
+	return true;
 }
 
 void Player::disconnect(){

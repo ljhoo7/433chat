@@ -16,10 +16,10 @@ RoomManager roomManager;
 int identifier_seed;
 
 // user presence
-std::vector<Player*> g_vPlayers;
+std::list<Player*> g_vPlayers;
 
 void accept_callback(UserToken* token){
-	Player* p = new Player();
+	Player* p = new Player(true);
 
 	g_vPlayers.push_back(p);
 
