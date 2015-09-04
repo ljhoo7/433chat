@@ -16,9 +16,8 @@ public:
 
 	char buf[BUFSIZE];
 	int position;
-	short remainBytes;
+	int remainBytes;
 	bool var;
-
 	IPeer* peer;
 
 public:

@@ -17,9 +17,12 @@ extern Reciever receiver;
 
 extern int identifier_seed;
 
-Player::Player() : poolManager(10), packetPoolManager(10)
+Player::Player(bool isMine) : poolManager(10), packetPoolManager(10)
 {
-	identifier = identifier_seed++;
+	this->isMine = isMine;
+	this->nickname = "";
+	this->roomNum = -1;
+	this->identifier = identifier_seed++;
 }
 
 bool Player::recieveProcess()
@@ -37,7 +40,7 @@ bool Player::recieveProcess()
 		}
 		return recieve(buf + token.position, token.remainBytes);
 	}
-	else{
+else{
 		if (token.position == HEADER_SIZE){
 			token.var = false;
 			pkt_type _type = (pkt_type)((unsigned short)(*buf));
@@ -74,11 +77,9 @@ bool Player::recieveProcess()
 			if (token.var){
 				if (this->token.position == HEADER_SIZE * 2){
 					memcpy(&token.remainBytes, buf + HEADER_SIZE, sizeof(short));
-					token.remainBytes -= HEADER_SIZE*2;
-				}
+					token.remainBytes -= HEADER_SIZE*2;				}
 				token.var = false;
-			}
-			else{
+			}else{
 				token.position = 0;
 				char* buf = poolManager.pop();
 				Packet* msg = packetPoolManager.pop();
@@ -90,8 +91,7 @@ bool Player::recieveProcess()
 			}
 		}
 		return check;
-	}
-	return true;
+	}	return true;
 }
 
 bool Player::recieve(char* buf, int size){
@@ -128,12 +128,61 @@ void Player::recieve_msg(char* buf, int size)
 {
 }
 
+bool Player::valid_Packet(Packet *packet){
+	if (!this->isMine) return false;
+
+	pkt_type _type = (pkt_type)(*packet->msg);
+	
+	switch (_type)
+	{
+	case pkt_type::pt_create:
+		if (this->roomNum != -1) return false;
+		break;
+
+	case pkt_type::pt_destroy:
+		if (this->roomNum != -1) return false;
+		break;
+
+	case pkt_type::pt_join:
+		if (this->roomNum == -1) return false;
+		break;
+
+	case pkt_type::pt_leave:
+		t_leave temp;
+		memcpy(&temp, packet->msg, sizeof(t_leave));
+		if (this->identifier != temp.token) return false;
+		if (this->roomNum == -1) return false;
+		if (this->roomNum != temp.room_num) return false;
+		break;
+
+	case pkt_type::pt_chat:
+		t_chat temp;
+		memcpy(&temp, packet->msg, sizeof(t_chat));
+		if (this->roomNum == -1) return false;
+		if (this->identifier != temp.token) return false;
+		if (this->roomNum != temp.room_num) return false;
+
+	}
+	return true;
+}
+
+void Player::playerSync(char *buf, int size){
+	if (listen_server.the_other_sock != NULL){
+		listen_server._send(buf, size);
+	}
+	if (connect_server.the_other_sock != NULL){
+		connect_server._send(buf, size);
+	}
+}
+
 void Player::packetHandling(Packet *packet)
 {
 	if (token.clientSocket == NULL)
 	{
 		return;
 	}
+
+	if (!valid_Packet(packet)) return;
 
 	pkt_type _type = (pkt_type)(*packet->msg);
 
@@ -150,7 +199,6 @@ void Player::packetHandling(Packet *packet)
 	t_join_success		tmpJoinSuccess;
 	t_join_failure		tmpJoinFailure;
 	t_leave_success		tmpLeaveSuccess;
-
 	char				*tmpChat;
 
 	int result;
@@ -162,11 +210,14 @@ void Player::packetHandling(Packet *packet)
 		result = roomManager.createRoom(tmpCreate.room_num);
 		if (result == -1)
 		{
-			tmpCreateSuccess.type = pkt_type::pt_create_success;
-
+			//------------------------------------------------------------------------
+			ss_create msg;
+			msg.type = ssType::pkt_create;
+			msg.client_socket = token.clientSocket;
+			msg.room_num = tmpCreate.room_num;
+			playerSync((char *)&msg, sizeof(msg));			tmpCreateSuccess.type = pkt_type::pt_create_success;
 			send_msg((char *)&tmpCreateSuccess, sizeof(t_create_success));
-			std::cout << "create message has been sent." << std::endl;
-		}
+			std::cout << "create message has been sent." << std::endl;		}
 		else if (result == fail_signal::fs_overflow)
 		{
 			tmpCreateFailure.type = pkt_type::pt_create_failure;
@@ -189,11 +240,15 @@ void Player::packetHandling(Packet *packet)
 		result = roomManager.destroyRoom(tmpDestroy.room_num);
 		if (result == -1)
 		{
-			tmpDestroySuccess.type = pkt_type::pt_destroy_success;
-
+			ss_destroy msg;
+			msg.type = ssType::pkt_destroy;
+			msg.client_socket = token.clientSocket;
+			msg.room_num = tmpDestroy.room_num;
+			playerSync((char *)&msg, sizeof(msg));
 			send_msg((char *)&tmpDestroySuccess, sizeof(t_destroy_success));
-			std::cout << "destroy success message has been sent." << std::endl;
-		}
+			std::cout << "destroy success message has been sent." << std::endl;			
+			tmpCsDestroySuccess.type = pkt_type::pt_destroy_success;
+			send_msg((char *)&tmpCsDestroyFailure, sizeof(t_destroy_failure));		}
 		else if (result == fail_signal::fs_no_exist)
 		{
 			tmpDestroyFailure.type = pkt_type::pt_destroy_failure;
@@ -203,18 +258,19 @@ void Player::packetHandling(Packet *packet)
 			std::cout << "destroy no exist message has been sent." << std::endl;
 		}
 		break;
+
 	case pkt_type::pt_join:
 		memcpy(&tmpJoin, packet->msg, sizeof(t_join));
 		result = roomManager.enterRoom(this, tmpJoin.room_num);
 		if (result == -1)
 		{
-			tmpJoinSuccess.type = pkt_type::pt_join_success;
-			tmpJoinSuccess.token = this->identifier;
-
-			send_msg((char *)&tmpJoinSuccess, sizeof(t_join_success));
-
+			ss_join msg;
+			msg.type = ssType::pkt_join;
+			msg.client_socket = token.clientSocket;
+			msg.room_num = tmpJoin.room_num;
+			memcpy(msg.nickname, tmpJoin.nickname, sizeof(msg.nickname));
+			playerSync((char *)&msg, sizeof(msg));
 			std::cout << "join success message has been sent." << std::endl;
-
 			memcpy(tmpJoinAlarm.nickname, tmpJoin.nickname, 20);
 			tmpJoinAlarm.room_num = tmpJoin.room_num;
 			tmpJoinAlarm.type = pkt_type::pt_join_alarm;
@@ -247,37 +303,42 @@ void Player::packetHandling(Packet *packet)
 			std::cout << "join no exist message has been sent." << std::endl;
 		}
 		break;
+
 	case pkt_type::pt_leave:
 		memcpy(&tmpLeave, packet->msg, sizeof(t_leave));
-		result = roomManager.leaveRoom(this, tmpLeave.room_num);
-		if (result == true)
+		result = roomManager.leaveRoom(this, tmpLeave.room_num);		if (result == true)
 		{
-			tmpLeaveSuccess.type = pkt_type::pt_leave_success;
-
+			ss_leave msg;
+			msg.type = ssType::pkt_leave;
+			msg.client_socket = token.clientSocket;
+			msg.room_num = tmpLeave.room_num;
+			msg.token = tmpLeave.token;
+			memcpy(msg.nickname, tmpLeave.nickname, sizeof(msg.nickname));
+			playerSync((char *)&msg, sizeof(msg));
 			send_msg((char *)&tmpLeaveSuccess, sizeof(t_leave_success));
-
 			memcpy(tmpLeaveAlarm.nickname, tmpLeave.nickname, 20);
 			tmpLeaveAlarm.room_num = tmpLeave.room_num;
 			tmpLeaveAlarm.type = pkt_type::pt_leave_alarm;
-
 			roomManager.findRoom(this->roomNum)->broadcast_msg((char*)&tmpLeaveAlarm, sizeof(t_leave_alarm));
 			
-			std::cout << "leave success message has been sent." << std::endl;
-		}
+			std::cout << "leave success message has been sent." << std::endl;		}
 		else
 		{
 			std::cout << "The Leave Command has been failed. This is very extra ordinary event !" << std::endl;
 		}
 		break;
+
 	case pkt_type::pt_chat:
+	/*	t_chat_alarm msg;
+		msg.type = pkt_type::pt_chat_alarm;
+
+
 		unsigned short size;
 		unsigned short type = pkt_type::pt_chat_alarm;
-		memcpy(&size, packet->msg + 2, sizeof(unsigned short));
+		memcpy(packet->msg, &type, sizeof(unsigned short));		memcpy(&size, packet->msg + 2, sizeof(unsigned short));
 		memcpy(packet->msg, &type, sizeof(short));
 
-		roomManager.findRoom(this->roomNum)->broadcast_msg(packet->msg, size);
-		std::cout << "chat message has been sent." << std::endl;
-		break;
+		std::cout << "chat message has been sent." << std::endl;		break;
 	}
 }
 

@@ -7,6 +7,7 @@
 class Player : public IPeer{
 
 public:
+	bool isMine;
 	std::string nickname;
 	int roomNum;
 	UserToken token;
@@ -16,7 +17,10 @@ public:
 	BufPoolManager poolManager;
 	PacketPoolManager packetPoolManager;
 
-	Player();
+	Player(bool isMine);
+
+	bool valid_Packet(Packet *packet);
+	void playerSync(char *buf, int size);
 
 	bool recieve(char* buf, int size);
 	bool recieveProcess();

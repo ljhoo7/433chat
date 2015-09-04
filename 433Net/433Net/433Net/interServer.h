@@ -23,6 +23,7 @@ private:
 	
 public:
 	InterServer();
+	void makeSync();
 	void listenProcess();
 	void process();
 	void recieveProcess();
