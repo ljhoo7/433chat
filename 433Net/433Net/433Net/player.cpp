@@ -295,6 +295,7 @@ void Player::packetHandling(Packet *packet)
 			send_msg((char *)&tmpCsJoinFailure, sizeof(t_join_failure));
 		}
 		break;
+
 	case pkt_type::pt_leave:
 		memcpy(&tmpSsLeave, packet->msg, sizeof(t_leave));
 		result = roomManager.leaveRoom(this, tmpSsLeave.room_num);
