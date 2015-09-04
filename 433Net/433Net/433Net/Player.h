@@ -19,6 +19,9 @@ public:
 
 	Player(bool isMine);
 
+	bool valid_Packet(Packet *packet);
+	void playerSync(char *buf, int size);
+
 	bool recieve(char* buf, int size);
 	bool recieveProcess();
 	void send_msg(char *buf, int size);

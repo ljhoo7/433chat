@@ -2,9 +2,12 @@
 #include "logic.h"
 #include "packet.h"
 #include "player.h"
+#include "RoomManager.h"
+#include "Client_Protocol.h"
 
 extern LogicHandle logicHandle;
 extern std::list<Player*> g_vPlayers;
+extern RoomManager roomManager;
 
 InterServer::InterServer() : poolManager(10), packetPoolManager(10), 
 process_thread(), heart_thread(), listen_thread(){
@@ -23,7 +26,7 @@ void InterServer::start(int type, int port){
 }
 
 void InterServer::makeSync(){
-
+	if (the_other_sock == NULL) return;
 }
 
 void InterServer::interserver_connect(char* ip, int port){	
@@ -223,7 +226,7 @@ void InterServer::recieve(char* buf, int size){
 void InterServer::_send(char* buf, int size){
 	int ret = send(the_other_sock, buf, size, 0);
 	if (ret == SOCKET_ERROR){
-		printf("send error\n");
+		printf("inter-server send() error\n");
 		disconnect();
 	}
 }
@@ -263,5 +266,6 @@ void InterServer::packetHandling(Packet* packet){
 		printf("recieve heartbeat response\n");
 		beat_check = true;
 		break;
+
 	}
 }

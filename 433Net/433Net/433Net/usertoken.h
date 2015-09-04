@@ -18,7 +18,6 @@ public:
 	int position;
 	int remainBytes;
 	bool var;
-
 	IPeer* peer;
 
 public:
