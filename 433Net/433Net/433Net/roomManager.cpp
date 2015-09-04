@@ -12,18 +12,6 @@ void RoomManager::printInfo(){
 	printf("\n");
 }
 
-bool RoomManager::checkExist(int roomNumber)
-{
-	std::list<Room*>::iterator iter;
-	for (iter = rooms.begin(); iter != rooms.end(); iter++){
-		if (roomNumber == (*iter)->roomNumber)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
 int RoomManager::createRoom(int roomNumber){
 	if (rooms.size() > ROOM_MAX)
 	{
@@ -76,6 +64,8 @@ int RoomManager::enterRoom(Player* p, int roomNumber){
 	room->playerEnter(p);
 
 	printInfo();
+
+	return -1;
 }
 
 int RoomManager::destroyRoom(int roomNumber){
@@ -95,9 +85,11 @@ bool RoomManager::leaveRoom(Player* p, int roomNumber){
 	Room* room = findRoom(roomNumber);
 	if (room == NULL){
 		printf("No ROOM!\n");
-		return;
+		return false;
 	}
 	room->playerQuit(p, true);
 
 	printInfo();
+
+	return true;
 }

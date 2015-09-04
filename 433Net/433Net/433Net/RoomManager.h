@@ -13,6 +13,4 @@ public:
 	bool leaveRoom(Player* p, int roomNumber);
 	int enterRoom(Player* p, int roomNumber);
 	void printInfo();
-
-	bool checkExist(int roomNumber);
 };

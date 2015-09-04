@@ -202,7 +202,7 @@ void InterServer::recieve(char* buf, int size){
 void InterServer::_send(char* buf, int size){
 	int ret = send(the_other_sock, buf, size, 0);
 	if (ret == SOCKET_ERROR){
-		printf("send error\n");
+		printf("inter-server send() error\n");
 		disconnect();
 	}
 }
