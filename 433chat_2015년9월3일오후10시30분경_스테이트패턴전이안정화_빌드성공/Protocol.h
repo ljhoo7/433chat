@@ -72,6 +72,8 @@ typedef struct{
 typedef struct{
 	unsigned short type;
 }t_leave_success;
+
+
 typedef struct{
 	unsigned short type;
 	unsigned short length;
@@ -80,6 +82,7 @@ typedef struct{
 	unsigned int token;
 	std::string message;
 }t_chat;
+
 typedef struct{
 	unsigned short type;
 	unsigned short length;
@@ -88,6 +91,7 @@ typedef struct{
 	unsigned int token;
 	std::string message;
 }t_chat_alarm;
+
 typedef struct{
 	unsigned short type;
 	unsigned short room_num;

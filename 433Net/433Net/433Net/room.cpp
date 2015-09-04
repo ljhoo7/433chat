@@ -18,15 +18,6 @@ Room::~Room(){
 void Room::playerEnter(Player* player){
 	player->roomNum = roomNumber;
 
-	t_join packet;
-
-	packet.type = pkt_type::pt_join;
-	packet.room_num = this->roomNumber;
-
-	memcpy(packet.nickname, (player->nickname).c_str(), (player->nickname).size());
-
-	broadcast_msg((char *)&packet, (player->nickname).size() + 8);
-
 	/* 입장했다고 알리기 */
 	players.push_back(player);
 }
@@ -35,16 +26,6 @@ void Room::playerEnter(Player* player){
 void Room::playerQuit(Player* player, bool msg){
 	player->roomNum = -1;
 	players.remove(player);
-
-	t_leave packet;
-	int size = (player->nickname).size() + 8;
-	packet.room_num = player->roomNum;
-	packet.type = pkt_type::pt_leave;
-	packet.token = player->identifier;
-
-	memcpy(packet.nickname, (player->nickname).c_str(), (player->nickname).size());
-
-	if (msg) broadcast_msg((char *)&packet, size);
 
 	/* 나갔다고 알리기 */
 }

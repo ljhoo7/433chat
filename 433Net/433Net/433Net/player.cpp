@@ -74,7 +74,7 @@ bool Player::recieveProcess()
 			if (token.var){
 				if (this->token.position == HEADER_SIZE * 2){
 					memcpy(&token.remainBytes, buf + HEADER_SIZE, sizeof(short));
-					token.remainBytes -= HEADER_SIZE;
+					token.remainBytes -= HEADER_SIZE*2;
 				}
 				token.var = false;
 			}
@@ -137,125 +137,132 @@ void Player::packetHandling(Packet *packet)
 
 	pkt_type _type = (pkt_type)(*packet->msg);
 
-	t_create			tmpSsCreate;
-	t_destroy			tmpSsDestroy;
-	t_join				tmpSsJoin;
-	t_leave			tmpSsLeave;
-	char				*tmpCsChat;
+	t_create			tmpCreate;
+	t_destroy			tmpDestroy;
+	t_join				tmpJoin;
+	t_leave				tmpLeave;
+	t_join_alarm		tmpJoinAlarm;
+	t_leave_alarm		tmpLeaveAlarm;
+	t_create_success	tmpCreateSuccess;
+	t_create_failure	tmpCreateFailure;
+	t_destroy_success	tmpDestroySuccess;
+	t_destroy_failure	tmpDestroyFailure;
+	t_join_success		tmpJoinSuccess;
+	t_join_failure		tmpJoinFailure;
+	t_leave_success		tmpLeaveSuccess;
 
-	t_create_success	tmpCsCreateSuccess;
-	t_create_failure	tmpCsCreateFailure;
-	t_destroy_success	tmpCsDestroySuccess;
-	t_destroy_failure	tmpCsDestroyFailure;
-	t_join_success		tmpCsJoinSuccess;
-	t_join_failure		tmpCsJoinFailure;
-	t_leave_success		tmpCsLeaveSuccess;
+	char				*tmpChat;
 
 	int result;
 
 	switch (_type)
 	{
 	case pkt_type::pt_create:
-		memcpy(&tmpSsCreate, packet->msg, sizeof(t_create));
-		result = roomManager.createRoom(tmpSsCreate.room_num);
+		memcpy(&tmpCreate, packet->msg, sizeof(t_create));
+		result = roomManager.createRoom(tmpCreate.room_num);
 		if (result == -1)
 		{
-			tmpSsCreate.type = ssType::pkt_create;
-			tmpSsCreate.room_num = this->roomNum;
-			//------------------------------------------------------------------------
+			tmpCreateSuccess.type = pkt_type::pt_create_success;
 
-			tmpCsCreateSuccess.type = pkt_type::pt_create_success;
-
-			send_msg((char *)&tmpCsCreateSuccess, sizeof(t_create_success));
+			send_msg((char *)&tmpCreateSuccess, sizeof(t_create_success));
+			std::cout << "create message has been sent." << std::endl;
 		}
 		else if (result == fail_signal::fs_overflow)
 		{
-			tmpCsCreateFailure.type = pkt_type::pt_create_failure;
-			tmpCsCreateFailure.fail_signal = fail_signal::fs_overflow;
+			tmpCreateFailure.type = pkt_type::pt_create_failure;
+			tmpCreateFailure.fail_signal = fail_signal::fs_overflow;
 
-			send_msg((char *)&tmpCsCreateFailure, sizeof(t_create_failure));
+			send_msg((char *)&tmpCreateFailure, sizeof(t_create_failure));
+			std::cout << "create buffer overflow message has been sent." << std::endl;
 		}
 		else if (result == fail_signal::fs_alreadyexist)
 		{
-			tmpCsCreateFailure.type = pkt_type::pt_create_failure;
-			tmpCsCreateFailure.fail_signal = fail_signal::fs_alreadyexist;
+			tmpCreateFailure.type = pkt_type::pt_create_failure;
+			tmpCreateFailure.fail_signal = fail_signal::fs_alreadyexist;
 
-			send_msg((char *)&tmpCsCreateFailure, sizeof(t_create_failure));
+			send_msg((char *)&tmpCreateFailure, sizeof(t_create_failure));
+			std::cout << "create buffer already exist message has been sent." << std::endl;
 		}
 		break;
 	case pkt_type::pt_destroy:
-		memcpy(&tmpSsDestroy, packet->msg, sizeof(t_destroy));
-		result = roomManager.destroyRoom(tmpSsDestroy.room_num);
+		memcpy(&tmpDestroy, packet->msg, sizeof(t_destroy));
+		result = roomManager.destroyRoom(tmpDestroy.room_num);
 		if (result == -1)
 		{
-			tmpSsDestroy.type = ssType::pkt_destroy;
-			tmpSsDestroy.room_num = this->roomNum;
+			tmpDestroySuccess.type = pkt_type::pt_destroy_success;
 
-			//------------------------------------------------------------------------
-
-			tmpCsDestroySuccess.type = pkt_type::pt_destroy_success;
-
-			send_msg((char *)&tmpCsDestroyFailure, sizeof(t_destroy_failure));
+			send_msg((char *)&tmpDestroySuccess, sizeof(t_destroy_success));
+			std::cout << "destroy success message has been sent." << std::endl;
 		}
 		else if (result == fail_signal::fs_no_exist)
 		{
-			tmpCsDestroyFailure.type = pkt_type::pt_destroy_failure;
-			tmpCsDestroyFailure.fail_signal = fail_signal::fs_no_exist;
+			tmpDestroyFailure.type = pkt_type::pt_destroy_failure;
+			tmpDestroyFailure.fail_signal = fail_signal::fs_no_exist;
 
-			send_msg((char *)&tmpCsDestroyFailure, sizeof(t_destroy_failure));
+			send_msg((char *)&tmpDestroyFailure, sizeof(t_destroy_failure));
+			std::cout << "destroy no exist message has been sent." << std::endl;
 		}
 		break;
 	case pkt_type::pt_join:
-		memcpy(&tmpSsJoin, packet->msg, sizeof(t_join));
-		result = roomManager.enterRoom(this, tmpSsJoin.room_num);
+		memcpy(&tmpJoin, packet->msg, sizeof(t_join));
+		result = roomManager.enterRoom(this, tmpJoin.room_num);
 		if (result == -1)
 		{
-			tmpSsJoin.type = ssType::pkt_join;
-			tmpSsJoin.room_num = this->roomNum;
+			tmpJoinSuccess.type = pkt_type::pt_join_success;
+			tmpJoinSuccess.token = this->identifier;
 
-			//------------------------------------------------------------------------
+			send_msg((char *)&tmpJoinSuccess, sizeof(t_join_success));
 
-			tmpCsJoinSuccess.type = pkt_type::pt_join_success;
-			tmpCsJoinSuccess.token = this->identifier;
+			std::cout << "join success message has been sent." << std::endl;
 
-			send_msg((char *)&tmpCsJoinSuccess, sizeof(t_join_success));
+			memcpy(tmpJoinAlarm.nickname, tmpJoin.nickname, 20);
+			tmpJoinAlarm.room_num = tmpJoin.room_num;
+			tmpJoinAlarm.type = pkt_type::pt_join_alarm;
+
+			roomManager.findRoom(this->roomNum)->broadcast_msg((char*)&tmpJoinAlarm, sizeof(t_join_alarm));
+			std::cout << "join alarm message has been sent." << std::endl;
 		}
 		else if (result == fail_signal::fs_overflow)
 		{
-			tmpCsJoinFailure.type = pkt_type::pt_create_failure;
-			tmpCsJoinFailure.fail_signal = fail_signal::fs_overflow;
+			tmpJoinFailure.type = pkt_type::pt_join_failure;
+			tmpJoinFailure.fail_signal = fail_signal::fs_overflow;
 
-			send_msg((char *)&tmpCsJoinFailure, sizeof(t_join_failure));
+			send_msg((char *)&tmpJoinFailure, sizeof(t_join_failure));
+			std::cout << "join overflow message has been sent." << std::endl;
 		}
 		else if (result == fail_signal::fs_alreadyexist)
 		{
-			tmpCsJoinFailure.type = pkt_type::pt_join_failure;
-			tmpCsJoinFailure.fail_signal = fail_signal::fs_alreadyexist;
+			tmpJoinFailure.type = pkt_type::pt_join_failure;
+			tmpJoinFailure.fail_signal = fail_signal::fs_alreadyexist;
 
-			send_msg((char *)&tmpCsJoinFailure, sizeof(t_join_failure));
+			send_msg((char *)&tmpJoinFailure, sizeof(t_join_failure));
+			std::cout << "join alreadyexist message has been sent." << std::endl;
 		}
 		else if (result == fail_signal::fs_no_exist)
 		{
-			tmpCsJoinFailure.type = pkt_type::pt_join_failure;
-			tmpCsJoinFailure.fail_signal = fail_signal::fs_no_exist;
+			tmpJoinFailure.type = pkt_type::pt_join_failure;
+			tmpJoinFailure.fail_signal = fail_signal::fs_no_exist;
 
-			send_msg((char *)&tmpCsJoinFailure, sizeof(t_join_failure));
+			send_msg((char *)&tmpJoinFailure, sizeof(t_join_failure));
+			std::cout << "join no exist message has been sent." << std::endl;
 		}
 		break;
 	case pkt_type::pt_leave:
-		memcpy(&tmpSsJoin, packet->msg, sizeof(t_join));
-		result = roomManager.enterRoom(this, tmpSsJoin.room_num);
+		memcpy(&tmpLeave, packet->msg, sizeof(t_leave));
+		result = roomManager.leaveRoom(this, tmpLeave.room_num);
 		if (result == true)
 		{
-			tmpSsJoin.type = ssType::pkt_join;
-			tmpSsJoin.room_num = this->roomNum;
-			//------------------------------------------------------------------------
+			tmpLeaveSuccess.type = pkt_type::pt_leave_success;
 
-			tmpCsLeaveSuccess.type = pkt_type::pt_leave_success;
+			send_msg((char *)&tmpLeaveSuccess, sizeof(t_leave_success));
 
-			send_msg((char *)&tmpCsLeaveSuccess, sizeof(t_leave_success));
+			memcpy(tmpLeaveAlarm.nickname, tmpLeave.nickname, 20);
+			tmpLeaveAlarm.room_num = tmpLeave.room_num;
+			tmpLeaveAlarm.type = pkt_type::pt_leave_alarm;
 
-			//-------------------------------------------------------------------------
+			roomManager.findRoom(this->roomNum)->broadcast_msg((char*)&tmpLeaveAlarm, sizeof(t_leave_alarm));
+			
+			std::cout << "leave success message has been sent." << std::endl;
 		}
 		else
 		{
@@ -265,12 +272,11 @@ void Player::packetHandling(Packet *packet)
 	case pkt_type::pt_chat:
 		unsigned short size;
 		unsigned short type = pkt_type::pt_chat_alarm;
-		memcpy(packet->msg, &type, sizeof(unsigned short));
 		memcpy(&size, packet->msg + 2, sizeof(unsigned short));
-		tmpCsChat = new char[size];
-		memcpy(tmpCsChat, packet->msg, size);
+		memcpy(packet->msg, &type, sizeof(short));
 
-		roomManager.findRoom(this->roomNum)->broadcast_msg(tmpCsChat, size);
+		roomManager.findRoom(this->roomNum)->broadcast_msg(packet->msg, size);
+		std::cout << "chat message has been sent." << std::endl;
 		break;
 	}
 }
