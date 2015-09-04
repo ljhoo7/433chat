@@ -329,7 +329,7 @@ void Player::packetHandling(Packet *packet)
 		break;
 
 	case pkt_type::pt_chat:
-	/*	t_chat_alarm msg;
+		t_chat_alarm msg;
 		msg.type = pkt_type::pt_chat_alarm;
 
 
