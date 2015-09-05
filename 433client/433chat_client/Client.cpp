@@ -429,7 +429,7 @@ bool CClient::SendJoinMessage(int num, char *nick)
 	tmp_packet.type = pkt_type::pt_join;
 
 	m_nTmpJoinRoom_num = num;
-	if(SetNickName(nick))
+	if(!SetNickName(nick))
 		std::cout << "SetNickName() length error" << std::endl;
 
 	tmp_packet.room_num =  num;

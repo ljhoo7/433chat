@@ -34,13 +34,15 @@ bool Player::recieveProcess()
 	}
 	char* buf = this->token.buf;
 
-	if (this->token.position < HEADER_SIZE){
+	if (this->token.position < HEADER_SIZE)
+	{
 		if (token.position == 0){
 			token.remainBytes = HEADER_SIZE;
 		}
 		return recieve(buf + token.position, token.remainBytes);
 	}
-else{
+	else
+	{
 		if (token.position == HEADER_SIZE){
 			token.var = false;
 			pkt_type _type = (pkt_type)((unsigned short)(*buf));
@@ -74,24 +76,29 @@ else{
 		}
 		bool check = recieve(buf + token.position, token.remainBytes);
 		if (token.remainBytes <= 0){
-			if (token.var){
-				if (this->token.position == HEADER_SIZE * 2){
+			if (token.var)
+			{
+				if (this->token.position == HEADER_SIZE << 1){
 					memcpy(&token.remainBytes, buf + HEADER_SIZE, sizeof(short));
-					token.remainBytes -= HEADER_SIZE*2;				}
+					token.remainBytes -= HEADER_SIZE*2;
+				}
 				token.var = false;
-			}else{
+			}
+			else
+			{
 				token.position = 0;
 				char* buf = poolManager.pop();
 				Packet* msg = packetPoolManager.pop();
 				msg->type = 2;
 				msg->owner = &this->token;
 				msg->msg = buf;
-				memcpy(buf, token.buf, sizeof(BUFSIZE));
+				memcpy(buf, token.buf, BUFSIZE);
 				logicHandle.enqueue_oper(msg);
 			}
 		}
 		return check;
-	}	return true;
+	}
+	return true;
 }
 
 bool Player::recieve(char* buf, int size){
@@ -144,7 +151,7 @@ bool Player::valid_Packet(Packet *packet){
 		break;
 
 	case pkt_type::pt_join:
-		if (this->roomNum == -1) return false;
+		if (this->roomNum != -1) return false;
 		break;
 
 	case pkt_type::pt_leave:
@@ -161,7 +168,6 @@ bool Player::valid_Packet(Packet *packet){
 		if (this->roomNum == -1) return false;
 		if (this->identifier != tmpChat.token) return false;
 		if (this->roomNum != tmpChat.room_num) return false;
-
 	}
 	return true;
 }
@@ -283,6 +289,11 @@ void Player::packetHandling(Packet *packet)
 			std::cout << "join message has been sent." << std::endl;
 			
 			//------------------------------------------------------------------------
+
+			tmpJoinSuccess.type = pkt_type::pt_join_success;
+
+			send_msg((char *)&tmpJoinSuccess, sizeof(t_join_success));
+			std::cout << "join success message has been sent." << std::endl;
 
 			memcpy(tmpJoinAlarm.nickname, tmpJoin.nickname, 20);
 			tmpJoinAlarm.room_num = tmpJoin.room_num;
