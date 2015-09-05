@@ -218,7 +218,7 @@ void InterServer::recieve(char* buf, int size){
 	if (size == 0) return;
 	int ret = recv(the_other_sock, buf, size, 0);
 	if (ret == SOCKET_ERROR){
-		printf("recieve error\n");
+		printf("receive error\n");
 		disconnect();
 	}
 }

@@ -12,6 +12,8 @@
 #define PLAYER_MAX 10 // one room
 #define HEADER_SIZE 2
 
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
