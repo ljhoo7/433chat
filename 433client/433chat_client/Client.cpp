@@ -123,7 +123,8 @@ void CClient::ReceivingThread()
 	long long time;
 	int retval = 0;
 	std::string tmpStr;
-	int size = 0, sum = 0, len = 0, remain = 0, fixedRemain, strSize;
+	int size = 0, sum = 0, remain = 0, fixedRemain, strSize;
+	unsigned short len;
 
 	while (1)
 	{
@@ -142,12 +143,13 @@ void CClient::ReceivingThread()
 			t_join_alarm			tmpJoinAlarm;
 			t_leave_alarm			tmpLeaveAlarm;
 			t_kick					tmpKick;
-			char					*left;
+
+			char *left;
 
 			sum = 0;
 			retval = 0;
 
-			short type;
+			unsigned short type;
 
 			retval = recvn(sock, (char*)&type, sizeof(unsigned short), 0);
 			if (retval == SOCKET_ERROR)
@@ -213,9 +215,7 @@ void CClient::ReceivingThread()
 				switch ((pkt_type)type)
 				{
 				case pkt_type::pt_join_success:
-					left = new char[sizeof(t_join_success) - sizeof(unsigned short)];
-
-					retval = recvn(sock, left, sizeof(t_join_success) - sizeof(unsigned short), 0);
+					retval = recvn(sock, (char*)&tmpJoinSuccess.trash_value, sizeof(t_join_success) - sizeof(unsigned short), 0);
 					if (retval == SOCKET_ERROR)
 						err_quit("ReceivingThread() error on the receiving the left of the t_join_success.");
 					sum += retval;
@@ -278,8 +278,8 @@ void CClient::ReceivingThread()
 						err_quit("ReceivingThread() error on the receiving the length of the t_chat_alarm.");
 					sum += retval;
 
-					remain = len - sizeof(unsigned short)-sizeof(unsigned short);
-					fixedRemain = 20 + sizeof(unsigned short);
+					remain = len - sizeof(unsigned short) - sizeof(unsigned short);// -sizeof(unsigned short);
+					fixedRemain = 20 + sizeof(int) + sizeof(unsigned short);// +sizeof(unsigned short);
 					strSize = remain - fixedRemain;
 
 					char* buf = new char[remain];
@@ -291,11 +291,14 @@ void CClient::ReceivingThread()
 
 					memcpy(&tmpChatAlarm.room_num, buf, fixedRemain);
 
-					tmpChatAlarm.message = buf[fixedRemain + 1];
+					char *tmpStr = new char[strSize];
+					memcpy(tmpStr, &buf[fixedRemain], strSize);
+
+					tmpChatAlarm.message = tmpStr;
 
 					//if (tmpChatAlarm.room_num == GetRoomNumber())
 					{
-						std::cout << "'" << tmpChatAlarm.nickname << "'´ÔÀÇ ¸Þ¼¼Áö : " << tmpChatAlarm.message << std::endl;
+						std::cout << "<" << tmpChatAlarm.nickname << ">'s message : " << tmpChatAlarm.message << std::endl;
 					}
 
 					break;
@@ -482,8 +485,9 @@ bool CClient::SendChatMessage(const std::string& str)
 	int retval;
 	t_chat tmp_packet;
 
-	int size = 20+sizeof(unsigned short)+sizeof(unsigned short)+sizeof(unsigned short)+sizeof(unsigned int);
-	int strSize = str.size()+1;
+	int size = sizeof(unsigned short)+sizeof(unsigned short)+sizeof(unsigned short)//+sizeof(unsigned short)
+		+20+sizeof(unsigned int);
+	int strSize = str.size() + 1;
 
 	char *buf = new char[size + strSize];
 

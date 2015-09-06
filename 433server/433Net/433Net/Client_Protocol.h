@@ -57,6 +57,7 @@ typedef struct{
 }t_join;
 typedef struct{
 	unsigned short  type;
+	unsigned short	trash_value;		// It is used because of no packing.
 	unsigned int	token;
 }t_join_success;
 typedef struct{
@@ -72,22 +73,27 @@ typedef struct{
 typedef struct{
 	unsigned short type;
 }t_leave_success;
+
 typedef struct{
 	unsigned short type;
 	unsigned short length;
+	//unsigned short trash_value;
 	unsigned short room_num;
-	char nickname[NICK_SIZE];
 	unsigned int token;
+	char nickname[NICK_SIZE];
 	std::string message;
 }t_chat;
+
 typedef struct{
 	unsigned short type;
 	unsigned short length;
+	//unsigned short trash_value;
 	unsigned short room_num;
-	char nickname[NICK_SIZE];
 	unsigned int token;
+	char nickname[NICK_SIZE];
 	std::string message;
 }t_chat_alarm;
+
 typedef struct{
 	unsigned short type;
 	unsigned short room_num;

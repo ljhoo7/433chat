@@ -213,6 +213,8 @@ void Player::packetHandling(Packet *packet)
 	char				*tmpChat;
 	t_chat_alarm		tmpChatAlarm;
 
+	unsigned short		size, type;
+
 	int result;
 
 	switch (_type)
@@ -366,16 +368,12 @@ void Player::packetHandling(Packet *packet)
 		break;
 
 	case pkt_type::pt_chat:
-		t_chat_alarm msg;
-		msg.type = pkt_type::pt_chat_alarm;
-
-		unsigned short size;
-		unsigned short type = pkt_type::pt_chat_alarm;
-		memcpy(packet->msg, &type, sizeof(unsigned short));
 		memcpy(&size, packet->msg + 2, sizeof(unsigned short));
-		memcpy(packet->msg + 2, &type, size - 2);
 
-		roomManager.findRoom(this->roomNum)->broadcast_msg((char*)&tmpChatAlarm, size);
+		type = pkt_type::pt_chat_alarm;
+		memcpy(packet->msg, &type, sizeof(unsigned short));
+
+		roomManager.findRoom(this->roomNum)->broadcast_msg(packet->msg, size);
 
 		std::cout << "chat alarm message has been sent." << std::endl;		break;
 	}
