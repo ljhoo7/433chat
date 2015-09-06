@@ -67,8 +67,8 @@ typedef struct{
 typedef struct{
 	unsigned short type;
 	unsigned short room_num;
-	char nickname[NICK_SIZE];
 	unsigned int token;
+	char nickname[NICK_SIZE];
 }t_leave;
 typedef struct{
 	unsigned short type;

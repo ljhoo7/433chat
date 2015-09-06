@@ -338,7 +338,9 @@ void Player::packetHandling(Packet *packet)
 
 	case pkt_type::pt_leave:
 		memcpy(&tmpLeave, packet->msg, sizeof(t_leave));
-		result = roomManager.leaveRoom(this, tmpLeave.room_num);		if (result == true)
+		result = roomManager.leaveRoom(this, tmpLeave.room_num);
+
+		if (result == true)
 		{
 			ss_leave msg;
 			msg.type = ssType::pkt_leave;

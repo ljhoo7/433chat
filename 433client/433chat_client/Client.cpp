@@ -461,13 +461,14 @@ bool CClient::SendLeaveMessage()
 	t_leave tmp_packet;
 	int size = 20 + sizeof(unsigned short)+sizeof(unsigned short)+sizeof(unsigned int);
 	tmp_packet.type = pkt_type::pt_leave;
-	tmp_packet.room_num = GetRoomNumber();
-	tmp_packet.token = GetToken();
-	strcpy(tmp_packet.nickname, GetNickName());
+	tmp_packet.room_num = m_nRoom_num;
+	tmp_packet.token = m_nToken;
+	strcpy(tmp_packet.nickname, nickname);
 
 	// Sending leave packet
-	retval = send(GetSocket(), (char*)&tmp_packet, size, 0);
-	if (retval == SOCKET_ERROR){
+	retval = send(sock, (char*)&tmp_packet, size, 0);
+	if (retval == SOCKET_ERROR)
+	{
 		err_display("send() error on t_leave");
 		return false;
 	}
