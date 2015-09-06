@@ -138,10 +138,11 @@ void CClient::ReceivingThread()
 			t_join_success			tmpJoinSuccess;
 			t_join_failure			tmpJoinFailure;
 			t_leave_success			tmpLeaveSuccess;
-			t_chat			tmpChatAlarm;
+			t_chat					tmpChatAlarm;
 			t_join_alarm			tmpJoinAlarm;
 			t_leave_alarm			tmpLeaveAlarm;
 			t_kick					tmpKick;
+			char					*left;
 
 			sum = 0;
 			retval = 0;
@@ -212,8 +213,9 @@ void CClient::ReceivingThread()
 				switch ((pkt_type)type)
 				{
 				case pkt_type::pt_join_success:
+					left = new char[sizeof(t_join_success) - sizeof(unsigned short)];
 
-					retval = recvn(sock, (char*)&tmpJoinSuccess, sizeof(t_join_success)-sizeof(unsigned short), 0);
+					retval = recvn(sock, left, sizeof(t_join_success) - sizeof(unsigned short), 0);
 					if (retval == SOCKET_ERROR)
 						err_quit("ReceivingThread() error on the receiving the left of the t_join_success.");
 					sum += retval;

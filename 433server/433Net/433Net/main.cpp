@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 
 	int client_port;
 
-	identifier_seed = 0;
+	identifier_seed = 1;
 	
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
