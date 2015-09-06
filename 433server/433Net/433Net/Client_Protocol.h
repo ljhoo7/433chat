@@ -58,6 +58,7 @@ typedef struct{
 typedef struct{
 	unsigned short  type;
 	unsigned int	token;
+	unsigned short	left_space;
 }t_join_success;
 typedef struct{
 	unsigned short type;

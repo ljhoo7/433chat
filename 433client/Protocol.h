@@ -56,8 +56,9 @@ typedef struct{
 	char nickname[NICK_SIZE];
 }t_join;
 typedef struct{
-	unsigned short  type;
+	unsigned short	type;
 	unsigned int	token;
+	unsigned short	left_space;
 }t_join_success;
 typedef struct{
 	unsigned short type;

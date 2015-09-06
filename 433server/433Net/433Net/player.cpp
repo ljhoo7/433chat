@@ -78,9 +78,10 @@ bool Player::recieveProcess()
 		if (token.remainBytes <= 0){
 			if (token.var)
 			{
-				if (this->token.position == HEADER_SIZE << 1){
+				int typePlusLength = HEADER_SIZE << 1;
+				if (this->token.position == typePlusLength){
 					memcpy(&token.remainBytes, buf + HEADER_SIZE, sizeof(short));
-					token.remainBytes -= HEADER_SIZE*2;
+					token.remainBytes -= typePlusLength;
 				}
 				token.var = false;
 			}
@@ -140,6 +141,11 @@ bool Player::valid_Packet(Packet *packet){
 
 	pkt_type _type = (pkt_type)(*packet->msg);
 	
+	t_chat tmpChat;
+	t_leave tmpLeave;
+
+	int size;
+
 	switch (_type)
 	{
 	case pkt_type::pt_create:
@@ -155,7 +161,6 @@ bool Player::valid_Packet(Packet *packet){
 		break;
 
 	case pkt_type::pt_leave:
-		t_leave tmpLeave;
 		memcpy(&tmpLeave, packet->msg, sizeof(t_leave));
 		if (this->identifier != tmpLeave.token) return false;
 		if (this->roomNum == -1) return false;
@@ -163,8 +168,7 @@ bool Player::valid_Packet(Packet *packet){
 		break;
 
 	case pkt_type::pt_chat:
-		t_chat tmpChat;
-		memcpy(&tmpChat, packet->msg, sizeof(t_chat));
+		memcpy(&tmpChat, packet->msg, 30);
 		if (this->roomNum == -1) return false;
 		if (this->identifier != tmpChat.token) return false;
 		if (this->roomNum != tmpChat.room_num) return false;
@@ -207,6 +211,7 @@ void Player::packetHandling(Packet *packet)
 	t_leave_success		tmpLeaveSuccess;
 
 	char				*tmpChat;
+	t_chat_alarm		tmpChatAlarm;
 
 	int result;
 
@@ -291,6 +296,7 @@ void Player::packetHandling(Packet *packet)
 			//------------------------------------------------------------------------
 
 			tmpJoinSuccess.type = pkt_type::pt_join_success;
+			tmpJoinSuccess.token = this->identifier;
 
 			send_msg((char *)&tmpJoinSuccess, sizeof(t_join_success));
 			std::cout << "join success message has been sent." << std::endl;
@@ -363,11 +369,13 @@ void Player::packetHandling(Packet *packet)
 		t_chat_alarm msg;
 		msg.type = pkt_type::pt_chat_alarm;
 
-
 		unsigned short size;
 		unsigned short type = pkt_type::pt_chat_alarm;
-		memcpy(packet->msg, &type, sizeof(unsigned short));		memcpy(&size, packet->msg + 2, sizeof(unsigned short));
-		memcpy(packet->msg, &type, sizeof(short));
+		memcpy(packet->msg, &type, sizeof(unsigned short));
+		memcpy(&size, packet->msg + 2, sizeof(unsigned short));
+		memcpy(packet->msg + 2, &type, size - 2);
+
+		roomManager.findRoom(this->roomNum)->broadcast_msg((char*)&tmpChatAlarm, size);
 
 		std::cout << "chat alarm message has been sent." << std::endl;		break;
 	}

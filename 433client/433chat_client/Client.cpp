@@ -218,7 +218,7 @@ void CClient::ReceivingThread()
 						err_quit("ReceivingThread() error on the receiving the left of the t_join_success.");
 					sum += retval;
 
-					SetToken(tmpJoinSuccess.token);
+					m_nToken = tmpJoinSuccess.token;
 
 					m_nRoom_num = m_nTmpJoinRoom_num;
 
@@ -482,9 +482,8 @@ bool CClient::SendChatMessage(const std::string& str)
 
 	int size = 20+sizeof(unsigned short)+sizeof(unsigned short)+sizeof(unsigned short)+sizeof(unsigned int);
 	int strSize = str.size()+1;
-	
 
-	char *buf = new char[strSize];
+	char *buf = new char[size + strSize];
 
 	tmp_packet.type = pkt_type::pt_chat;
 	tmp_packet.length = size + strSize;
@@ -493,14 +492,14 @@ bool CClient::SendChatMessage(const std::string& str)
 	tmp_packet.room_num = m_nRoom_num;
 	tmp_packet.token = m_nToken;
 	strcpy(tmp_packet.nickname, nickname);
-	
-	tmp_packet.message = buf + size;
-	// I had to use memcpy() which is the worst thing.
 
-	memcpy(buf, str.c_str(), strSize);
+	memcpy(buf, (char*)&tmp_packet, size);
+
+	// I had to use memcpy() which is the worst thing.
+	memcpy(buf + size, str.c_str(), strSize);
 
 	// Sending Chat Messsage
-	retval = send(GetSocket(), (char*)&tmp_packet, tmp_packet.length, 0);
+	retval = send(sock, buf, tmp_packet.length, 0);
 	if (retval == SOCKET_ERROR){
 		err_display("send() error on t_chat !");
 		return false;
