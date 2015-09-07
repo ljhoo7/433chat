@@ -16,6 +16,7 @@ extern InterServer connect_server;
 extern Reciever receiver;
 
 extern int identifier_seed;
+extern std::list<Player*> g_vPlayers;
 
 Player::Player(bool isMine) : poolManager(10), packetPoolManager(10)
 {
@@ -94,7 +95,7 @@ bool Player::recieveProcess()
 				msg->owner = &this->token;
 				msg->msg = buf;
 				memcpy(buf, token.buf, BUFSIZE);
-				logicHandle.enqueue_oper(msg);
+				logicHandle.enqueue_oper(msg, false);
 			}
 		}
 		return check;
@@ -379,6 +380,8 @@ void Player::packetHandling(Packet *packet)
 
 		std::cout << "chat alarm message has been sent." << std::endl;		break;
 	}
+
+	this->packetPoolManager.push(packet);
 }
 
 void Player::remove()
@@ -414,7 +417,6 @@ void Player::remove()
 			listen_server._send((char *)&msg, sizeof(ss_leave));
 			listen_server._send((char *)&tmpDisconnect, sizeof(ss_disconnect));
 		}
-
 		//-----------------------------------------------
 
 		t_leave cMsg;
@@ -429,6 +431,10 @@ void Player::remove()
 	}
 
 	if (room != NULL) room->playerQuit(this, true);
+
+
+	/* remove in list */
+	g_vPlayers.remove(this);
 
 	printf("remove in room...\n");
 }

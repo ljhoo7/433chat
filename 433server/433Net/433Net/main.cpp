@@ -25,6 +25,20 @@ void accept_callback(UserToken* token){
 
 	token->peer = p;
 	p->token = *token;
+
+	ss_connect tmpConnect;
+	tmpConnect.type = ssType::pkt_connect;
+	tmpConnect.client_socket = p->token.clientSocket;
+
+	if (listen_server.the_other_sock == NULL)
+	{
+		connect_server._send((char *)&tmpConnect, sizeof(ss_connect));
+	}
+	else
+	{
+		listen_server._send((char *)&tmpConnect, sizeof(ss_connect));
+	}
+	/* connect msg send */
 	return;
 }
 

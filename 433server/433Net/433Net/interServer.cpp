@@ -212,7 +212,7 @@ void InterServer::recieveProcess(){
 	msg->owner = NULL;
 	msg->msg = buf;
 
-	logicHandle.enqueue_oper(msg);
+	logicHandle.enqueue_oper(msg, true);
 }
 void InterServer::recieve(char* buf, int size){
 	if (size == 0) return;
@@ -257,15 +257,47 @@ void InterServer::packetHandling(Packet* packet){
 
 	switch (_type){
 	case ssType::pkt_heartbeats:
+	{	
 		printf("recieve heartbeat check. send response\n");
 		ss_heartbeats_response msg;
 		msg.type = ssType::pkt_heartbeats_response;
 		_send((char *)&msg, sizeof(msg));
-		break;
+		break; 
+	}
 	case ssType::pkt_heartbeats_response:
+	{	
 		printf("recieve heartbeat response\n");
 		beat_check = true;
+		break; 
+	}
+	case ssType::pkt_connect:
+	{	
+		ss_connect msg;
+		memcpy(&msg, packet->msg, sizeof(msg));
+		Player* p = new Player(false);
+		g_vPlayers.push_back(p);
+		
+		UserToken *user = new UserToken((SOCKET)msg.client_socket);
+		user->peer = p;
+		p->token = *user;
+
+
+		break; 
+	}
+	case ssType::pkt_disconnect:
+	{
+		ss_disconnect msg;
+		memcpy(&msg, packet->msg, sizeof(msg));
+		std::list<Player*>::iterator iter;
+		for (iter = g_vPlayers.begin(); iter != g_vPlayers.end(); iter++){
+			if ((*iter)->token.clientSocket == msg.client_socket) break;
+		}
+		g_vPlayers.remove((*iter));
 		break;
 
 	}
+
+	}
+
+	this->packetPoolManager.push(packet);
 }

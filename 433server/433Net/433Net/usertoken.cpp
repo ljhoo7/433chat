@@ -1,5 +1,9 @@
 #include "usertoken.h"
 
+UserToken::UserToken(SOCKET clientSocket){
+	this->clientSocket = clientSocket;
+}
+
 UserToken::UserToken(SOCKET clientSocket, SOCKADDR_IN clientAddr, IPeer* peer)
 :clientSocket(NULL)
 {

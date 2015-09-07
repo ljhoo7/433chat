@@ -30,13 +30,15 @@ private:
 class LogicHandle{
 private:
 	std::queue<Packet *> operation_queue;
+	std::queue<Packet *> inter_operation_queue;
 	CRITICAL_SECTION operation_lock;
+	CRITICAL_SECTION inter_operation_lock;
 	AutoResetEvent _event;
 
 public:
 	LogicHandle();
 	~LogicHandle();
 
-	void enqueue_oper(Packet* msg);
+	void enqueue_oper(Packet* msg, bool interServer);
 	void process();
 };

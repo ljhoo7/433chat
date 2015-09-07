@@ -33,33 +33,64 @@ bool AutoResetEvent::WaitOne()
 
 LogicHandle::LogicHandle(){
 	InitializeCriticalSection(&operation_lock);
+	InitializeCriticalSection(&inter_operation_lock);
 }
 LogicHandle::~LogicHandle(){
 	DeleteCriticalSection(&operation_lock);
+	DeleteCriticalSection(&inter_operation_lock);
 }
 
-void LogicHandle::enqueue_oper(Packet* msg){
-	EnterCriticalSection(&operation_lock);
-	operation_queue.push(msg);
-	//_event.Set();
-	LeaveCriticalSection(&operation_lock);
+void LogicHandle::enqueue_oper(Packet* msg, bool interServer){
+	if (!interServer){
+		EnterCriticalSection(&operation_lock);
+		operation_queue.push(msg);
+		//_event.Set();
+		LeaveCriticalSection(&operation_lock);
+	}
+	else{
+		EnterCriticalSection(&inter_operation_lock);
+		inter_operation_queue.push(msg);
+		//_event.Set();
+		LeaveCriticalSection(&inter_operation_lock);
+	}
+	
 }
 
 void LogicHandle::process(){
 	while (true){
-		if (operation_queue.size() <= 0){
+		if (inter_operation_queue.size() <= 0){
+			if (operation_queue.size() <= 0){
+				continue;
+				/* wait! */
+				//_event.WaitOne();
+			}
+			Packet* packet = nullptr;
+
+			EnterCriticalSection(&operation_lock);
+			if (operation_queue.size() > 0){
+				packet = operation_queue.front();
+				operation_queue.pop();
+			}
+			LeaveCriticalSection(&operation_lock);
+
+			if (packet != nullptr){
+				if (packet->type == 2){
+					Player *tPlayer = static_cast<Player *>(packet->owner->peer);
+					tPlayer->packetHandling(packet);
+				}
+			}
 			continue;
 			/* wait! */
 			//_event.WaitOne();
 		}
 		Packet* packet = nullptr;
 
-		EnterCriticalSection(&operation_lock);
-		if (operation_queue.size() > 0){
-			packet = operation_queue.front();
-			operation_queue.pop();
+		EnterCriticalSection(&inter_operation_lock);
+		if (inter_operation_queue.size() > 0){
+			packet = inter_operation_queue.front();
+			inter_operation_queue.pop();
 		}
-		LeaveCriticalSection(&operation_lock);
+		LeaveCriticalSection(&inter_operation_lock);
 
 		if (packet != nullptr){
 			if (packet->type == 0){
@@ -68,10 +99,7 @@ void LogicHandle::process(){
 			else if (packet->type == 1){
 				listen_server.packetHandling(packet);
 			}
-			else if (packet->type == 2){
-				Player *tPlayer = static_cast<Player *>(packet->owner->peer);
-				tPlayer->packetHandling(packet);
-			}
 		}
+		
 	}
 }
