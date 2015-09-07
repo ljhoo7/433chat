@@ -283,6 +283,7 @@ void Player::packetHandling(Packet *packet)
 
 	case pkt_type::pt_join:
 		memcpy(&tmpJoin, packet->msg, sizeof(t_join));
+		this->nickname = tmpJoin.nickname;
 		result = roomManager.enterRoom(this, tmpJoin.room_num);
 		if (result == -1)
 		{
@@ -338,6 +339,18 @@ void Player::packetHandling(Packet *packet)
 
 	case pkt_type::pt_leave:
 		memcpy(&tmpLeave, packet->msg, sizeof(t_leave));
+
+		//------------------------------------------------------------------------
+
+		strcpy_s(tmpLeaveAlarm.nickname, tmpLeave.nickname);
+		tmpLeaveAlarm.room_num = tmpLeave.room_num;
+		tmpLeaveAlarm.type = pkt_type::pt_leave_alarm;
+		roomManager.findRoom(this->roomNum)->broadcast_msg((char*)&tmpLeaveAlarm, sizeof(t_leave_alarm));
+
+		//------------------------------------------------------------------------
+
+		std::cout << "leave alarm message has been sent." << std::endl;
+
 		result = roomManager.leaveRoom(this, tmpLeave.room_num);
 
 		if (result == true)
@@ -351,17 +364,11 @@ void Player::packetHandling(Packet *packet)
 			playerSync((char *)&msg, sizeof(msg));
 			
 			//------------------------------------------------------------------------
+
 			tmpLeaveSuccess.type = pkt_type::pt_leave_success;
 			send_msg((char *)&tmpLeaveSuccess, sizeof(t_leave_success));
 
 			std::cout << "leave success message has been sent." << std::endl;
-
-			memcpy(tmpLeaveAlarm.nickname, tmpLeave.nickname, 20);
-			tmpLeaveAlarm.room_num = tmpLeave.room_num;
-			tmpLeaveAlarm.type = pkt_type::pt_leave_alarm;
-			roomManager.findRoom(this->roomNum)->broadcast_msg((char*)&tmpLeaveAlarm, sizeof(t_leave_alarm));
-			
-			std::cout << "leave alarm message has been sent." << std::endl;
 		}
 		else
 		{

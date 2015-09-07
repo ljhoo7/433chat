@@ -169,7 +169,7 @@ void CClient::ReceivingThread()
 					break;
 				case pkt_type::pt_create_failure:
 
-					retval = recvn(sock, (char*)&tmpCreateFailure, sizeof(t_create_failure)-sizeof(unsigned short), 0);
+					retval = recvn(sock, (char*)&tmpCreateFailure.fail_signal, sizeof(t_create_failure)-sizeof(unsigned short), 0);
 					if (retval == SOCKET_ERROR)
 						err_quit("ReceivingThread() error on the receiving the left of the t_create_failure.");
 					sum += retval;
@@ -195,7 +195,7 @@ void CClient::ReceivingThread()
 					break;
 				case pkt_type::pt_destroy_failure:
 
-					retval = recvn(sock, (char*)&tmpDestroyFailure, sizeof(t_destroy_failure)-sizeof(unsigned short), 0);
+					retval = recvn(sock, (char*)&tmpDestroyFailure.fail_signal, sizeof(t_destroy_failure)-sizeof(unsigned short), 0);
 					if (retval == SOCKET_ERROR)
 						err_quit("ReceivingThread() error on the receiving the left of the t_destroy_failure.");
 					sum += retval;
@@ -230,7 +230,7 @@ void CClient::ReceivingThread()
 					break;
 				case pkt_type::pt_join_failure:
 
-					retval = recvn(sock, (char*)&tmpJoinFailure, sizeof(t_join_failure)-sizeof(unsigned short), 0);
+					retval = recvn(sock, (char*)&tmpJoinFailure.fail_signal, sizeof(t_join_failure)-sizeof(unsigned short), 0);
 					if (retval == SOCKET_ERROR)
 						err_quit("ReceivingThread() error on the receiving the left of the t_join_failure.");
 					sum += retval;
@@ -261,6 +261,16 @@ void CClient::ReceivingThread()
 					std::cout << "Successfully leaved !!" << std::endl;
 
 					GetStateMachine()->ChangeState(CLobby::Instance());
+					break;
+				case pkt_type::pt_leave_alarm:
+
+					retval = recvn(sock, (char*)&tmpLeaveAlarm.room_num, sizeof(t_leave_alarm)-sizeof(unsigned short), 0);
+					if (retval == SOCKET_ERROR)
+						err_quit("ReceivingThread() error on the receiving the left of the t_leave_alarm.");
+					sum += retval;
+
+					std::cout << "'" << tmpLeaveAlarm.nickname << "'has been leaved from your room." << std::endl;
+					
 					break;
 				default:
 					std::cout << "You have received a wrong message which you can't read in the 'Leave Response' State." << std::endl;
@@ -296,7 +306,7 @@ void CClient::ReceivingThread()
 
 					tmpChatAlarm.message = tmpStr;
 
-					//if (tmpChatAlarm.room_num == GetRoomNumber())
+					if (tmpChatAlarm.room_num == m_nRoom_num)
 					{
 						std::cout << "<" << tmpChatAlarm.nickname << ">'s message : " << tmpChatAlarm.message << std::endl;
 					}
@@ -305,27 +315,14 @@ void CClient::ReceivingThread()
 				}
 				case pkt_type::pt_join_alarm:
 
-					retval = recvn(sock, (char*)&tmpJoinAlarm, sizeof(t_join_alarm)-sizeof(unsigned short), 0);
+					retval = recvn(sock, (char*)&tmpJoinAlarm.room_num, sizeof(t_join_alarm)-sizeof(unsigned short), 0);
 					if (retval == SOCKET_ERROR)
 						err_quit("ReceivingThread() error on the receiving the left of the t_join_alarm.");
 					sum += retval;
 
-					if (tmpJoinAlarm.room_num == GetRoomNumber())
+					if (tmpJoinAlarm.room_num == m_nRoom_num)
 					{
 						std::cout << "'" << tmpJoinAlarm.nickname << "'has entered to your room." << std::endl;
-					}
-
-					break;
-				case pkt_type::pt_leave_alarm:
-
-					retval = recvn(sock, (char*)&tmpLeaveAlarm, sizeof(t_leave_alarm)-sizeof(unsigned short), 0);
-					if (retval == SOCKET_ERROR)
-						err_quit("ReceivingThread() error on the receiving the left of the t_leave_alarm.");
-					sum += retval;
-
-					if (tmpLeaveAlarm.room_num == GetRoomNumber())
-					{
-						std::cout << "'" << tmpLeaveAlarm.nickname << "'has been leaved from your room." << std::endl;
 					}
 
 					break;

@@ -5,9 +5,9 @@ extern RoomManager roomManager;
 
 void RoomManager::printInfo(){
 	std::list<Room*>::iterator iter;
-	printf("\n\n현재 방 목록\n");
+	printf("\n< Current Room List >\n");
 	for (iter = rooms.begin(); iter != rooms.end(); iter++){
-		printf("방 %d에 %d명 접속 중\n", (*iter)->roomNumber, (*iter)->players.size());
+		printf("Room %d : %d persons are coonnecting...\n", (*iter)->roomNumber, (*iter)->players.size());
 	}
 	printf("\n");
 }
@@ -61,6 +61,20 @@ int RoomManager::enterRoom(Player* p, int roomNumber){
 	if (room->players.size() > PLAYER_MAX)
 		return fail_signal::fs_overflow;
 
+	// nickname check
+	std::list<Room*>::iterator iter = roomManager.rooms.begin();
+	for (; iter != roomManager.rooms.end(); ++iter)
+	{
+		std::list<Player*>::iterator iter2 = (*iter)->players.begin();
+		for (; iter2 != (*iter)->players.end(); ++iter2)
+		{
+			if (!strcmp((*iter2)->nickname.c_str(), p->nickname.c_str()))
+			{
+				return fail_signal::fs_alreadyexist;
+			}
+		}
+	}
+
 	room->playerEnter(p);
 
 	printInfo();
@@ -81,7 +95,8 @@ int RoomManager::destroyRoom(int roomNumber){
 	return -1;
 }
 
-bool RoomManager::leaveRoom(Player* p, int roomNumber){
+bool RoomManager::leaveRoom(Player* p, int roomNumber)
+{
 	Room* room = findRoom(roomNumber);
 	if (room == NULL){
 		printf("No ROOM!\n");
