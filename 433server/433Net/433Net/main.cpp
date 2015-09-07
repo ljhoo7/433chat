@@ -24,11 +24,11 @@ void accept_callback(UserToken* token){
 	g_vPlayers.push_back(p);
 
 	token->peer = p;
-	p->token = *token;
+	p->token = token;
 
 	ss_connect tmpConnect;
 	tmpConnect.type = ssType::pkt_connect;
-	tmpConnect.client_socket = p->token.clientSocket;
+	tmpConnect.client_socket = p->token->clientSocket;
 
 	if (listen_server.the_other_sock == NULL)
 	{

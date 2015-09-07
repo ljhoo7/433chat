@@ -101,10 +101,8 @@ void Reciever::recieveProcess(){
 	for (iter = userList.begin(); iter != userList.end(); iter++){
 		if (FD_ISSET((*iter)->clientSocket, &copy_set)){
 			if (!(*iter)->recieveProcess()){
-				UserToken user = **iter;
+				printf("closed client:%d\n", (*iter)->clientSocket);
 				deleteUserList(*iter);
-				printf("closed client:%d\n", user.clientSocket);
-
 				break;
 			}
 		}

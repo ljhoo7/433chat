@@ -86,7 +86,6 @@ typedef struct{
 	unsigned short type;
 	unsigned short length;
 	unsigned short room_cnt;
-	room_info* room_infos;
 } ss_room_info_send;
 
 typedef struct{
@@ -98,9 +97,8 @@ typedef struct{
 
 typedef struct{
 	unsigned short type;
-	unsigned short length;
-	unsigned short player_cnt;
-	player_info* player_infos;
+	unsigned short length; // not include type size(2byte)
+	unsigned short player_cnt; 
 } ss_player_info_send;
 
 typedef struct{
