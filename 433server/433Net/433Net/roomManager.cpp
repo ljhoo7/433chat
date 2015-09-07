@@ -82,13 +82,26 @@ int RoomManager::enterRoom(Player* p, int roomNumber){
 	return -1;
 }
 
-int RoomManager::destroyRoom(int roomNumber){
+int RoomManager::destroyRoom(int roomNumber)
+{
 	Room* room = findRoom(roomNumber);
 	if (room == NULL)
 		return fail_signal::fs_no_exist;
-	rooms.remove(room);
 
-	delete room;
+	// Sending the kick message to all players in the room to be destroyed.
+	t_kick tmpKick;
+
+	tmpKick.type = pkt_type::pt_kick;
+
+	room->broadcast_msg((char*)&tmpKick, sizeof(t_kick));
+
+	for (std::list<Player*>::iterator iter = room->players.begin();
+		iter != room->players.end(); ++iter)
+	{
+		(*iter)->roomNum = -1;
+	}
+
+	rooms.remove(room);
 
 	printInfo();
 

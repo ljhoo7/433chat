@@ -215,6 +215,8 @@ void Player::packetHandling(Packet *packet)
 
 	unsigned short		size, type;
 
+	bool _result;
+
 	int result;
 
 	switch (_type)
@@ -243,7 +245,7 @@ void Player::packetHandling(Packet *packet)
 			tmpCreateFailure.fail_signal = fail_signal::fs_overflow;
 
 			send_msg((char *)&tmpCreateFailure, sizeof(t_create_failure));
-			std::cout << "create buffer overflow message has been sent." << std::endl;
+			std::cout << "create overflow message has been sent." << std::endl;
 		}
 		else if (result == fail_signal::fs_alreadyexist)
 		{
@@ -251,7 +253,7 @@ void Player::packetHandling(Packet *packet)
 			tmpCreateFailure.fail_signal = fail_signal::fs_alreadyexist;
 
 			send_msg((char *)&tmpCreateFailure, sizeof(t_create_failure));
-			std::cout << "create buffer already exist message has been sent." << std::endl;
+			std::cout << "create already exist message has been sent." << std::endl;
 		}
 		break;
 	case pkt_type::pt_destroy:
@@ -351,9 +353,9 @@ void Player::packetHandling(Packet *packet)
 
 		std::cout << "leave alarm message has been sent." << std::endl;
 
-		result = roomManager.leaveRoom(this, tmpLeave.room_num);
+		_result = roomManager.leaveRoom(this, tmpLeave.room_num);
 
-		if (result == true)
+		if (_result == true)
 		{
 			ss_leave msg;
 			msg.type = ssType::pkt_leave;

@@ -10,7 +10,7 @@ public:
 	static CLobby* Instance();
 	virtual void Enter(CClient *client);
 	virtual void Exit(CClient *client);
-	virtual void Execute(CClient *client);
+	virtual void Execute(CClient *client, long long);
 };
 
 class CRoom : public State<CClient>
@@ -23,7 +23,7 @@ public:
 	static CRoom* Instance();
 	virtual void Enter(CClient *client);
 	virtual void Exit(CClient *client);
-	virtual void Execute(CClient *client);
+	virtual void Execute(CClient *client, long long);
 };
 
 class CCreate_Response_Wait : public State<CClient>
@@ -36,7 +36,7 @@ public:
 	static CCreate_Response_Wait* Instance();
 	virtual void Enter(CClient *client);
 	virtual void Exit(CClient *client);
-	virtual void Execute(CClient *client);
+	virtual void Execute(CClient *client, long long);
 };
 
 class CDestroy_Response_Wait : public State<CClient>
@@ -49,7 +49,7 @@ public:
 	static CDestroy_Response_Wait* Instance();
 	virtual void Enter(CClient *client);
 	virtual void Exit(CClient *client);
-	virtual void Execute(CClient *client);
+	virtual void Execute(CClient *client, long long);
 };
 
 class CJoin_Response_Wait : public State<CClient>
@@ -62,7 +62,7 @@ public:
 	static CJoin_Response_Wait* Instance();
 	virtual void Enter(CClient *client);
 	virtual void Exit(CClient *client);
-	virtual void Execute(CClient *client);
+	virtual void Execute(CClient *client, long long);
 };
 
 class CLeave_Response_Wait : public State<CClient>
@@ -75,5 +75,5 @@ public:
 	static CLeave_Response_Wait* Instance();
 	virtual void Enter(CClient *client);
 	virtual void Exit(CClient *client);
-	virtual void Execute(CClient *client);
+	virtual void Execute(CClient *client, long long);
 };

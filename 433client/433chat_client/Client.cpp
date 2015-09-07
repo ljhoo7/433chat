@@ -5,9 +5,10 @@
 DWORD WINAPI ReceivingThread(LPVOID arg);
 
 CClient::CClient() : m_nRoom_num(-1), m_pStateMachine(nullptr), hReceiving(NULL), sock(NULL), m_nToken(-1)
-, m_nTmpJoinRoom_num(-1)
+, m_nTmpRoom_num(-1)
 , m_pReceivingThread(nullptr)
 {
+	buf_str = "";
 	strcpy(nickname, "");
 
 	// local variables
@@ -131,7 +132,8 @@ void CClient::ReceivingThread()
 		tmp = std::chrono::system_clock::now() - start_time;
 		tmp2 = std::chrono::duration_cast<std::chrono::milliseconds>(tmp);
 		time = tmp2.count();
-		if (block <= time){
+		if (block <= time)
+		{
 			t_create_success		tmpCreateSuccess;
 			t_create_failure		tmpCreateFailure;
 			t_destroy_success		tmpDestroySuccess;
@@ -192,6 +194,8 @@ void CClient::ReceivingThread()
 
 					std::cout << "Successfully destroyed !!" << std::endl;
 
+					GetStateMachine()->ChangeState(CLobby::Instance());
+
 					break;
 				case pkt_type::pt_destroy_failure:
 
@@ -222,7 +226,7 @@ void CClient::ReceivingThread()
 
 					m_nToken = tmpJoinSuccess.token;
 
-					m_nRoom_num = m_nTmpJoinRoom_num;
+					m_nRoom_num = m_nTmpRoom_num;
 
 					std::cout << "Successfully joined !!" << std::endl;
 
@@ -313,6 +317,16 @@ void CClient::ReceivingThread()
 
 					break;
 				}
+				case pkt_type::pt_leave_alarm:
+
+					retval = recvn(sock, (char*)&tmpLeaveAlarm.room_num, sizeof(t_leave_alarm)-sizeof(unsigned short), 0);
+					if (retval == SOCKET_ERROR)
+						err_quit("ReceivingThread() error on the receiving the left of the t_leave_alarm.");
+					sum += retval;
+
+					std::cout << "'" << tmpLeaveAlarm.nickname << "'has been leaved from your room." << std::endl;
+
+					break;
 				case pkt_type::pt_join_alarm:
 
 					retval = recvn(sock, (char*)&tmpJoinAlarm.room_num, sizeof(t_join_alarm)-sizeof(unsigned short), 0);
@@ -335,7 +349,7 @@ void CClient::ReceivingThread()
 
 					SetRoomNumber(-1);
 
-					std::cout << "You are expeled because your room was erased." << std::endl;
+					std::cout << "You are kicked to the Lobby because your room was erased." << std::endl;
 
 					GetStateMachine()->ChangeState(CLobby::Instance());
 					break;
@@ -350,6 +364,14 @@ void CClient::ReceivingThread()
 			start_time = std::chrono::system_clock::now();
 		}
 	}
+}
+
+void CClient::printPrompt()
+{
+	if (GetStateMachine()->CurrentState() == CLobby::Instance())
+		printf("[Lobby] ");
+	else if (GetStateMachine()->CurrentState() == CRoom::Instance())
+		printf("[Room] ");
 }
 
 bool CClient::SendCreateMessage(int num)
@@ -430,7 +452,6 @@ bool CClient::SendJoinMessage(int num, char *nick)
 	int size = 20 + sizeof(unsigned short)+sizeof(unsigned short);
 	tmp_packet.type = pkt_type::pt_join;
 
-	m_nTmpJoinRoom_num = num;
 	if(!SetNickName(nick))
 		std::cout << "SetNickName() length error" << std::endl;
 
