@@ -17,6 +17,7 @@
 #include <future>
 #include <exception>
 #include <stdexcept>
+#include <cctype>
 
 template <class entity_type>
 class State;
@@ -25,11 +26,14 @@ class StateMachine;
 
 #define SERVERIP   "127.0.0.1"
 
-#define SERVERPORT1 9000
-#define SERVERPORT2 9001
+#define SERVERPORT1			9000
+#define SERVERPORT2			9001
 
-#define ROOM_MAX	1000
-#define USER_MAX	100
+#define ROOM_MAX			1000
+#define USER_MAX			100
+
+#define EXECUTE_BLOCK_TIME	34
+#define ELAPSED_DEST		1500
 
 #include "Protocol.h"
 #include "State.h"

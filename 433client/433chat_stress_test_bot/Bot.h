@@ -1,6 +1,6 @@
 #pragma once
 
-class CClient
+class CBot
 {
 	SOCKET sock;
 
@@ -14,7 +14,9 @@ class CClient
 
 	HANDLE hReceiving;
 
-	StateMachine<CClient>								*m_pStateMachine;
+	StateMachine<CBot>								*m_pStateMachine;
+
+	int m_nBot_num;
 public:
 	// This is the temporary room number until the time when this client receives the success packet.
 	int m_nTmpRoom_num;
@@ -26,12 +28,12 @@ public:
 
 	//-----------------------------------------------------
 
-	CClient();
-	~CClient();
+	CBot(const int& room_num, const int& time_span, const int& bot_num);
+	~CBot();
 
 	void ReceivingThread();
 
-	StateMachine<CClient>		*GetStateMachine()
+	StateMachine<CBot>		*GetStateMachine()
 	{
 		if (m_pStateMachine == nullptr)
 		{
@@ -42,8 +44,6 @@ public:
 			return m_pStateMachine;
 		}
 	}
-
-	void printPrompt();
 
 	std::thread					*GetReceivingThread()					{ return m_pReceivingThread; }
 
@@ -64,6 +64,8 @@ public:
 		strcpy(nickname, param);
 		return true;
 	}
+
+	void						errorQuitWithBotNum(std::string str);
 
 	bool						SendCreateMessage(int num);
 	bool						SendDestroyMessage(int num);

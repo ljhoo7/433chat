@@ -18,21 +18,22 @@ Room::~Room(){
 void Room::playerEnter(Player* player){
 	player->roomNum = roomNumber;
 
-	/* 입장했다고 알리기 */
+	/* informing the entered */
 	players.push_back(player);
 }
 
 
 void Room::playerQuit(Player* player, bool msg){
 	player->roomNum = -1;
+	player->nickname = "";
 	players.remove(player);
 
-	/* 나갔다고 알리기 */
+	/* informing the exited */
 }
 
 void Room::broadcast_msg(char* msg, int size){
 	std::list<Player*>::iterator iter;
-	//printf("%d 번호 방에 %d명 접속중\n", roomNumber, players.size());
+	//printf("Room %d : %d persons are connecting...\n", roomNumber, players.size());
 	for (iter = players.begin(); iter != players.end(); iter++){
 		(*iter)->send_msg(msg, size);
 	}

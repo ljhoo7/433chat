@@ -216,6 +216,8 @@ void Player::packetHandling(Packet *packet)
 
 	unsigned short		size, type;
 
+	bool _result;
+
 	int result;
 
 	switch (_type)
@@ -244,7 +246,7 @@ void Player::packetHandling(Packet *packet)
 			tmpCreateFailure.fail_signal = fail_signal::fs_overflow;
 
 			send_msg((char *)&tmpCreateFailure, sizeof(t_create_failure));
-			std::cout << "create buffer overflow message has been sent." << std::endl;
+			std::cout << "create overflow message has been sent." << std::endl;
 		}
 		else if (result == fail_signal::fs_alreadyexist)
 		{
@@ -252,7 +254,7 @@ void Player::packetHandling(Packet *packet)
 			tmpCreateFailure.fail_signal = fail_signal::fs_alreadyexist;
 
 			send_msg((char *)&tmpCreateFailure, sizeof(t_create_failure));
-			std::cout << "create buffer already exist message has been sent." << std::endl;
+			std::cout << "create already exist message has been sent." << std::endl;
 		}
 		break;
 	case pkt_type::pt_destroy:
@@ -284,6 +286,7 @@ void Player::packetHandling(Packet *packet)
 
 	case pkt_type::pt_join:
 		memcpy(&tmpJoin, packet->msg, sizeof(t_join));
+		this->nickname = tmpJoin.nickname;
 		result = roomManager.enterRoom(this, tmpJoin.room_num);
 		if (result == -1)
 		{
@@ -339,9 +342,21 @@ void Player::packetHandling(Packet *packet)
 
 	case pkt_type::pt_leave:
 		memcpy(&tmpLeave, packet->msg, sizeof(t_leave));
-		result = roomManager.leaveRoom(this, tmpLeave.room_num);
 
-		if (result == true)
+		//------------------------------------------------------------------------
+
+		strcpy_s(tmpLeaveAlarm.nickname, tmpLeave.nickname);
+		tmpLeaveAlarm.room_num = tmpLeave.room_num;
+		tmpLeaveAlarm.type = pkt_type::pt_leave_alarm;
+		roomManager.findRoom(this->roomNum)->broadcast_msg((char*)&tmpLeaveAlarm, sizeof(t_leave_alarm));
+
+		//------------------------------------------------------------------------
+
+		std::cout << "leave alarm message has been sent." << std::endl;
+
+		_result = roomManager.leaveRoom(this, tmpLeave.room_num);
+
+		if (_result == true)
 		{
 			ss_leave msg;
 			msg.type = ssType::pkt_leave;
@@ -352,17 +367,11 @@ void Player::packetHandling(Packet *packet)
 			playerSync((char *)&msg, sizeof(msg));
 			
 			//------------------------------------------------------------------------
+
 			tmpLeaveSuccess.type = pkt_type::pt_leave_success;
 			send_msg((char *)&tmpLeaveSuccess, sizeof(t_leave_success));
 
 			std::cout << "leave success message has been sent." << std::endl;
-
-			memcpy(tmpLeaveAlarm.nickname, tmpLeave.nickname, 20);
-			tmpLeaveAlarm.room_num = tmpLeave.room_num;
-			tmpLeaveAlarm.type = pkt_type::pt_leave_alarm;
-			roomManager.findRoom(this->roomNum)->broadcast_msg((char*)&tmpLeaveAlarm, sizeof(t_leave_alarm));
-			
-			std::cout << "leave alarm message has been sent." << std::endl;
 		}
 		else
 		{
@@ -424,15 +433,14 @@ void Player::remove()
 		}
 		//-----------------------------------------------
 
-		t_leave cMsg;
+		t_leave_alarm cMsg;
 
-		cMsg.type = pkt_type::pt_leave;
+		cMsg.type = pkt_type::pt_leave_alarm;
 		cMsg.room_num = this->roomNum;
-		cMsg.token = this->identifier;
 
 		memcpy(cMsg.nickname, this->nickname.c_str(), this->nickname.size());
 
-		roomManager.findRoom(this->roomNum)->broadcast_msg((char *)&cMsg, sizeof(t_leave));
+		roomManager.findRoom(this->roomNum)->broadcast_msg((char *)&cMsg, sizeof(t_leave_alarm));
 		room->playerQuit(this, true);
 
 

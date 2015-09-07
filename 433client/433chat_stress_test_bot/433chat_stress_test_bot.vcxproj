@@ -80,13 +80,16 @@
     <ClInclude Include="..\State.h" />
     <ClInclude Include="..\StateMachine.h" />
     <ClInclude Include="..\utilities.h" />
-    <ClInclude Include="headers.h" />
-    <ClInclude Include="Receiver.h" />
+    <ClInclude Include="Bot.h" />
+    <ClInclude Include="BotStates.h" />
+    <ClInclude Include="Headers.h" />
+    <ClInclude Include="Predeclaration.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\utilities.cpp" />
-    <ClCompile Include="bot_main.cpp" />
-    <ClCompile Include="Receiver.cpp" />
+    <ClCompile Include="Bot.cpp" />
+    <ClCompile Include="BotStates.cpp" />
+    <ClCompile Include="Bot_main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

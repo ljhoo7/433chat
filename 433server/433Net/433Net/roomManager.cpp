@@ -5,9 +5,9 @@ extern RoomManager roomManager;
 
 void RoomManager::printInfo(){
 	std::list<Room*>::iterator iter;
-	printf("\n\n현재 방 목록\n");
+	printf("\n< Current Room List >\n");
 	for (iter = rooms.begin(); iter != rooms.end(); iter++){
-		printf("방 %d에 %d명 접속 중\n", (*iter)->roomNumber, (*iter)->players.size());
+		printf("Room %d : %d persons are coonnecting...\n", (*iter)->roomNumber, (*iter)->players.size());
 	}
 	printf("\n");
 }
@@ -61,6 +61,20 @@ int RoomManager::enterRoom(Player* p, int roomNumber){
 	if (room->players.size() > PLAYER_MAX)
 		return fail_signal::fs_overflow;
 
+	// nickname check
+	std::list<Room*>::iterator iter = roomManager.rooms.begin();
+	for (; iter != roomManager.rooms.end(); ++iter)
+	{
+		std::list<Player*>::iterator iter2 = (*iter)->players.begin();
+		for (; iter2 != (*iter)->players.end(); ++iter2)
+		{
+			if (!strcmp((*iter2)->nickname.c_str(), p->nickname.c_str()))
+			{
+				return fail_signal::fs_alreadyexist;
+			}
+		}
+	}
+
 	room->playerEnter(p);
 
 	printInfo();
@@ -68,20 +82,34 @@ int RoomManager::enterRoom(Player* p, int roomNumber){
 	return -1;
 }
 
-int RoomManager::destroyRoom(int roomNumber){
+int RoomManager::destroyRoom(int roomNumber)
+{
 	Room* room = findRoom(roomNumber);
 	if (room == NULL)
 		return fail_signal::fs_no_exist;
-	rooms.remove(room);
 
-	delete room;
+	// Sending the kick message to all players in the room to be destroyed.
+	t_kick tmpKick;
+
+	tmpKick.type = pkt_type::pt_kick;
+
+	room->broadcast_msg((char*)&tmpKick, sizeof(t_kick));
+
+	for (std::list<Player*>::iterator iter = room->players.begin();
+		iter != room->players.end(); ++iter)
+	{
+		(*iter)->roomNum = -1;
+	}
+
+	rooms.remove(room);
 
 	printInfo();
 
 	return -1;
 }
 
-bool RoomManager::leaveRoom(Player* p, int roomNumber){
+bool RoomManager::leaveRoom(Player* p, int roomNumber)
+{
 	Room* room = findRoom(roomNumber);
 	if (room == NULL){
 		printf("No ROOM!\n");

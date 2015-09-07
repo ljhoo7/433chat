@@ -1,240 +1,137 @@
-#include "headers.h"
-#include "..\utilities.h"
+#include "Predeclaration.h"
+#include "..\Utilities.h"
+#include "Headers.h"
 
-#define STR_NUM			6
+bool				g_bExitSignal;
 
-int block;
+int					g_nTime_span;
+int					g_nRoom_num;
+int					g_nBot_num;
+unsigned long		ip;
+int					port;
 
-char	garbage_strs[STR_NUM][20] = 
-{ "Hello World ~ !\0"
-, "4:33 intern\0"
-, "Random Message\0"
-, "Greeting\0"
-, "Trash Message\0"
-, "I'm a programmer\0" };
-
-int		bot_cnt;
-int		room_num;
-char	nickname[STRSIZE], buf2[STRSIZE];
-
-bool	isFirst;
-
-char	*ip;
-char	*port;
-
-HANDLE *hBot;
-
-CRITICAL_SECTION cs;
-
-DWORD WINAPI BotThread(LPVOID arg);
-DWORD WINAPI ReceivingThread(LPVOID arg);
-DWORD WINAPI BotThread(LPVOID arg);
-DWORD WINAPI WaitThread(LPVOID arg);
-
-int m;
-// 사용법 : 프로그램명 + 서버주소 + 포트번호 + 봇 이름 + 방번호 + 대기시간
 int main(int argc, char *argv[])
 {
-	isFirst = true;
-
-	static std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
-	std::chrono::system_clock::duration tmp;
-	std::chrono::milliseconds tmp2;
-
-	long long time;
-	int retval = 0;
-	int size = 0;
-
 	if (argc != 6)
 	{
-		fputs("usage:(program_name) (chat_server_ip) (port) (bot_cnt) (room_num) (wait_time)\n", stdout);
+		std::cout << "(program name) (server_ip) (server_port) (bot_num) (room_num) (time_span)" << std::endl;
 		return 0;
 	}
 
-	room_num = atoi(argv[4]);
+	ip = inet_addr(argv[1]);
 
-	// 룸넘버가 0 ~ ROOM_MAX 사이 구간에 있는 숫자인지 체크해서 아니면 접속 거부
-	if (room_num >= ROOM_MAX || room_num < 0)
+	if (ip == INADDR_NONE)
 	{
-		printf("A room number must be in this range : 0 ~ %d\n", ROOM_MAX);
+		std::cout << "Error : This is not a legitimate Internet address." << std::endl;
 		return 0;
 	}
 
-	bot_cnt = atoi(argv[3]);
-	block = atoi(argv[5]);
+	port = atoi(argv[2]);
 
-	ip = argv[1];
-	port = argv[2];
-
-	int remain = (bot_cnt - 1) / MAXIMUM_WAIT_OBJECTS + 1;
-	hBot = new HANDLE[bot_cnt];
-	HANDLE *hHandleBot = new HANDLE[remain];
-
-	InitializeCriticalSection(&cs);
-
-	// 봇 만들기
-	for (int m = 0; m < bot_cnt; ++m)
+	if (port < 1025 || port > 65535)
 	{
-		hBot[m] = CreateThread(NULL, 0, BotThread, (LPVOID)&m, 0, NULL);
-		Sleep(500);
+		std::cout << "The rang of port number must be in 1025 ~ 65535" << std::endl;
+		return 0;
 	}
 
-	for (int i = 0; i < remain;i++)
-	{
-		int *m = new int(i);
+	g_nTime_span = atoi(argv[5]);
 
-		hHandleBot[i] = CreateThread(NULL, 0, WaitThread, (LPVOID)m, 0, NULL);
+	if (g_nTime_span < 1)
+	{
+		std::cout << "the time span be an integer number which is bigger than 0" << std::endl;
+		return 0;
 	}
 
-	WaitForMultipleObjects(remain, hHandleBot, TRUE, INFINITE);
+	g_nRoom_num = atoi(argv[4]);
 
-	DeleteCriticalSection(&cs);
-
-	for (int m = 0; m < remain; ++m)
+	if (g_nRoom_num < 0 || g_nRoom_num > 1000)
 	{
-		CloseHandle(hHandleBot[m]);
+		std::cout << "the number of room must be in the range of 0 ~ 1000" << std::endl;
+		return 0;
 	}
 
-	for(int m = 0; m < bot_cnt; ++m)
+	g_nBot_num = atoi(argv[3]);
+
+	if (g_nBot_num < 1)
 	{
-		CloseHandle(hBot[m]);
+		std::cout << "The number of Bots must be bigger than one." << std::endl;
+		return 0;
 	}
-
-	return 1;
-}
-
-DWORD WINAPI WaitThread(LPVOID arg)
-{
-	int grade = *(int*)arg;
-	WaitForMultipleObjects(bot_cnt % MAXIMUM_WAIT_OBJECTS, hBot + (MAXIMUM_WAIT_OBJECTS * grade), TRUE, INFINITE);
-
-	return 0;
-}
-
-DWORD WINAPI BotThread(LPVOID arg)
-{
-	SOCKET sock;
-	int m = *(int*)arg;
 
 	static std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
 	std::chrono::system_clock::duration tmp;
 	std::chrono::milliseconds tmp2;
 
+	int fps = 30;
+	double block = 1000 / fps;
 	long long time;
-	int retval = 0;
-	int size = 0;
+	long long prevTime = 0;
 
-	// 윈속 초기화
-	WSADATA wsa;
-	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-		return 1;
+	g_bExitSignal = false;
 
-	// socket()
-	sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock == INVALID_SOCKET) err_quit("socket()");
+	std::vector<CBot*> t_vClient;
 
-	// connect()
-	SOCKADDR_IN serveraddr;
-	ZeroMemory(&serveraddr, sizeof(serveraddr));
-	serveraddr.sin_family = AF_INET;
-	serveraddr.sin_addr.s_addr = inet_addr(ip);//SERVERIP);
-	serveraddr.sin_port = htons(atoi(port));//SERVERPORT);
-	retval = connect(sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
-	if (retval == SOCKET_ERROR) err_quit("connect()");
+	//CHECK_FAILURE(
 
-	// 데이터 통신에 사용할 변수
-	char buf[STRSIZE];
-	int len;
+		CBot *tBot = new CBot(g_nRoom_num, g_nTime_span, 0);
 
-	// 리시버 스레드 구동
-	HANDLE hReceiving = CreateThread(NULL, 0, ReceivingThread, (LPVOID)&sock, 0, NULL);
+		t_vClient.push_back(tBot);
 
-	EnterCriticalSection(&cs);
-	//if (isFirst)
-	//{
-	//	isFirst = false;
-
-	//	// 방 생성 데이터
-	//	t_create tmp_packet;
-	//	int size = sizeof(t_create);
-	//	tmp_packet.length = size;
-	//	tmp_packet.type = pkt_type::pt_create;
-	//	tmp_packet.room_num = room_num;
-
-	//	// 방 생성 데이터 보내기
-	//	retval = send(sock, (char*)&tmp_packet, size, 0);
-	//	if (retval == SOCKET_ERROR){
-	//		err_display("send()");
-	//		return 0;
-	//	}
-	//}
-	LeaveCriticalSection(&cs);
-
-	strcpy(buf2,("bot_" + std::to_string(m)).c_str());
-	strcpy(nickname, buf2);
-
-	// '\n' 문자 제거
-	len = strlen(buf2);
-
-	if (buf2[len - 1] == '\n')
-		buf2[len - 1] = '\0';
-	if (strlen(buf2) == 0)
-		return 0;
-
-	// 입실 데이터
-	t_join tmp_packet;
-	size = len + sizeof(int)+sizeof(short)+sizeof(short);
-	tmp_packet.length = size;
-	tmp_packet.type = pkt_type::pt_join;
-	tmp_packet.room_num = room_num;
-	strcpy(tmp_packet.nickname, buf2);
-
-	// 입실 데이터 보내기
-	retval = send(sock, (char*)&tmp_packet, size, 0);
-	if (retval == SOCKET_ERROR){
-		err_display("send()");
-		return 0;
-	}
-
-	while (1)
-	{
-		tmp = std::chrono::system_clock::now() - start_time;
-		tmp2 = std::chrono::duration_cast<std::chrono::milliseconds>(tmp);
-		time = tmp2.count();
-		if (block <= time)
+		if (!tBot->SendCreateMessage(g_nRoom_num))
 		{
-			int str_num = rand() % STR_NUM;
-
-			if (strlen(buf) == 0)
-				break;
-
-			t_chat tmp_packet;
-
-			len = strlen(garbage_strs[str_num]);
-			int size = len + 20 + sizeof(int)+sizeof(short)+sizeof(short);
-			tmp_packet.type = pkt_type::pt_chat;
-			tmp_packet.length = size;
-			tmp_packet.room_num = room_num;
-			strcpy(tmp_packet.nickname, buf2);
-			strcpy(tmp_packet.str, garbage_strs[str_num]);
-
-			// 채팅 데이터 보내기
-			retval = send(sock, (char*)&tmp_packet, size, 0);
-			if (retval == SOCKET_ERROR){
-				err_display("send()");
-				break;
-			}
-
-			start_time = std::chrono::system_clock::now();
+			std::cout << "the " + std::to_string(g_nRoom_num) + "th room of bots are not created." << std::endl;
+			return 0;
 		}
-	}
 
-	// 리시버 스레드 종료
-	CloseHandle(hReceiving);
+		for (int m = 1; m < g_nBot_num; ++m)
+		{
+			tmp = std::chrono::system_clock::now() - start_time;
+			tmp2 = std::chrono::duration_cast<std::chrono::milliseconds>(tmp);
+			time = tmp2.count();
 
-	// closesocket()
-	closesocket(sock);
+			if (block <= time)
+			{
+				t_vClient.push_back(new CBot(g_nRoom_num, g_nTime_span, m));
 
-	// 윈속 종료
-	WSACleanup();
+				start_time = std::chrono::system_clock::now();
+			}
+		}
+
+		// Keep Looping for each clients
+		while (!g_bExitSignal){
+			for (std::vector<CBot*>::iterator iter = t_vClient.begin()
+				; iter != t_vClient.end(); ++iter)
+			{
+				tmp = std::chrono::system_clock::now() - start_time;
+				tmp2 = std::chrono::duration_cast<std::chrono::milliseconds>(tmp);
+				time = tmp2.count();
+
+				if (block <= time)
+				{
+					(*iter)->GetStateMachine()->Update();
+
+					start_time = std::chrono::system_clock::now();
+				}
+			}
+		}
+
+		// Wait for multiple threads
+		for (std::vector<CBot*>::iterator iter = t_vClient.begin()
+			; iter != t_vClient.end(); ++iter)
+		{
+			(*iter)->GetReceivingThread()->join();
+		}
+
+		std::cout << "All thread has been joined." << std::endl;
+
+		// Deallocating all
+		for (std::vector<CBot*>::iterator iter = t_vClient.begin()
+			; iter != t_vClient.end(); ++iter)
+		{
+			delete (*iter);
+			t_vClient.erase(iter);
+		}
+	//);
+
+	return 1;
 }
