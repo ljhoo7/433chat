@@ -491,6 +491,7 @@ void InterServer::packetHandling(Packet* packet){
 
 		case ssType::pkt_create:
 		{
+			printf("create call by other server\n");
 			ss_create msg = *((ss_create *)packet->msg);
 			Player* p = find_player_by_socket(msg.client_socket);
 			if (p == NULL){
@@ -502,6 +503,7 @@ void InterServer::packetHandling(Packet* packet){
 		}
 		case ssType::pkt_destroy:
 		{
+			printf("destroy call by other server\n");
 			ss_destroy msg = *((ss_destroy *)packet->msg);
 			Player* p = find_player_by_socket(msg.client_socket);
 			if (p == NULL){
@@ -513,6 +515,7 @@ void InterServer::packetHandling(Packet* packet){
 		}
 		case ssType::pkt_join:
 		{
+			printf("join call by other server\n");
 			ss_join msg = *((ss_join *)packet->msg);
 			Player* p = find_player_by_socket(msg.client_socket);
 			if (p == NULL){
@@ -525,6 +528,7 @@ void InterServer::packetHandling(Packet* packet){
 		}
 		case ssType::pkt_leave:
 		{
+			printf("leave call by other server\n");
 			ss_leave msg = *((ss_leave *)packet->msg);
 			Player* p = find_player_by_socket(msg.client_socket);
 			if (p == NULL){
@@ -537,9 +541,10 @@ void InterServer::packetHandling(Packet* packet){
 		}
 		case ssType::pkt_chat:
 		{
+			 printf("chat call by other server\n");
 			ss_chat msg = *((ss_chat *)packet->msg);
 			pkt_type type = pkt_type::pt_chat_alarm;
-			memcpy(packet->msg, &type, sizeof(type));
+			memcpy(packet->msg, &type, sizeof(short));
 			roomManager.findRoom(msg.room_num)->broadcast_msg(packet->msg, msg.length);
 			break;
 		}
