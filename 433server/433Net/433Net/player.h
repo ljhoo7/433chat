@@ -10,7 +10,7 @@ public:
 	bool isMine;
 	std::string nickname;
 	int roomNum;
-	UserToken token;
+	UserToken* token;
 
 	int identifier;				// token ( it has the other meaning )
 

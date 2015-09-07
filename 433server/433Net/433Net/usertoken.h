@@ -21,8 +21,8 @@ public:
 	IPeer* peer;
 
 public:
-	UserToken(){
-	}
+	UserToken(){}
+	UserToken(SOCKET clientSocket);
 	UserToken(SOCKET clientSocket, SOCKADDR_IN clientAddr, IPeer* peer);
 	~UserToken();
 
