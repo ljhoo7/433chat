@@ -53,12 +53,12 @@ typedef struct{
 typedef struct{
 	unsigned short type;
 	unsigned short length;
-	int client_socket;
 	unsigned short room_num;
-	char nickname[NICK_SIZE];
 	unsigned int token;
-	std::string msg;
+	char nickname[NICK_SIZE];
 } ss_chat; 
+
+
 
 typedef struct{
 	unsigned short type;

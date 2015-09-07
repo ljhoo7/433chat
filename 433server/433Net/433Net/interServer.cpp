@@ -211,6 +211,10 @@ void InterServer::disconnect(){
 		std::list<Player*>::iterator iter;
 		for (iter = g_vPlayers.begin(); iter != g_vPlayers.end();){
 			if (!(*iter)->isMine){
+				if ((*iter)->roomNum != -1){
+					roomManager.leaveRoom((*iter), (*iter)->roomNum);
+				}
+				printf("delete other server's user : %d\n", (*iter)->token->clientSocket);
 				iter = g_vPlayers.erase(iter);
 			}
 			else{
@@ -324,6 +328,16 @@ void InterServer::heartbeat_check() {
 	printf("connection fail\n");
 	disconnect();
 }
+Player* find_player_by_socket(SOCKET socket){
+	std::list<Player*>::iterator iter;
+	for (iter = g_vPlayers.begin(); iter != g_vPlayers.end(); iter++){
+		Player* p = *(iter);
+		if (!p->isMine && p->token->clientSocket == socket){
+			return p;
+		}
+	}
+	return NULL;
+}
 
 /* logic thread */
 void InterServer::packetHandling(Packet* packet){
@@ -436,10 +450,26 @@ void InterServer::packetHandling(Packet* packet){
 					position += sizeof(room_info);
 				}
 
-				ss_room_info_success msg;
-				msg.type = ssType::pkt_room_info_success;
-				this->_send((char *)&msg, sizeof(msg));
-				poolManager.push(buf);
+				bool check = true;
+				std::list<Player*>::iterator iter;
+				for (iter = g_vPlayers.begin(); iter != g_vPlayers.end(); iter++){
+					Player* p = (*iter);
+					if (!p->isMine && p->roomNum != -1){
+						int ret = roomManager.enterRoom(p, p->roomNum);
+						if (ret != -1){
+							disconnect();
+							check = false;
+							break;
+						}
+					}
+				}
+
+				if (check){
+					ss_room_info_success msg;
+					msg.type = ssType::pkt_room_info_success;
+					this->_send((char *)&msg, sizeof(msg));
+					poolManager.push(buf);
+				}
 			}
 			else{
 				ss_room_info_failure msg;
@@ -449,6 +479,73 @@ void InterServer::packetHandling(Packet* packet){
 
 			break;
 		}
+		case ssType::pkt_room_info_success:
+		case ssType::pkt_player_info_success: 
+			printf("\ninitial sync success!\n\n");
+			break;
+
+		case ssType::pkt_room_info_failure:
+		case ssType::pkt_player_info_failure:
+			disconnect();
+			break;
+
+		case ssType::pkt_create:
+		{
+			ss_create msg = *((ss_create *)packet->msg);
+			Player* p = find_player_by_socket(msg.client_socket);
+			if (p == NULL){
+				printf("not available!\n");
+				break;
+			}
+			roomManager.createRoom(msg.room_num);
+			break;
+		}
+		case ssType::pkt_destroy:
+		{
+			ss_destroy msg = *((ss_destroy *)packet->msg);
+			Player* p = find_player_by_socket(msg.client_socket);
+			if (p == NULL){
+				printf("not available!\n");
+				break;
+			}
+			roomManager.destroyRoom(msg.room_num);
+			break;
+		}
+		case ssType::pkt_join:
+		{
+			ss_join msg = *((ss_join *)packet->msg);
+			Player* p = find_player_by_socket(msg.client_socket);
+			if (p == NULL){
+				printf("not available!\n");
+				break;
+			}
+			p->nickname = msg.nickname;
+			roomManager.enterRoom(p, msg.room_num);
+			break;
+		}
+		case ssType::pkt_leave:
+		{
+			ss_leave msg = *((ss_leave *)packet->msg);
+			Player* p = find_player_by_socket(msg.client_socket);
+			if (p == NULL){
+				printf("not available!\n");
+				break;
+			}
+			p->nickname = msg.nickname;
+			roomManager.leaveRoom(p, msg.room_num);
+			break;
+		}
+		case ssType::pkt_chat:
+		{
+			ss_chat msg = *((ss_chat *)packet->msg);
+			pkt_type type = pkt_type::pt_chat_alarm;
+			memcpy(packet->msg, &type, sizeof(type));
+			roomManager.findRoom(msg.room_num)->broadcast_msg(packet->msg, msg.length);
+			break;
+		}
+		default:
+			disconnect();
+			break;
 	}
 
 	this->packetPoolManager.push(packet);

@@ -200,8 +200,8 @@ void Player::packetHandling(Packet *packet)
 	t_destroy			tmpDestroy;
 	t_join				tmpJoin;
 	t_leave				tmpLeave;
-	t_join_alarm		tmpJoinAlarm;
-	t_leave_alarm		tmpLeaveAlarm;
+//	t_join_alarm		tmpJoinAlarm;
+//	t_leave_alarm		tmpLeaveAlarm;
 	t_create_success	tmpCreateSuccess;
 	t_create_failure	tmpCreateFailure;
 	t_destroy_success	tmpDestroySuccess;
@@ -305,12 +305,7 @@ void Player::packetHandling(Packet *packet)
 			send_msg((char *)&tmpJoinSuccess, sizeof(t_join_success));
 			std::cout << "join success message has been sent." << std::endl;
 
-			memcpy(tmpJoinAlarm.nickname, tmpJoin.nickname, 20);
-			tmpJoinAlarm.room_num = tmpJoin.room_num;
-			tmpJoinAlarm.type = pkt_type::pt_join_alarm;
-
-			roomManager.findRoom(this->roomNum)->broadcast_msg((char*)&tmpJoinAlarm, sizeof(t_join_alarm));
-			std::cout << "join alarm message has been sent." << std::endl;
+			
 		}
 		else if (result == fail_signal::fs_overflow)
 		{
@@ -340,18 +335,6 @@ void Player::packetHandling(Packet *packet)
 
 	case pkt_type::pt_leave:
 		memcpy(&tmpLeave, packet->msg, sizeof(t_leave));
-
-		//------------------------------------------------------------------------
-
-		strcpy_s(tmpLeaveAlarm.nickname, tmpLeave.nickname);
-		tmpLeaveAlarm.room_num = tmpLeave.room_num;
-		tmpLeaveAlarm.type = pkt_type::pt_leave_alarm;
-		roomManager.findRoom(this->roomNum)->broadcast_msg((char*)&tmpLeaveAlarm, sizeof(t_leave_alarm));
-
-		//------------------------------------------------------------------------
-
-		std::cout << "leave alarm message has been sent." << std::endl;
-
 		_result = roomManager.leaveRoom(this, tmpLeave.room_num);
 
 		if (_result == true)
@@ -384,6 +367,11 @@ void Player::packetHandling(Packet *packet)
 		memcpy(packet->msg, &type, sizeof(unsigned short));
 
 		roomManager.findRoom(this->roomNum)->broadcast_msg(packet->msg, size);
+
+
+		type = ssType::pkt_chat;
+		memcpy(packet->msg, &type, sizeof(unsigned short));
+		playerSync((char *)packet->msg, size);
 
 		std::cout << "chat alarm message has been sent." << std::endl;		break;
 	}
