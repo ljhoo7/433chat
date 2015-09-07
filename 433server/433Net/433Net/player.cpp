@@ -426,15 +426,14 @@ void Player::remove()
 
 		//-----------------------------------------------
 
-		t_leave cMsg;
+		t_leave_alarm cMsg;
 
-		cMsg.type = pkt_type::pt_leave;
+		cMsg.type = pkt_type::pt_leave_alarm;
 		cMsg.room_num = this->roomNum;
-		cMsg.token = this->identifier;
 
 		memcpy(cMsg.nickname, this->nickname.c_str(), this->nickname.size());
 
-		roomManager.findRoom(this->roomNum)->broadcast_msg((char *)&cMsg, sizeof(t_leave));
+		roomManager.findRoom(this->roomNum)->broadcast_msg((char *)&cMsg, sizeof(t_leave_alarm));
 	}
 
 	if (room != NULL) room->playerQuit(this, true);
