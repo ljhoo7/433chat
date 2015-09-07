@@ -90,10 +90,10 @@ void InterServer::listenProcess(){
 		printf("InterServer Thread has been activated.\n");
 
 		process_thread = std::thread(&InterServer::process, this);
-		heart_thread = std::thread(&InterServer::heartbeat_check, this);
+		//heart_thread = std::thread(&InterServer::heartbeat_check, this);
 
 		process_thread.join();
-		heart_thread.join();
+		//heart_thread.join();
 	}
 	
 }
@@ -256,46 +256,48 @@ void InterServer::packetHandling(Packet* packet){
 	ssType _type = (ssType)(*packet->msg);
 
 	switch (_type){
-	case ssType::pkt_heartbeats:
-	{	
-		printf("recieve heartbeat check. send response\n");
-		ss_heartbeats_response msg;
-		msg.type = ssType::pkt_heartbeats_response;
-		_send((char *)&msg, sizeof(msg));
-		break; 
-	}
-	case ssType::pkt_heartbeats_response:
-	{	
-		printf("recieve heartbeat response\n");
-		beat_check = true;
-		break; 
-	}
-	case ssType::pkt_connect:
-	{	
-		ss_connect msg;
-		memcpy(&msg, packet->msg, sizeof(msg));
-		Player* p = new Player(false);
-		g_vPlayers.push_back(p);
-		
-		UserToken *user = new UserToken((SOCKET)msg.client_socket);
-		user->peer = p;
-		p->token = *user;
-
-
-		break; 
-	}
-	case ssType::pkt_disconnect:
-	{
-		ss_disconnect msg;
-		memcpy(&msg, packet->msg, sizeof(msg));
-		std::list<Player*>::iterator iter;
-		for (iter = g_vPlayers.begin(); iter != g_vPlayers.end(); iter++){
-			if ((*iter)->token.clientSocket == msg.client_socket) break;
+		case ssType::pkt_heartbeats:
+		{	
+			printf("recieve heartbeat check. send response\n");
+			ss_heartbeats_response msg;
+			msg.type = ssType::pkt_heartbeats_response;
+			_send((char *)&msg, sizeof(msg));
+			break; 
 		}
-		g_vPlayers.remove((*iter));
-		break;
+		case ssType::pkt_heartbeats_response:
+		{	
+			printf("recieve heartbeat response\n");
+			beat_check = true;
+			break; 
+		}
+		case ssType::pkt_connect:
+		{	
+			printf("connect request!\n");
+			ss_connect msg;
+			memcpy(&msg, packet->msg, sizeof(msg));
+			Player* p = new Player(false);
+			g_vPlayers.push_back(p);
+		
+			UserToken *user = new UserToken((SOCKET)msg.client_socket);
+			user->peer = p;
+			p->token = *user;
 
-	}
+
+			break; 
+		}
+		case ssType::pkt_disconnect:
+		{
+			printf("disconnect request!\n");
+			ss_disconnect msg;
+			memcpy(&msg, packet->msg, sizeof(msg));
+			std::list<Player*>::iterator iter;
+			for (iter = g_vPlayers.begin(); iter != g_vPlayers.end(); iter++){
+				if ((*iter)->token.clientSocket == msg.client_socket) break;
+			}
+			g_vPlayers.remove((*iter));
+			break;
+
+		}
 
 	}
 

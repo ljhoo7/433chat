@@ -387,16 +387,23 @@ void Player::packetHandling(Packet *packet)
 void Player::remove()
 {
 	Room* room = roomManager.findRoom(this->roomNum);
-	if (room == NULL){
-		printf("No ROOM!\n");
-		return;
-	}
 	if (token.clientSocket != NULL){
+		printf("send diconnect\n");
 		ss_disconnect tmpDisconnect;
 
 		tmpDisconnect.type = ssType::pkt_disconnect;
 		tmpDisconnect.client_socket = this->token.clientSocket;
 		
+		if (listen_server.the_other_sock == NULL)
+		{
+			connect_server._send((char *)&tmpDisconnect, sizeof(ss_disconnect));
+		}
+		else{
+			listen_server._send((char *)&tmpDisconnect, sizeof(ss_disconnect));
+		}
+	}
+
+	if (room != NULL){
 		//-----------------------------------------------
 
 		ss_leave msg;
@@ -410,12 +417,10 @@ void Player::remove()
 		if (listen_server.the_other_sock == NULL)
 		{
 			connect_server._send((char *)&msg, sizeof(ss_leave));
-			connect_server._send((char *)&tmpDisconnect, sizeof(ss_disconnect));
 		}
 		else
 		{
 			listen_server._send((char *)&msg, sizeof(ss_leave));
-			listen_server._send((char *)&tmpDisconnect, sizeof(ss_disconnect));
 		}
 		//-----------------------------------------------
 
@@ -428,13 +433,12 @@ void Player::remove()
 		memcpy(cMsg.nickname, this->nickname.c_str(), this->nickname.size());
 
 		roomManager.findRoom(this->roomNum)->broadcast_msg((char *)&cMsg, sizeof(t_leave));
+		room->playerQuit(this, true);
+
+
+		printf("remove in room...\n");
 	}
-
-	if (room != NULL) room->playerQuit(this, true);
-
-
 	/* remove in list */
 	g_vPlayers.remove(this);
 
-	printf("remove in room...\n");
 }
