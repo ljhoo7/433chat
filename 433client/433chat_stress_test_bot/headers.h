@@ -17,6 +17,9 @@
 #define CHECK_FAILURE(X) X
 #endif
 
+#define RANDSTR_SIZE		7
+#define RANDSTR_LENG		20
+
 #include "..\Protocol.h"
 #include "BotStates.h"
 #include "Bot.h"

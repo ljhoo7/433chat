@@ -12,9 +12,9 @@ int					port;
 
 int main(int argc, char *argv[])
 {
-	if (argc != 6)
+	if (argc != 5)
 	{
-		std::cout << "(program name) (server_ip) (server_port) (bot_num) (room_num) (time_span)" << std::endl;
+		std::cout << "(program name) (server_ip) (server_port) (bot_num) (time_span)" << std::endl;
 		return 0;
 	}
 
@@ -34,19 +34,11 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	g_nTime_span = atoi(argv[5]);
+	g_nTime_span = atoi(argv[4]);
 
 	if (g_nTime_span < 1)
 	{
 		std::cout << "the time span be an integer number which is bigger than 0" << std::endl;
-		return 0;
-	}
-
-	g_nRoom_num = atoi(argv[4]);
-
-	if (g_nRoom_num < 0 || g_nRoom_num > 1000)
-	{
-		std::cout << "the number of room must be in the range of 0 ~ 1000" << std::endl;
 		return 0;
 	}
 
@@ -67,35 +59,40 @@ int main(int argc, char *argv[])
 	long long time;
 	long long prevTime = 0;
 
+	int left, theRoom;
+
 	g_bExitSignal = false;
 
 	std::vector<CBot*> t_vClient;
 
 	//CHECK_FAILURE(
-
-		CBot *tBot = new CBot(g_nRoom_num, g_nTime_span, 0);
-
-		t_vClient.push_back(tBot);
-
-		if (!tBot->SendCreateMessage(g_nRoom_num))
+		for (int m = 0; m < g_nBot_num; ++m)
 		{
-			std::cout << "the " + std::to_string(g_nRoom_num) + "th room of bots are not created." << std::endl;
-			return 0;
-		}
+			CBot *tBot = new CBot(-1, g_nTime_span, 0);
+			t_vClient.push_back(tBot);
 
-		for (int m = 1; m < g_nBot_num; ++m)
-		{
-			tmp = std::chrono::system_clock::now() - start_time;
-			tmp2 = std::chrono::duration_cast<std::chrono::milliseconds>(tmp);
-			time = tmp2.count();
-
-			if (block <= time)
+			theRoom = (m / USER_MAX);
+			left = (m % USER_MAX);
+			if (!left)
 			{
-				t_vClient.push_back(new CBot(g_nRoom_num, g_nTime_span, m));
+				tBot->m_nTmpRoom_num = theRoom;
+				if (!tBot->SendCreateMessage(theRoom))
+				{
+					std::cout << "the " + std::to_string(theRoom) + "th room of bots are not created." << std::endl;
+					return 0;
+				}
 
-				start_time = std::chrono::system_clock::now();
+				tBot->GetStateMachine()->ChangeState(CCreate_Response_Wait::Instance());
+			}
+			else
+			{
+				tBot->SendJoinMessage(theRoom, const_cast<char*>(("bot_" + std::to_string(m)).c_str()));
+				
+				tBot->GetStateMachine()->ChangeState(CJoin_Response_Wait::Instance());
 			}
 		}
+
+		std::cout << "All Create&Join process has been done." << std::endl;
 
 		// Keep Looping for each clients
 		while (!g_bExitSignal){
@@ -108,7 +105,7 @@ int main(int argc, char *argv[])
 
 				if (block <= time)
 				{
-					(*iter)->GetStateMachine()->Update();
+					(*iter)->GetStateMachine()->Update(time);
 
 					start_time = std::chrono::system_clock::now();
 				}
@@ -131,6 +128,8 @@ int main(int argc, char *argv[])
 			delete (*iter);
 			t_vClient.erase(iter);
 		}
+
+		t_vClient.clear();
 	//);
 
 	return 1;

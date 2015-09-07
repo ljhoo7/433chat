@@ -114,7 +114,6 @@ void Reciever::recieveProcess(){
 void Reciever::addUserList(UserToken* user){
 	FD_SET(user->clientSocket, &reads);
 	userList.push_back(user);
-
 }
 
 

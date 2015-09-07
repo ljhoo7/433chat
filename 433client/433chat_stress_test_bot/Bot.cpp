@@ -44,7 +44,7 @@ CBot::CBot(const int& room_num, const int& time_span, const int& bot_num) : m_nR
 
 	// Initialize The State Machine
 	m_pStateMachine = new StateMachine<CBot>(this);
-	GetStateMachine()->SetCurrentState(CRoom::Instance());
+	GetStateMachine()->SetCurrentState(CLobby::Instance());
 }
 
 CBot::~CBot()
@@ -97,6 +97,10 @@ void CBot::ReceivingThread()
 		time = tmp2.count();
 		if (block <= time)
 		{
+			t_create_success		tmpCreateSuccess;
+			t_create_failure		tmpCreateFailure;
+			t_join_success			tmpJoinSuccess;
+			t_join_failure			tmpJoinFailure;
 			t_chat					tmpChatAlarm;
 			t_join_alarm			tmpJoinAlarm;
 			t_leave_alarm			tmpLeaveAlarm;
@@ -114,15 +118,72 @@ void CBot::ReceivingThread()
 				errorQuitWithBotNum("ReceivingThread() error on receiving the type.");
 			sum += retval;
 
-			if (GetStateMachine()->CurrentState() == CRoom::Instance())
+			if (GetStateMachine()->CurrentState() == CCreate_Response_Wait::Instance())
 			{
 				switch ((pkt_type)type)
 				{
 				case pkt_type::pt_create_success:
+
+					SendJoinMessage(m_nTmpRoom_num, const_cast<char*>(("bot_" + std::to_string(m_nBot_num)).c_str()));
+
+					GetStateMachine()->ChangeState(CJoin_Response_Wait::Instance());
+
 					break;
 				case pkt_type::pt_create_failure:
-					errorQuitWithBotNum("The room of robots is already exist.");
+
+					retval = recvn(sock, (char*)&tmpCreateFailure.fail_signal, sizeof(t_create_failure)-sizeof(unsigned short), 0);
+					if (retval == SOCKET_ERROR)
+						errorQuitWithBotNum("ReceivingThread() error on the receiving the left of the t_create_failure.");
+					sum += retval;
+
+					printFailSignal((fail_signal)tmpCreateFailure.fail_signal);
+
+					GetStateMachine()->ChangeState(CLobby::Instance());
+
 					break;
+				default:
+					std::cout << "You have received a wrong message which you can't read in the 'Create Response' State." << std::endl;
+					break;
+				}
+			}
+			else if (GetStateMachine()->CurrentState() == CJoin_Response_Wait::Instance())
+			{
+				switch ((pkt_type)type)
+				{
+				case pkt_type::pt_join_success:
+					retval = recvn(sock, (char*)&tmpJoinSuccess.trash_value, sizeof(t_join_success)-sizeof(unsigned short), 0);
+					if (retval == SOCKET_ERROR)
+						errorQuitWithBotNum("ReceivingThread() error on the receiving the left of the t_join_success.");
+					sum += retval;
+
+					m_nToken = tmpJoinSuccess.token;
+
+					m_nRoom_num = m_nTmpRoom_num;
+
+					GetStateMachine()->ChangeState(CRoom::Instance());
+					break;
+				case pkt_type::pt_join_failure:
+
+					retval = recvn(sock, (char*)&tmpJoinFailure.fail_signal, sizeof(t_join_failure)-sizeof(unsigned short), 0);
+					if (retval == SOCKET_ERROR)
+						errorQuitWithBotNum("ReceivingThread() error on the receiving the left of the t_join_failure.");
+					sum += retval;
+
+					printFailSignal((fail_signal)tmpJoinFailure.fail_signal);
+
+					SetNickName("");
+
+					GetStateMachine()->ChangeState(CLobby::Instance());
+					break;
+				default:
+					std::cout << "You have received a wrong message which you can't read in the 'Join Response' State." << std::endl;
+					break;
+				}
+			}
+			else if (GetStateMachine()->CurrentState() == CRoom::Instance())
+			{
+				switch ((pkt_type)type)
+				{
 				case pkt_type::pt_chat_alarm:
 				{
 					retval = recvn(sock, (char*)&len, sizeof(unsigned short), 0);
@@ -244,6 +305,39 @@ bool CBot::SendChatMessage(const std::string& str)
 		errorQuitWithBotNum("send() error on t_chat !");
 		return false;
 	}
+
+	return true;
+}
+
+bool CBot::SendJoinMessage(int num, char *nick)
+{
+	int retval;
+
+	if (num < 0)
+	{
+		std::cout << "The room number must be bigger than zero" << std::endl;
+		return false;
+	}
+
+	// Join Packet
+	t_join tmp_packet;
+	int size = 20 + sizeof(unsigned short)+sizeof(unsigned short);
+	tmp_packet.type = pkt_type::pt_join;
+
+	if (!SetNickName(nick))
+		std::cout << "SetNickName() length error" << std::endl;
+
+	tmp_packet.room_num = num;
+	strcpy(tmp_packet.nickname, nick);
+
+	// Sending Join Packet
+	retval = send(GetSocket(), (char*)&tmp_packet, size, 0);
+	if (retval == SOCKET_ERROR){
+		errorQuitWithBotNum("send() error on t_join");
+		return false;
+	}
+
+	GetStateMachine()->ChangeState(CJoin_Response_Wait::Instance());
 
 	return true;
 }

@@ -68,8 +68,6 @@ public:
 	void						errorQuitWithBotNum(std::string str);
 
 	bool						SendCreateMessage(int num);
-	bool						SendDestroyMessage(int num);
 	bool						SendJoinMessage(int num, char *nick);
-	bool						SendLeaveMessage();
 	bool						SendChatMessage(const std::string& str);
 };
