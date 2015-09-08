@@ -33,6 +33,15 @@ void Room::playerEnter(Player* player){
 
 void Room::playerQuit(Player* player, bool msg){
 	if (player->roomNum != this->roomNumber) return;
+	std::list<Player*>::iterator iter;
+	bool check = false;
+	for (iter = players.begin(); iter != players.end(); iter++){
+		if ((*iter) == player){
+			check = true;
+			break;
+		}
+	}
+	if (!check) return;
 	t_leave_alarm		tmpLeaveAlarm;
 	memcpy(tmpLeaveAlarm.nickname, player->nickname.c_str(), sizeof(tmpLeaveAlarm.nickname));
 	tmpLeaveAlarm.room_num = this->roomNumber;

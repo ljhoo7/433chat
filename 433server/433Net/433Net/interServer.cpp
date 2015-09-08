@@ -123,6 +123,8 @@ void InterServer::interserver_connect(char* ip, int port){
 
 	makeSync();
 
+	if (connect_server.process_thread.joinable())
+		connect_server.process_thread.join();
 	process_thread = std::thread(&InterServer::process, this);
 }
 
@@ -204,6 +206,8 @@ void InterServer::process(){
 */
 void InterServer::disconnect(){
 	if (the_other_sock != NULL){
+
+
 		std::list<Player*>::iterator iter;
 		for (iter = g_vPlayers.begin(); iter != g_vPlayers.end();){
 			if (!(*iter)->isMine){
@@ -222,6 +226,8 @@ void InterServer::disconnect(){
 		the_other_sock = NULL;
 
 		printf("closed the other server.\n");
+
+		//connect_server.process_thread.detach();
 	}
 }
 
@@ -456,7 +462,7 @@ void InterServer::packetHandling(Packet* packet){
 					if (!p->isMine && p->roomNum != -1){
 						int ret = roomManager.enterRoom(p, p->roomNum);
 						if (ret != -1){
-							disconnect();
+						//	disconnect();
 							check = false;
 							break;
 						}
@@ -469,6 +475,11 @@ void InterServer::packetHandling(Packet* packet){
 					this->_send((char *)&msg, sizeof(msg));
 					poolManager.push(buf);
 				}
+				else{
+					ss_room_info_failure msg;
+					msg.type = ssType::pkt_room_info_failure;
+					this->_send((char *)&msg, sizeof(msg));
+				}
 			}
 			else{
 				ss_room_info_failure msg;
@@ -479,7 +490,7 @@ void InterServer::packetHandling(Packet* packet){
 			break;
 		}
 		case ssType::pkt_room_info_success:
-			printf("initial room info sync success!\n");
+			printf("initial room sync success!\n");
 			break;
 		case ssType::pkt_player_info_success: 
 			printf("initial player info sync success!\n");
@@ -488,6 +499,7 @@ void InterServer::packetHandling(Packet* packet){
 
 		case ssType::pkt_room_info_failure:
 		case ssType::pkt_player_info_failure:
+			printf("recieve fail msg!\n");
 			disconnect();
 			break;
 

@@ -51,24 +51,19 @@ bool Player::recieveProcess()
 			{
 			case pkt_type::pt_create:
 				token->remainBytes = sizeof(t_create)-2;
-				std::cout << "pt_create" << std::endl;
 				break;
 			case pkt_type::pt_destroy:
 				token->remainBytes = sizeof(t_destroy)-2;
-				std::cout << "pt_destroy" << std::endl;
 				break;
 			case pkt_type::pt_join:
 				token->remainBytes = sizeof(t_join)-2;
-				std::cout << "pt_join" << std::endl;
 				break;
 			case pkt_type::pt_leave:
 				token->remainBytes = sizeof(t_leave)-2;
-				std::cout << "pt_leave" << std::endl;
 				break;
 			case pkt_type::pt_chat:
 				token->var = true;
 				token->remainBytes = sizeof(short);
-				std::cout << "pt_chat" << std::endl;
 				break;
 			default:
 				//disconnect();
@@ -108,7 +103,7 @@ bool Player::recieve(char* buf, int size){
 	int ret = recv(token->clientSocket, buf, size, 0);
 	if (ret == SOCKET_ERROR){
 		printf("recieve error\n");
-		//disconnect();
+		disconnect();
 		return false;
 	}
 	token->position += ret;

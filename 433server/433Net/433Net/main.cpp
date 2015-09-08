@@ -86,8 +86,7 @@ int main(int argc, char *argv[])
 				if (input == "disconnect"){
 					connect_server.disconnect();
 
-					if (connect_server.process_thread.joinable())
-						connect_server.process_thread.join();
+					
 				}
 			}
 		}
