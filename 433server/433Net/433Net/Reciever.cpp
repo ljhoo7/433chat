@@ -52,10 +52,8 @@ void Reciever::process(){
 	int fps = 30;
 	double block = 1000 / fps;
 
-
 	while (true){
 		copy_set = reads;
-
 
 		int retval;
 		retval = select(0, &copy_set, 0, NULL, NULL);

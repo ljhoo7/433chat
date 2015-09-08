@@ -38,6 +38,8 @@ public:
 		if (m_pStateMachine == nullptr)
 		{
 			CHECK_FAILURE(std::cout << "Error : m_pStateMachine is nullptr !" << std::endl);
+
+			return NULL;
 		}
 		else
 		{
