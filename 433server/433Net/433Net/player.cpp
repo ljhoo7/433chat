@@ -103,7 +103,7 @@ bool Player::recieve(char* buf, int size){
 	int ret = recv(token->clientSocket, buf, size, 0);
 	if (ret == SOCKET_ERROR){
 		printf("recieve error\n");
-		disconnect();
+		//disconnect();
 		return false;
 	}
 	token->position += ret;
@@ -400,7 +400,6 @@ void Player::remove()
 	}
 
 	if (token->clientSocket != NULL){
-		printf("send diconnect\n");
 		ss_disconnect tmpDisconnect;
 
 		tmpDisconnect.type = ssType::pkt_disconnect;
@@ -414,8 +413,6 @@ void Player::remove()
 			listen_server._send((char *)&tmpDisconnect, sizeof(ss_disconnect));
 		}
 	}
-
-	
 	/* remove in list */
 	g_vPlayers.remove(this);
 
