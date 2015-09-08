@@ -33,17 +33,17 @@ void Room::playerEnter(Player* player){
 
 void Room::playerQuit(Player* player, bool msg){
 	if (player->roomNum != this->roomNumber) return;
+	t_leave_alarm		tmpLeaveAlarm;
+	strcpy_s(tmpLeaveAlarm.nickname, player->nickname.c_str());
+	tmpLeaveAlarm.room_num = this->roomNumber;
+	tmpLeaveAlarm.type = pkt_type::pt_leave_alarm;
+
 
 	player->roomNum = -1;
 	player->nickname = "";
 	players.remove(player);
 
 	/* informing the exited */
-
-	t_leave_alarm		tmpLeaveAlarm;
-	strcpy_s(tmpLeaveAlarm.nickname, player->nickname.c_str());
-	tmpLeaveAlarm.room_num = this->roomNumber;
-	tmpLeaveAlarm.type = pkt_type::pt_leave_alarm;
 	if (msg) this->broadcast_msg((char*)&tmpLeaveAlarm, sizeof(t_leave_alarm));
 	std::cout << "leave alarm message has been sent." << std::endl;
 }
@@ -52,6 +52,6 @@ void Room::broadcast_msg(char* msg, int size){
 	std::list<Player*>::iterator iter;
 	//printf("Room %d : %d persons are connecting...\n", roomNumber, players.size());
 	for (iter = players.begin(); iter != players.end(); iter++){
-		(*iter)->send_msg(msg, size);
+		if ((*iter)->isMine) (*iter)->send_msg(msg, size);
 	}
 }
