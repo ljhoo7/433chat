@@ -10,7 +10,7 @@ Reciever::~Reciever(){
 }
 
 void Reciever::start(int port, void(*callback)(UserToken* token)){
-	printf("start\n");
+	printf("chatting server start\n");
 
 	int retval;
 	WSADATA wsaData;

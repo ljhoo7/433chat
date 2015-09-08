@@ -90,7 +90,7 @@ typedef struct{
 
 typedef struct{
 	int client_socket;
-	unsigned short room_num;
+	short room_num;
 	char nickname[20];
 	unsigned int token;
 } player_info;

@@ -82,25 +82,41 @@ int main(int argc, char *argv[])
 			if (input=="connect"){
 				connect_server.start(0, connect_port);
 			}
+			else{
+				if (input == "disconnect"){
+					connect_server.disconnect();
+
+					
+				}
+			}
 		}
-		else{
+		
+
+		if (connect_server.the_other_sock == NULL){
 			if (input == "disconnect"){
 				listen_server.disconnect();
 			}
 		}
-
-		if (connect_server.the_other_sock == NULL){
-			if (input == "disconnect"){
-				connect_server.disconnect();
+		if (input == "show"){
+			std::list<Player*>::iterator iter;
+			printf("\n--------------------------player info----------------------\n");
+			for (iter = g_vPlayers.begin(); iter != g_vPlayers.end(); iter++){
+				Player *p = (*iter);
+				printf("is Mine : %d, client socket : %d, room Num : %d, nickname : %s\n",
+					p->isMine, p->token->clientSocket, p->roomNum, p->nickname.c_str());
 			}
+			printf("-----------------------------------------------------------\n");
 		}
-
+		
 		if (input == "quit"){
 			break;
 		}
 	}
 
-	listen_server.listen_thread.join();
+	if (connect_server.process_thread.joinable())
+		connect_server.process_thread.join();
+	if (listen_server.listen_thread.joinable())
+		listen_server.listen_thread.join();
 
 	logic_thread.join();
 	client_thread.join();

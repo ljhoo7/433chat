@@ -5,7 +5,7 @@ extern RoomManager roomManager;
 
 void RoomManager::printInfo(){
 	std::list<Room*>::iterator iter;
-	printf("\n< Current Room List >\n");
+	printf("< Current Room List >\n");
 	for (iter = rooms.begin(); iter != rooms.end(); iter++){
 		printf("Room %d : %d persons are coonnecting...\n", (*iter)->roomNumber, (*iter)->players.size());
 	}
