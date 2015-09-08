@@ -58,9 +58,6 @@ void send_player_info(InterServer* i){
 	msgPosition += position;
 
 	i->_send(msgBuf, msgPosition);
-
-	printf("make sync! %dbytes\n", msgPosition);
-
 	i->poolManager.push(buf);
 	i->poolManager.push(msgBuf);
 }
@@ -94,9 +91,6 @@ void send_room_info(InterServer* i){
 	msgPosition += position;
 
 	i->_send(msgBuf, msgPosition);
-
-	printf("make sync! %dbytes\n", msgPosition);
-
 	i->poolManager.push(buf);
 	i->poolManager.push(msgBuf);
 }
@@ -105,6 +99,8 @@ void InterServer::makeSync(){
 	if (the_other_sock == NULL) return;
 	send_player_info(this);
 	send_room_info(this);
+
+	printf("inter server sync...\n");
 }
 
 void InterServer::interserver_connect(char* ip, int port){	
@@ -128,8 +124,6 @@ void InterServer::interserver_connect(char* ip, int port){
 	makeSync();
 
 	process_thread = std::thread(&InterServer::process, this);
-	process_thread.join();
-
 }
 
 void InterServer::interserver_listen(int port){
@@ -188,7 +182,10 @@ void InterServer::process(){
 
 	while (1)
 	{
-		if (the_other_sock == NULL) return;
+		if (the_other_sock == NULL){
+			printf("interserver recieve process end..\n");
+			return;
+		}
 		tmp = std::chrono::system_clock::now() - start_time;
 		tmp2 = std::chrono::duration_cast<std::chrono::milliseconds>(tmp);
 		time = tmp2.count();
@@ -196,8 +193,9 @@ void InterServer::process(){
 			recieveProcess();
 			start_time = std::chrono::system_clock::now();
 		}
-		
 	}
+
+	
 }
 
 /* 
@@ -206,8 +204,6 @@ void InterServer::process(){
 */
 void InterServer::disconnect(){
 	if (the_other_sock != NULL){
-		printf("closed the other server.\n");
-
 		std::list<Player*>::iterator iter;
 		for (iter = g_vPlayers.begin(); iter != g_vPlayers.end();){
 			if (!(*iter)->isMine){
@@ -224,6 +220,8 @@ void InterServer::disconnect(){
 
 		closesocket(the_other_sock);
 		the_other_sock = NULL;
+
+		printf("closed the other server.\n");
 	}
 }
 
@@ -300,15 +298,16 @@ void InterServer::recieve(char* buf, int size){
 	if (size == 0) return;
 	int ret = recv(the_other_sock, buf, size, 0);
 	if (ret == SOCKET_ERROR){
-		printf("receive error\n");
+		printf("receive error! \n");
 		disconnect();
 	}
 }
 
 void InterServer::_send(char* buf, int size){
+	if (the_other_sock == NULL) return;
 	int ret = send(the_other_sock, buf, size, 0);
 	if (ret == SOCKET_ERROR){
-		printf("inter-server send() error\n");
+		//printf("inter-server send() error\n");
 		disconnect();
 	}
 }
@@ -480,9 +479,12 @@ void InterServer::packetHandling(Packet* packet){
 			break;
 		}
 		case ssType::pkt_room_info_success:
-		case ssType::pkt_player_info_success: 
-			printf("\ninitial sync success!\n\n");
+			printf("initial room info sync success!\n");
 			break;
+		case ssType::pkt_player_info_success: 
+			printf("initial player info sync success!\n");
+			break;
+			
 
 		case ssType::pkt_room_info_failure:
 		case ssType::pkt_player_info_failure:
@@ -541,7 +543,7 @@ void InterServer::packetHandling(Packet* packet){
 		}
 		case ssType::pkt_chat:
 		{
-			 printf("chat call by other server\n");
+			printf("chat call by other server\n");
 			ss_chat msg = *((ss_chat *)packet->msg);
 			pkt_type type = pkt_type::pt_chat_alarm;
 			memcpy(packet->msg, &type, sizeof(short));
