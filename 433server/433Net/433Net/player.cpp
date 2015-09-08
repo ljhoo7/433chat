@@ -191,10 +191,10 @@ void Player::packetHandling(Packet *packet)
 
 	pkt_type _type = (pkt_type)(*packet->msg);
 
-	t_create			tmpCreate;
-	t_destroy			tmpDestroy;
-	t_join				tmpJoin;
-	t_leave				tmpLeave;
+	t_create			*tmpCreate;
+	t_destroy			*tmpDestroy;
+	t_join				*tmpJoin;
+	t_leave				*tmpLeave;
 //	t_join_alarm		tmpJoinAlarm;
 //	t_leave_alarm		tmpLeaveAlarm;
 	t_create_success	tmpCreateSuccess;
@@ -205,7 +205,7 @@ void Player::packetHandling(Packet *packet)
 	t_join_failure		tmpJoinFailure;
 	t_leave_success		tmpLeaveSuccess;
 
-	t_chat_alarm		tmpChatAlarm;
+	t_chat_alarm		*tmpChatAlarm;
 
 	unsigned short		size, type;
 
@@ -216,14 +216,14 @@ void Player::packetHandling(Packet *packet)
 	switch (_type)
 	{
 	case pkt_type::pt_create:
-		memcpy(&tmpCreate, packet->msg, sizeof(t_create));
-		result = roomManager.createRoom(tmpCreate.room_num);
+		tmpCreate = (t_create*)packet->msg;		//memcpy(&tmpCreate, packet->msg, sizeof(t_create));
+		result = roomManager.createRoom(tmpCreate->room_num);
 		if (result == -1)
 		{
 			ss_create msg;
 			msg.type = ssType::pkt_create;
 			msg.client_socket = token->clientSocket;
-			msg.room_num = tmpCreate.room_num;
+			msg.room_num = tmpCreate->room_num;
 			playerSync((char *)&msg, sizeof(msg));
 			std::cout << "create has been sent." << std::endl;
 
@@ -251,14 +251,14 @@ void Player::packetHandling(Packet *packet)
 		}
 		break;
 	case pkt_type::pt_destroy:
-		memcpy(&tmpDestroy, packet->msg, sizeof(t_destroy));
-		result = roomManager.destroyRoom(tmpDestroy.room_num);
+		tmpDestroy = (t_destroy*)packet->msg;		//memcpy(&tmpDestroy, packet->msg, sizeof(t_destroy));
+		result = roomManager.destroyRoom(tmpDestroy->room_num);
 		if (result == -1)
 		{
 			ss_destroy msg;
 			msg.type = ssType::pkt_destroy;
 			msg.client_socket = token->clientSocket;
-			msg.room_num = tmpDestroy.room_num;
+			msg.room_num = tmpDestroy->room_num;
 			playerSync((char *)&msg, sizeof(msg));
 			
 			//------------------------------------------------------------------------
@@ -278,16 +278,16 @@ void Player::packetHandling(Packet *packet)
 		break;
 
 	case pkt_type::pt_join:
-		memcpy(&tmpJoin, packet->msg, sizeof(t_join));
-		this->nickname = tmpJoin.nickname;
-		result = roomManager.enterRoom(this, tmpJoin.room_num);
+		tmpJoin = (t_join*)packet->msg;		//memcpy(&tmpJoin, packet->msg, sizeof(t_join));
+		this->nickname = tmpJoin->nickname;
+		result = roomManager.enterRoom(this, tmpJoin->room_num);
 		if (result == -1)
 		{
 			ss_join msg;
 			msg.type = ssType::pkt_join;
 			msg.client_socket = token->clientSocket;
-			msg.room_num = tmpJoin.room_num;
-			memcpy(msg.nickname, tmpJoin.nickname, sizeof(msg.nickname));
+			msg.room_num = tmpJoin->room_num;
+			memcpy(msg.nickname, tmpJoin->nickname, sizeof(msg.nickname));
 			playerSync((char *)&msg, sizeof(msg));
 
 			std::cout << "join message has been sent." << std::endl;
@@ -329,17 +329,17 @@ void Player::packetHandling(Packet *packet)
 		break;
 
 	case pkt_type::pt_leave:
-		memcpy(&tmpLeave, packet->msg, sizeof(t_leave));
-		_result = roomManager.leaveRoom(this, tmpLeave.room_num);
+		tmpLeave = (t_leave*)packet->msg;		//memcpy(&tmpLeave, packet->msg, sizeof(t_leave));
+		_result = roomManager.leaveRoom(this, tmpLeave->room_num);
 
 		if (_result == true)
 		{
 			ss_leave msg;
 			msg.type = ssType::pkt_leave;
 			msg.client_socket = token->clientSocket;
-			msg.room_num = tmpLeave.room_num;
-			msg.token = tmpLeave.token;
-			memcpy(msg.nickname, tmpLeave.nickname, sizeof(msg.nickname));
+			msg.room_num = tmpLeave->room_num;
+			msg.token = tmpLeave->token;
+			memcpy(msg.nickname, tmpLeave->nickname, sizeof(msg.nickname));
 			playerSync((char *)&msg, sizeof(msg));
 			
 			//------------------------------------------------------------------------

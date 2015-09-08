@@ -31,6 +31,7 @@ class StateMachine;
 
 #define ROOM_MAX			1000
 #define USER_MAX			100
+#define PLAYER_MAX			10
 
 #define EXECUTE_BLOCK_TIME	34
 #define ELAPSED_DEST		1500
