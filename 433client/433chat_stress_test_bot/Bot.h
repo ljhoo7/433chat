@@ -63,7 +63,7 @@ public:
 	{
 		if (strlen(param) > 19)
 			return false;
-		strcpy(nickname, param);
+		strcpy_s(nickname, param);
 		return true;
 	}
 

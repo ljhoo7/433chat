@@ -9,7 +9,7 @@ CClient::CClient() : m_nRoom_num(-1), m_pStateMachine(nullptr), hReceiving(NULL)
 , m_pReceivingThread(nullptr)
 {
 	buf_str = "";
-	strcpy(nickname, "");
+	strcpy_s(nickname, "");
 
 	// local variables
 	int retval, port;
@@ -119,8 +119,6 @@ void CClient::ReceivingThread()
 	int fps = 30;
 	double block = 1000 / fps;
 
-	char *buf;
-
 	long long time;
 	int retval = 0;
 	std::string tmpStr;
@@ -134,9 +132,7 @@ void CClient::ReceivingThread()
 		time = tmp2.count();
 		if (block <= time)
 		{
-			t_create_success		tmpCreateSuccess;
 			t_create_failure		tmpCreateFailure;
-			t_destroy_success		tmpDestroySuccess;
 			t_destroy_failure		tmpDestroyFailure;
 			t_join_success			tmpJoinSuccess;
 			t_join_failure			tmpJoinFailure;
@@ -145,8 +141,6 @@ void CClient::ReceivingThread()
 			t_join_alarm			tmpJoinAlarm;
 			t_leave_alarm			tmpLeaveAlarm;
 			t_kick					tmpKick;
-
-			char *left;
 
 			sum = 0;
 			retval = 0;
@@ -450,7 +444,7 @@ bool CClient::SendJoinMessage(int num, char *nick)
 		std::cout << "SetNickName() length error" << std::endl;
 
 	tmp_packet.room_num =  num;
-	strcpy(tmp_packet.nickname, nick);
+	strcpy_s(tmp_packet.nickname, nick);
 
 	// Sending Join Packet
 	retval = send(GetSocket(), (char*)&tmp_packet, size, 0);
@@ -473,7 +467,7 @@ bool CClient::SendLeaveMessage()
 	tmp_packet.type = pkt_type::pt_leave;
 	tmp_packet.room_num = m_nRoom_num;
 	tmp_packet.token = m_nToken;
-	strcpy(tmp_packet.nickname, nickname);
+	strcpy_s(tmp_packet.nickname, nickname);
 
 	// Sending leave packet
 	retval = send(sock, (char*)&tmp_packet, size, 0);
@@ -505,7 +499,7 @@ bool CClient::SendChatMessage(const std::string& str)
 
 	tmp_packet.room_num = m_nRoom_num;
 	tmp_packet.token = m_nToken;
-	strcpy(tmp_packet.nickname, nickname);
+	strcpy_s(tmp_packet.nickname, nickname);
 
 	memcpy(buf, (char*)&tmp_packet, size);
 

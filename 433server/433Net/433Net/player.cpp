@@ -205,8 +205,6 @@ void Player::packetHandling(Packet *packet)
 	t_join_failure		tmpJoinFailure;
 	t_leave_success		tmpLeaveSuccess;
 
-	t_chat_alarm		*tmpChatAlarm;
-
 	unsigned short		size, type;
 
 	bool _result;

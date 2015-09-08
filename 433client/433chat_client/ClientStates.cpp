@@ -23,7 +23,6 @@ void CLobby::Exit(CClient *client)
 void CLobby::Execute(CClient *client, long long elapsed)
 {
 	bool chat = false;
-	int retval;
 
 	int this_room_num = client->GetRoomNumber();
 
@@ -50,7 +49,7 @@ void CLobby::Execute(CClient *client, long long elapsed)
 				{
 					int t_room_num;
 
-					int sscanf_result = sscanf(client->buf_str.c_str(), "create %d\n", &t_room_num);
+					int sscanf_result = sscanf_s(client->buf_str.c_str(), "create %d\n", &t_room_num);
 
 					if (sscanf_result != 1)
 					{
@@ -64,7 +63,7 @@ void CLobby::Execute(CClient *client, long long elapsed)
 				else if (subedstr == "dest")
 				{
 					int t_room_num;
-					int sscanf_result = sscanf(client->buf_str.c_str(), "destroy %d\n", &t_room_num);
+					int sscanf_result = sscanf_s(client->buf_str.c_str(), "destroy %d\n", &t_room_num);
 
 					if (sscanf_result != 1)
 					{
@@ -81,7 +80,7 @@ void CLobby::Execute(CClient *client, long long elapsed)
 					{
 						int t_room_num;
 						char t_nick[20];
-						int sscanf_result = sscanf(client->buf_str.c_str(), "join %d %s\n", &t_room_num, t_nick);
+						int sscanf_result = sscanf_s(client->buf_str.c_str(), "join %d %s\n", &t_room_num, t_nick);
 
 						if (sscanf_result != 2)
 						{
@@ -89,7 +88,7 @@ void CLobby::Execute(CClient *client, long long elapsed)
 						}
 
 						client->m_nTmpRoom_num = t_room_num;
-						strcpy(client->m_vcNickname, t_nick);
+						strcpy_s(client->m_vcNickname, t_nick);
 
 						client->SendJoinMessage(t_room_num, t_nick);
 					}
@@ -150,7 +149,6 @@ void CRoom::Exit(CClient *client)
 void CRoom::Execute(CClient *client, long long elapsed)
 {
 	bool chat = false;
-	int retval;
 
 	int this_room_num = client->GetRoomNumber();
 
@@ -181,7 +179,7 @@ void CRoom::Execute(CClient *client, long long elapsed)
 					}
 					else
 					{
-						int sscanf_result = sscanf(client->buf_str.c_str(), "leave\n");
+						int sscanf_result = sscanf_s(client->buf_str.c_str(), "leave\n");
 
 						if (sscanf_result != 0)
 						{

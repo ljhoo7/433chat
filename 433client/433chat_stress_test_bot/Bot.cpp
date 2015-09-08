@@ -15,7 +15,7 @@ CBot::CBot(const int& room_num, const int& time_span, const int& bot_num) : m_nR
 	int retval;
 
 	buf_str = "";
-	strcpy(nickname, "");
+	strcpy_s(nickname, "");
 
 	// initializing the windows socket
 	WSADATA wsa;
@@ -295,7 +295,7 @@ bool CBot::SendChatMessage(const std::string& str)
 
 	tmp_packet.room_num = m_nRoom_num;
 	tmp_packet.token = m_nToken;
-	strcpy(tmp_packet.nickname, nickname);
+	strcpy_s(tmp_packet.nickname, nickname);
 
 	memcpy(buf, (char*)&tmp_packet, size);
 
@@ -331,7 +331,7 @@ bool CBot::SendJoinMessage(int num, char *nick)
 		std::cout << "SetNickName() length error" << std::endl;
 
 	tmp_packet.room_num = num;
-	strcpy(tmp_packet.nickname, nick);
+	strcpy_s(tmp_packet.nickname, nick);
 
 	// Sending Join Packet
 	retval = send(GetSocket(), (char*)&tmp_packet, size, 0);

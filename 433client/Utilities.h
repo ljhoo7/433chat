@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <stdio.h>
 #include <vector>
 #include <chrono>
 #include <climits>
