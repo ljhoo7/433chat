@@ -10,6 +10,33 @@ int					g_nBot_num;
 unsigned long		ip;
 int					port;
 
+HANDLE				hEvent;
+
+std::vector<CBot*> t_vClient;
+int left, theRoom;
+
+DWORD WINAPI Servant(LPVOID arg)
+{
+	bool tCheck = true;
+	while (tCheck)
+	{
+		tCheck = false;
+		for (std::vector<CBot*>::iterator iter = t_vClient.begin();
+			iter != t_vClient.end(); ++iter)
+		{
+			if ((*iter)->GetStateMachine()->CurrentState() != CRoom::Instance())
+			{
+				tCheck = true;
+				break;
+			}
+		}
+	}
+
+	SetEvent(hEvent);
+
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
 	if (argc != 5)
@@ -59,20 +86,28 @@ int main(int argc, char *argv[])
 	long long time;
 	long long prevTime = 0;
 
-	int left, theRoom;
-
 	g_bExitSignal = false;
 
-	std::vector<CBot*> t_vClient;
-
 	//CHECK_FAILURE(
+
 		for (int m = 0; m < g_nBot_num; ++m)
 		{
-			CBot *tBot = new CBot(-1, g_nTime_span, 0);
+			time = 0;
+
+			while (block > time)
+			{
+				Sleep(100);
+
+				tmp = std::chrono::system_clock::now() - start_time;
+				tmp2 = std::chrono::duration_cast<std::chrono::milliseconds>(tmp);
+				time = tmp2.count();
+			}
+
+			CBot *tBot = new CBot(-1, g_nTime_span, m);
 			t_vClient.push_back(tBot);
 
-			theRoom = (m / USER_MAX);
-			left = (m % USER_MAX);
+			theRoom = (m / PLAYER_MAX);
+			left = (m % PLAYER_MAX);
 			if (!left)
 			{
 				tBot->m_nTmpRoom_num = theRoom;
@@ -86,29 +121,53 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
+				tBot->SetTmpJoinRoomNumber(theRoom);
 				tBot->SendJoinMessage(theRoom, const_cast<char*>(("bot_" + std::to_string(m)).c_str()));
-				
+
 				tBot->GetStateMachine()->ChangeState(CJoin_Response_Wait::Instance());
 			}
+
+			start_time = std::chrono::system_clock::now();
 		}
 
-		std::cout << "All Create&Join process has been done." << std::endl;
+		hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+		if (hEvent == NULL)
+			return 1;
+		
+		HANDLE hServant;
+		if ((hServant = CreateThread(NULL, 0, Servant, NULL, 0, NULL)) == NULL)
+		{
+			std::cout << "Servant Thread creation failed" << std::endl;
+			return 0;
+		}
+
+		// Wait for the event
+		if (WaitForSingleObject(hEvent, INFINITE) == WAIT_FAILED)
+		{
+			std::cout << "WaitForServantThread wait_failed" << std::endl;
+		}
+
+		std::cout << "All Create&Join processes have been done." << std::endl;
 
 		// Keep Looping for each clients
-		while (!g_bExitSignal){
+		while (!g_bExitSignal)
+		{
 			for (std::vector<CBot*>::iterator iter = t_vClient.begin()
 				; iter != t_vClient.end(); ++iter)
 			{
-				tmp = std::chrono::system_clock::now() - start_time;
-				tmp2 = std::chrono::duration_cast<std::chrono::milliseconds>(tmp);
-				time = tmp2.count();
-
-				if (block <= time)
+				time = 0;
+				while (block > time)
 				{
-					(*iter)->GetStateMachine()->Update(time);
+					Sleep(100);
 
-					start_time = std::chrono::system_clock::now();
+					tmp = std::chrono::system_clock::now() - start_time;
+					tmp2 = std::chrono::duration_cast<std::chrono::milliseconds>(tmp);
+					time = tmp2.count();
 				}
+				
+				(*iter)->GetStateMachine()->Update(time);
+
+				start_time = std::chrono::system_clock::now();
 			}
 		}
 
@@ -130,6 +189,9 @@ int main(int argc, char *argv[])
 		}
 
 		t_vClient.clear();
+
+		if (hServant != NULL)
+			CloseHandle(hServant);
 	//);
 
 	return 1;

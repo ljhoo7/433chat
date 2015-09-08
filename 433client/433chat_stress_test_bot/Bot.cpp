@@ -124,6 +124,8 @@ void CBot::ReceivingThread()
 				{
 				case pkt_type::pt_create_success:
 
+					m_nRoom_num = m_nTmpRoom_num;
+
 					SendJoinMessage(m_nTmpRoom_num, const_cast<char*>(("bot_" + std::to_string(m_nBot_num)).c_str()));
 
 					GetStateMachine()->ChangeState(CJoin_Response_Wait::Instance());
@@ -161,6 +163,8 @@ void CBot::ReceivingThread()
 					m_nRoom_num = m_nTmpRoom_num;
 
 					GetStateMachine()->ChangeState(CRoom::Instance());
+
+					std::cout << std::to_string(m_nBot_num) << "Join Success" << std::endl;
 					break;
 				case pkt_type::pt_join_failure:
 
@@ -174,6 +178,8 @@ void CBot::ReceivingThread()
 					SetNickName("");
 
 					GetStateMachine()->ChangeState(CLobby::Instance());
+
+					std::cout << std::to_string(m_nBot_num) << "Join Failed" << std::endl;
 					break;
 				default:
 					std::cout << "You have received a wrong message which you can't read in the 'Join Response' State." << std::endl;
@@ -209,10 +215,7 @@ void CBot::ReceivingThread()
 
 					tmpChatAlarm.message = tmpStr;
 
-					if (tmpChatAlarm.room_num == m_nRoom_num)
-					{
-						std::cout << "<" << tmpChatAlarm.nickname << ">'s message : " << tmpChatAlarm.message << std::endl;
-					}
+					std::cout << "<" << tmpChatAlarm.nickname << ">'s message : " << tmpChatAlarm.message << ", "  <<  std::endl;
 
 					break;
 				}
