@@ -359,8 +359,6 @@ void CClient::ReceivingThread()
 				}
 			}
 
-			std::cout << sum << "bytes were received." << std::endl;
-
 			start_time = std::chrono::system_clock::now();
 		}
 	}
@@ -396,8 +394,6 @@ bool CClient::SendCreateMessage(int num)
 		return false;
 	}
 
-	printf("[TCP client] %dbytes were sent.\n", retval);
-
 	GetStateMachine()->ChangeState(CCreate_Response_Wait::Instance());
 
 	return true;
@@ -431,8 +427,6 @@ bool CClient::SendDestroyMessage(int num)
 		return false;
 	}
 
-	printf("[TCP client] %dbytes were sent.\n", retval);
-
 	GetStateMachine()->ChangeState(CDestroy_Response_Wait::Instance());
 
 	return true;
@@ -465,8 +459,6 @@ bool CClient::SendJoinMessage(int num, char *nick)
 		return false;
 	}
 
-	printf("[TCP client] %dbytes were sent.\n", retval);
-
 	GetStateMachine()->ChangeState(CJoin_Response_Wait::Instance());
 
 	return true;
@@ -491,8 +483,6 @@ bool CClient::SendLeaveMessage()
 		return false;
 	}
 
-	printf("[TCP client] %dbytes were sent.\n", retval);
-
 	SetRoomNumber(-1);
 
 	GetStateMachine()->ChangeState(CLeave_Response_Wait::Instance());
@@ -513,7 +503,6 @@ bool CClient::SendChatMessage(const std::string& str)
 	tmp_packet.type = pkt_type::pt_chat;
 	tmp_packet.length = size + strSize;
 
-	printf("the length of chat message : %d\n", tmp_packet.length);
 	tmp_packet.room_num = m_nRoom_num;
 	tmp_packet.token = m_nToken;
 	strcpy(tmp_packet.nickname, nickname);
