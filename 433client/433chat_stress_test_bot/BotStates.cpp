@@ -2,10 +2,6 @@
 #include "..\Utilities.h"
 #include "Headers.h"
 
-char randStr[RANDSTR_SIZE][RANDSTR_LENG] =
-{ "Hello World ~ ", "Hi Hi !!", "Nice to meet you", "I'm a programmer.", "So what ?"
-, "Good luck", "Good morning ~" };
-
 extern bool g_bExitSignal;
 
 CRoom* CRoom::Instance()
@@ -25,7 +21,7 @@ void CRoom::Exit(CBot *bot)
 
 void CRoom::Execute(CBot *bot, long long elapsed)
 {
-	bot->SendChatMessage(randStr[elapsed % RANDSTR_SIZE]);
+	
 }
 
 //-----------------------------------------

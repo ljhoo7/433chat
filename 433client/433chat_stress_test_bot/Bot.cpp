@@ -2,6 +2,10 @@
 #include "..\Utilities.h"
 #include "Headers.h"
 
+char randStr[RANDSTR_SIZE][RANDSTR_LENG] =
+{ "Hello World ~ ", "Hi Hi !!", "Nice to meet you", "I'm a programmer.", "So what ?"
+, "Good luck", "Good morning ~" };
+
 extern unsigned long		ip;
 extern int					port;
 
@@ -82,8 +86,6 @@ void CBot::ReceivingThread()
 	int fps = 30;
 	double block = 1000 / fps;
 
-	char *buf;
-
 	long long time;
 	int retval = 0;
 	std::string tmpStr;
@@ -97,7 +99,10 @@ void CBot::ReceivingThread()
 		time = tmp2.count();
 		if (block <= time)
 		{
-			t_create_success		tmpCreateSuccess;
+
+			if (GetStateMachine()->CurrentState() == CRoom::Instance())
+				SendChatMessage(randStr[time % RANDSTR_SIZE]);
+
 			t_create_failure		tmpCreateFailure;
 			t_join_success			tmpJoinSuccess;
 			t_join_failure			tmpJoinFailure;
@@ -105,8 +110,6 @@ void CBot::ReceivingThread()
 			t_join_alarm			tmpJoinAlarm;
 			t_leave_alarm			tmpLeaveAlarm;
 			t_kick					tmpKick;
-
-			char *left;
 
 			sum = 0;
 			retval = 0;
