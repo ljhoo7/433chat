@@ -48,7 +48,7 @@ int DecodingHeader(pkt_type type, SOCKETINFO *ptr, int cbTransferred)
 		tLen = sizeof(t_leave);
 		break;
 	case pkt_type::pt_chat:
-		tLen = HEADER_SIZE;
+		tLen = HEADER_SIZE << 1;
 		ptr->isChat = true;
 		break;
 	default:
@@ -115,9 +115,7 @@ bool DecodingBody(SOCKETINFO *ptr, COMPLEMENT_KEY ck)
 					+20 + sizeof(unsigned int);
 				t_chat *tChat = new t_chat();
 				memcpy(tChat, ptr->recv_buf, size);
-				tChat->message = ptr->recv_buf + size;
-				
-				printf("chat %s %s\n", tChat->nickname, tChat->message);
+				tChat->message = std::string(ptr->recv_buf, size);
 			}
 			break;
 		default:
@@ -260,6 +258,7 @@ DWORD WINAPI WorkerThreadForClient(LPVOID arg)
 
 						t_chat *pChat = (t_chat*)ptr->recv_buf;
 						
+						ptr->recv_wsabuf.buf += cbTransferred;
 						ptr->recv_wsabuf.len = pChat->length - (HEADER_SIZE << 1);
 						ptr->receivedBytes += cbTransferred;
 						ptr->toReceiveBytes = ptr->recv_wsabuf.len;
@@ -279,6 +278,7 @@ DWORD WINAPI WorkerThreadForClient(LPVOID arg)
 								err_quit("DecodingHeader ERROR_IO_PENDING");
 							}
 						}
+						ptr->isChat = false;
 					}
 					else
 					{
@@ -319,6 +319,19 @@ DWORD WINAPI WorkerThreadForClient(LPVOID arg)
 			{
 				err_quit("error on worker thread - This I/O signal has receive and send both\n");
 			}
+
+			ZeroMemory(&ptr->overlapped, sizeof(ptr->overlapped));
+			ZeroMemory(ptr->recv_buf, BUFSIZE);
+			ZeroMemory(ptr->send_buf, BUFSIZE);
+			ptr->sock = ck.sock;
+			ptr->toSendBytes = ptr->toReceiveBytes = 0;
+			ptr->sentBytes = ptr->receivedBytes = 0;
+			ptr->recv_wsabuf.buf = ptr->recv_buf;
+			ptr->recv_wsabuf.len = ptr->toReceiveBytes;
+			ptr->send_wsabuf.buf = ptr->send_buf;
+			ptr->send_wsabuf.len = ptr->toSendBytes;
+			ptr->pPeer = NULL;
+			ptr->isChat = false;
 		}
 		else
 		{
@@ -382,51 +395,14 @@ void CReceiver::start(int port, void(*callback)(CUserToken* token))
 	retval = listen(listenSocket, SOMAXCONN);
 	if (retval == SOCKET_ERROR) err_quit("listen()");
 
-	/*u_long on = 1;
-	retval = ioctlsocket(listenSocket, FIONBIO, &on);
-	if (retval == SOCKET_ERROR) err_display("ioctlsocket()");*/
-
 	this->callback = callback;
 	return;
 }
 
 void CReceiver::process()
 {
-	//FD_ZERO(&reads);
-	//FD_SET(listenSocket, &reads);
-
-	static std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
-	std::chrono::system_clock::duration tmp;
-	std::chrono::milliseconds tmp2;
-
-	long long time;
-	int fps = 30;
-	double block = 1000 / fps;
-
 	while (true){
-		/*copy_set = reads;
-
-		int retval;
-		retval = select(0, &copy_set, 0, NULL, NULL);
-		if (retval == SOCKET_ERROR){
-			err_quit("select()");
-			return;
-		}
-		if (retval == 0) continue;*/
-
-
-		tmp = std::chrono::system_clock::now() - start_time;
-		tmp2 = std::chrono::duration_cast<std::chrono::milliseconds>(tmp);
-		time = tmp2.count();
-
-		//if (block <= time)
-		{
-			acceptProcess();
-			//recieveProcess();
-
-			start_time = std::chrono::system_clock::now();
-		}
-
+		acceptProcess();
 	}
 }
 
@@ -438,7 +414,6 @@ void CReceiver::acceptProcess()
 	DWORD recvbytes, flags;
 	int retval;
 
-	//if (FD_ISSET(listenSocket, &copy_set))
 	{
 		addrlen = sizeof(clientaddr);
 		ck.sock = accept(listenSocket, (struct sockaddr*)&clientaddr, &addrlen);
@@ -484,18 +459,10 @@ void CReceiver::acceptProcess()
 	}
 
 }
+
 void CReceiver::recieveProcess()
 {
-	std::list<CUserToken*>::iterator iter;
-	for (iter = userList.begin(); iter != userList.end(); iter++){
-		if (FD_ISSET((*iter)->clientSocket, &copy_set)){
-			if (!(*iter)->recieveProcess()){
-				printf("closed client:%d\n", (*iter)->clientSocket);
-				deleteUserList(*iter);
-				break;
-			}
-		}
-	}
+	// IOCP replace this.
 }
 
 void CReceiver::addUserList(CUserToken* user)

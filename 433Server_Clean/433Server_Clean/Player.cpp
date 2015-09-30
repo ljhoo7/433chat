@@ -21,89 +21,13 @@ CPlayer::CPlayer(bool isMine) : poolManager(10), packetPoolManager(10)
 
 bool CPlayer::recieveProcess()
 {
-	if (token->clientSocket == NULL)
-	{
-		std::cout << "There is a weired UserToken which has not connected socket." << std::endl;
-		return false;
-	}
-	char* buf = this->token->buf;
-
-	if (this->token->position < HEADER_SIZE)
-	{
-		if (token->position == 0){
-			token->remainBytes = HEADER_SIZE;
-		}
-		return recieve(buf + token->position, token->remainBytes);
-	}
-	else
-	{
-		if (token->position == HEADER_SIZE){
-			token->var = false;
-			pkt_type _type = (pkt_type)((unsigned short)(*buf));
-			switch (_type)
-			{
-			case pkt_type::pt_create:
-				token->remainBytes = sizeof(t_create) - 2;
-				break;
-			case pkt_type::pt_destroy:
-				token->remainBytes = sizeof(t_destroy) - 2;
-				break;
-			case pkt_type::pt_join:
-				token->remainBytes = sizeof(t_join) - 2;
-				break;
-			case pkt_type::pt_leave:
-				token->remainBytes = sizeof(t_leave) - 2;
-				break;
-			case pkt_type::pt_chat:
-				token->var = true;
-				token->remainBytes = sizeof(short);
-				break;
-			default:
-				//disconnect();
-				return false;
-			}
-		}
-		bool check = recieve(buf + token->position, token->remainBytes);
-		if (token->remainBytes <= 0)
-		{
-			if (token->var)
-			{
-				int typePlusLength = HEADER_SIZE << 1;
-				if (this->token->position == typePlusLength){
-					memcpy(&token->remainBytes, buf + HEADER_SIZE, sizeof(short));
-					token->remainBytes -= typePlusLength;
-				}
-				token->var = false;
-			}
-			else
-			{
-				token->position = 0;
-				char* buf = poolManager.pop();
-				CPacket* msg = packetPoolManager.pop();
-				msg->type = 2;
-				msg->owner = this->token;
-				msg->msg = buf;
-				memcpy(buf, token->buf, BUFSIZE);
-				logicHandle.enqueue_oper(msg, false);
-			}
-		}
-		return check;
-	}
+	// IOCP replace this.
 	return true;
 }
 
 bool CPlayer::recieve(char* buf, int size)
 {
-	if (size == 0) return true;
-	int ret = recv(token->clientSocket, buf, size, 0);
-	if (ret == SOCKET_ERROR)
-	{
-		printf("recieve error\n");
-		//disconnect();
-		return false;
-	}
-	token->position += ret;
-	token->remainBytes -= ret;
+	// IOCP replace this.
 
 	return true;
 }
@@ -120,9 +44,38 @@ void CPlayer::disconnect()
 
 void CPlayer::send_msg(char *buf, int size)
 {
-	if (send(token->clientSocket, (char *)buf, size, 0) == SOCKET_ERROR)
+	DWORD sendbytes, flags;
+	COMPLEMENT_KEY ck;
+	ck.sock = token->clientSocket;
+
+	SOCKETINFO *ptr = new SOCKETINFO;
+	if (ptr == NULL)
 	{
-		std::cout << "Send() error" << std::endl;
+		err_quit("the assignment of SOCKEINFO has been failed.");
+		return;
+	}
+	ZeroMemory(&ptr->overlapped, sizeof(ptr->overlapped));
+	ZeroMemory(ptr->recv_buf, BUFSIZE);
+	ZeroMemory(ptr->send_buf, BUFSIZE);
+	ptr->sock = ck.sock;
+	ptr->toSendBytes = size;
+	ptr->toReceiveBytes = 0;
+	ptr->sentBytes = ptr->receivedBytes = 0;
+	ptr->recv_wsabuf.buf = ptr->recv_buf;
+	ptr->recv_wsabuf.len = ptr->toReceiveBytes;
+	ptr->send_wsabuf.buf = buf;
+	ptr->send_wsabuf.len = ptr->toSendBytes;
+	ptr->pPeer = this;
+	ptr->isChat = false;
+
+	flags = 0;
+
+	if (WSASend(ck.sock, &ptr->send_wsabuf, 1, &sendbytes, flags, &ptr->overlapped, NULL) == SOCKET_ERROR)
+	{
+		if (WSAGetLastError() != ERROR_IO_PENDING)
+		{
+			err_quit("WSASend() error on CPlayer::send_msg");
+		}
 	}
 }
 
