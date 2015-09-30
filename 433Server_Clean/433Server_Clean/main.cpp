@@ -8,6 +8,8 @@ CReceiver	receiver;
 
 CRoomManager roomManager;
 
+SYSTEM_INFO si;
+
 int identifier_seed;
 
 // user presence
@@ -44,6 +46,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	int connect_port;
 
 	int client_port;
+
+	// Get the number of CPUs
+	GetSystemInfo(&si);
 
 	identifier_seed = 0;
 

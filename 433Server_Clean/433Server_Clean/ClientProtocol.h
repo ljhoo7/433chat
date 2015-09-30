@@ -19,7 +19,8 @@ enum pkt_type
 	pt_chat_alarm,
 	pt_join_alarm,
 	pt_leave_alarm,
-	pt_kick
+	pt_kick,
+	pt_empty
 };
 
 enum fail_signal

@@ -17,6 +17,8 @@ class CReceiver
 	std::list<CUserToken*> userList;
 
 public:
+	HANDLE hcp;
+
 	CReceiver();
 	~CReceiver();
 

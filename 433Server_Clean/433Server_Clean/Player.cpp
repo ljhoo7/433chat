@@ -23,7 +23,7 @@ bool CPlayer::recieveProcess()
 {
 	if (token->clientSocket == NULL)
 	{
-		std::cout << "There is a weired UserToken which has note connecd socket." << std::endl;
+		std::cout << "There is a weired UserToken which has not connected socket." << std::endl;
 		return false;
 	}
 	char* buf = this->token->buf;

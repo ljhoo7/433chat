@@ -23,13 +23,13 @@ void CInterServer::start(int type, int port)
 {
 	this->type = type;
 
-	if (type == 0)
+	if (type)
 	{
-		interserver_connect(CONNECTIP, port);
+		interserver_listen(port);
 	}
 	else
 	{
-		interserver_listen(port);
+		interserver_connect(CONNECTIP, port);
 	}
 }
 
