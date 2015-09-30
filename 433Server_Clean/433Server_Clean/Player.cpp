@@ -371,6 +371,7 @@ void CPlayer::packetHandling(CPacket *packet)
 		std::cout << "chat alarm message has been sent." << std::endl;		break;
 	}
 
+	this->poolManager.push(packet->msg);
 	this->packetPoolManager.push(packet);
 }
 

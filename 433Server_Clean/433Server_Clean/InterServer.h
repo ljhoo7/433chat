@@ -23,6 +23,11 @@ public:
 	void makeSync();
 	void listenProcess();
 	void process();
+
+	void workerThreadProcess();
+
+	void _recieve(char* buf, int size);
+	void temp_recieveProcess();
 	void recieveProcess();
 	void disconnect();
 	void packetHandling(CPacket* packet);
@@ -34,4 +39,11 @@ public:
 	void _send(char* buf, int size);
 
 	void start(int type, int port);
+
+private:
+	CIocpHandler IocpHandler;
+	PerSocketContext SocketContext;
+
+	CRITICAL_SECTION disconnection_lock;
+
 };

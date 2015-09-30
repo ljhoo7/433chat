@@ -81,8 +81,11 @@
   <ItemGroup>
     <ClInclude Include="BufPoolManager.h" />
     <ClInclude Include="ClientProtocol.h" />
+    <ClInclude Include="Def.h" />
     <ClInclude Include="InterServer.h" />
+    <ClInclude Include="IocpHandler.h" />
     <ClInclude Include="LogicHandle.h" />
+    <ClInclude Include="MemPooler.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="PacketPoolManager.h" />
     <ClInclude Include="Peer.h" />
@@ -99,6 +102,7 @@
   <ItemGroup>
     <ClCompile Include="BufPoolManager.cpp" />
     <ClCompile Include="InterServer.cpp" />
+    <ClCompile Include="IocpHandler.cpp" />
     <ClCompile Include="LogicHandle.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Packet.cpp" />

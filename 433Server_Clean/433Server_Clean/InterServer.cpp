@@ -12,11 +12,14 @@ extern std::list<CPlayer*> g_vPlayers;
 CInterServer::CInterServer() : poolManager(10), packetPoolManager(10),
 process_thread(), heart_thread(), listen_thread()
 {
+	InitializeCriticalSection(&disconnection_lock);
 	the_other_sock = NULL;
+	SocketContext.socket = NULL;
 }
 
 CInterServer::~CInterServer()
 {
+	DeleteCriticalSection(&disconnection_lock);
 }
 
 void CInterServer::start(int type, int port)
@@ -117,6 +120,8 @@ void CInterServer::makeSync()
 
 void CInterServer::interserver_connect(char* ip, int port)
 {
+	int ErrCode;
+
 	printf("This server is attempting to connect...\n");
 	the_other_sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (the_other_sock == INVALID_SOCKET) err_quit("socket()");
@@ -134,18 +139,41 @@ void CInterServer::interserver_connect(char* ip, int port)
 
 	printf("InterServer Thread has been activated.\n");
 
+	if (!IocpHandler.Create(0, &ErrCode)){
+		printf("error code : %d\n", ErrCode);
+		err_quit("create IO Completion port error");
+	}
+	if (!IocpHandler.CreateThreadPool(this, 0)){
+		err_quit("Create Thread Pool Failed");
+	}
+
+	SocketContext.socket = the_other_sock;
+	SocketContext.recvContext.wsaBuf.buf = SocketContext.recvContext.Buffer;
+	SocketContext.recvContext.position = 0;
+	SocketContext.recvContext.remainBytes = HEADER_SIZE;
+	SocketContext.sendContext.wsaBuf.buf = SocketContext.sendContext.Buffer;
+
+	if (!IocpHandler.Associate(the_other_sock, reinterpret_cast<ULONG_PTR>(&SocketContext), &ErrCode))
+	{
+		printf("iocp associate error %d", ErrCode);
+		err_quit("iocp associate()");
+	}
+
 	makeSync();
+	_recieve(SocketContext.recvContext.Buffer, HEADER_SIZE);
+
+/*	makeSync();
 
 	if (connect_server.process_thread.joinable())
 		connect_server.process_thread.join();
-	process_thread = std::thread(&CInterServer::process, this);
+	process_thread = std::thread(&CInterServer::process, this);*/
 }
 
 void CInterServer::interserver_listen(int port)
 {
 	printf("This server will be waiting for The other server.\n");
 
-	listen_sock = socket(AF_INET, SOCK_STREAM, 0);
+	listen_sock = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 	if (listen_sock == INVALID_SOCKET) err_quit("socket()");
 
 	SOCKADDR_IN serveraddr;
@@ -154,9 +182,24 @@ void CInterServer::interserver_listen(int port)
 	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	serveraddr.sin_port = htons(port);
 	int retval = bind(listen_sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
-
+	if (retval != 0){
+		closesocket(listen_sock);
+		err_quit("bind()");
+	}
 	retval = listen(listen_sock, SOMAXCONN);
-	if (retval == SOCKET_ERROR) err_quit("listen()");
+	if (retval == SOCKET_ERROR){
+		closesocket(listen_sock);
+		err_quit("listen()");
+	}
+
+	int ErrCode;
+	if (!IocpHandler.Create(0, &ErrCode)){
+		printf("error code : %d\n", ErrCode);
+		err_quit("create IO Completion port error");
+	}
+	if (!IocpHandler.CreateThreadPool(this, 0)){
+		err_quit("Create Thread Pool Failed");
+	}
 
 	listen_thread = std::thread(&CInterServer::listenProcess, this);
 }
@@ -164,6 +207,8 @@ void CInterServer::interserver_listen(int port)
 void CInterServer::listenProcess()
 {
 	SOCKADDR_IN theotheraddr;
+	PPerSocketContext pPerSocketCtx = NULL;
+	int ErrCode = 0;
 	int addrlen;
 
 	while (true)
@@ -177,16 +222,51 @@ void CInterServer::listenProcess()
 		printf("This server has been connected to the other server by accept().\n");
 		printf("InterServer Thread has been activated.\n");
 
+		SocketContext.socket = the_other_sock;
+
+		SocketContext.recvContext.wsaBuf.buf = SocketContext.recvContext.Buffer;
+		SocketContext.recvContext.position = 0;
+		SocketContext.recvContext.remainBytes = HEADER_SIZE;
+
+		if (!IocpHandler.Associate(the_other_sock, reinterpret_cast<ULONG_PTR>(&SocketContext), &ErrCode))
+		{
+			printf("iocp associate error %d", ErrCode);
+			err_quit("iocp associate()");
+		}
+
 		makeSync();
+		_recieve(SocketContext.recvContext.Buffer, HEADER_SIZE);
 
-		process_thread = std::thread(&CInterServer::process, this);
+		//process_thread = std::thread(&CInterServer::process, this);
 		//heart_thread = std::thread(&InterServer::heartbeat_check, this);
-
-		process_thread.join();
+		//process_thread.join();
 		//heart_thread.join();
 	}
 
 }
+
+void CInterServer::_recieve(char* buf, int size){
+	DWORD dwRecvBytes = 0;
+	DWORD dwFlags = 0;
+	ZeroMemory(&SocketContext.recvContext.overlapped, sizeof(WSAOVERLAPPED));
+	
+	SocketContext.recvContext.wsaBuf.buf = buf;
+	SocketContext.recvContext.wsaBuf.len = size;
+	SocketContext.recvContext.remainBytes = size;
+	int ret = WSARecv(SocketContext.socket, &(SocketContext.recvContext.wsaBuf), 1,
+		&dwRecvBytes, &dwFlags, &(SocketContext.recvContext.overlapped), NULL);
+
+	if (SOCKET_ERROR == ret){
+		int ErrCode = WSAGetLastError();
+		if (ErrCode != WSA_IO_PENDING){
+			err_quit("interserver recieve error!");
+		}
+	}
+
+	return;
+}
+
+// this function isn't used in IOCP version
 void CInterServer::process()
 {
 	int fps = 30;
@@ -211,22 +291,95 @@ void CInterServer::process()
 		time = tmp2.count();
 		if (block <= time)
 		{
-			recieveProcess();
+			temp_recieveProcess();
 			start_time = std::chrono::system_clock::now();
 		}
 	}
-
-
 }
 
+
+void CInterServer::temp_recieveProcess(){
+	if (the_other_sock == NULL) return;
+	char* buf = poolManager.pop();
+	recieve(buf, sizeof(short));
+	/* packet handling */
+
+	ssType _type = (ssType)((unsigned short)(*buf));
+
+	switch (_type){
+
+	case ssType::pkt_create:
+		recieve(buf + 2, sizeof(ss_create)-2);
+		break;
+	case ssType::pkt_destroy:
+		recieve(buf + 2, sizeof(ss_destroy)-2);
+		break;
+	case ssType::pkt_join:
+		recieve(buf + 2, sizeof(ss_join)-2);
+		break;
+	case ssType::pkt_leave:
+		recieve(buf + 2, sizeof(ss_leave)-2);
+		break;
+	case ssType::pkt_connect:
+		recieve(buf + 2, sizeof(ss_connect)-2);
+		break;
+	case ssType::pkt_disconnect:
+		recieve(buf + 2, sizeof(ss_disconnect)-2);
+		break;
+	case ssType::pkt_heartbeats:
+		recieve(buf + 2, sizeof(ss_heartbeats)-2);
+		break;
+	case ssType::pkt_heartbeats_response:
+		recieve(buf + 2, sizeof(ss_heartbeats_response)-2);
+		break;
+	case ssType::pkt_room_info_success:
+		recieve(buf + 2, sizeof(ss_room_info_success)-2);
+		break;
+	case ssType::pkt_player_info_success:
+		recieve(buf + 2, sizeof(ss_player_info_success)-2);
+		break;
+	case ssType::pkt_room_info_failure:
+		recieve(buf + 2, sizeof(ss_room_info_failure)-2);
+		break;
+	case ssType::pkt_player_info_failure:
+		recieve(buf + 2, sizeof(ss_player_info_failure)-2);
+		break;
+
+		/* var data */
+	case ssType::pkt_chat:
+	case ssType::pkt_room_info_send:
+	case ssType::pkt_player_info_send:
+		recieve(buf + 2, sizeof(short));
+		unsigned short size;
+		memcpy(&size, buf + 2, sizeof(short));
+		recieve(buf + 4, size);
+		break;
+	default:
+		disconnect();
+		break;
+	}
+
+	CPacket* msg = packetPoolManager.pop();
+	msg->type = this->type;
+	msg->owner = NULL;
+	msg->msg = buf;
+
+	logicHandle.enqueue_oper(msg, true);
+}
 /*
 any thread
 need to handle userlist lock
 */
+
+
+/* 동기화 문제 여러 쓰레드 접근 가능 */
 void CInterServer::disconnect()
 {
+	EnterCriticalSection(&disconnection_lock);
 	if (the_other_sock != NULL)
 	{
+		
+
 		std::list<CPlayer*>::iterator iter;
 		for (iter = g_vPlayers.begin(); iter != g_vPlayers.end();)
 		{
@@ -252,77 +405,135 @@ void CInterServer::disconnect()
 
 		//connect_server.process_thread.detach();
 	}
+	LeaveCriticalSection(&disconnection_lock);
 }
 
+void CInterServer::workerThreadProcess(){
+	PPerSocketContext pPerSocketCtx = NULL;
+	PPerIoContext pPerIoCtx = NULL;
+	DWORD dwBytesTransferred = 0;
+	int ErrCode = 0;
+
+	while (TRUE)
+	{
+		BOOL bRet = IocpHandler.GetCompletionStatus(reinterpret_cast<ULONG_PTR*>(&pPerSocketCtx),
+			&dwBytesTransferred,
+			reinterpret_cast<LPOVERLAPPED*>(&pPerIoCtx),
+			&ErrCode);
+
+		if (!bRet || dwBytesTransferred == 0){
+			if (NULL == pPerIoCtx){
+				printf("Getting Completion Packet Faild %d\n", ErrCode);
+			}
+			printf("Client Connection Close, Socket will Close.\n");
+			disconnect();
+			return;
+			//err_quit("interserver iocp recieve complete error!");
+		}
+
+		if (pPerIoCtx==&pPerSocketCtx->recvContext){
+			SocketContext.recvContext.position += dwBytesTransferred;
+			SocketContext.recvContext.remainBytes -= dwBytesTransferred;
+			recieveProcess();
+		}
+		else if (pPerIoCtx==&pPerSocketCtx->sendContext){
+			/* sendProcess */
+		}
+		else{
+			printf("interserver Send Context error.\n");
+			disconnect();
+			return;
+		}
+	}
+}
 /* interServer recieve thread */
 void CInterServer::recieveProcess()
 {
 	if (the_other_sock == NULL) return;
-	char* buf = poolManager.pop();
-	recieve(buf, sizeof(short));
-	/* packet handling */
 
-	ssType _type = (ssType)((unsigned short)(*buf));
-
-	switch (_type){
-
-	case ssType::pkt_create:
-		recieve(buf + 2, sizeof(ss_create) - 2);
-		break;
-	case ssType::pkt_destroy:
-		recieve(buf + 2, sizeof(ss_destroy) - 2);
-		break;
-	case ssType::pkt_join:
-		recieve(buf + 2, sizeof(ss_join) - 2);
-		break;
-	case ssType::pkt_leave:
-		recieve(buf + 2, sizeof(ss_leave) - 2);
-		break;
-	case ssType::pkt_connect:
-		recieve(buf + 2, sizeof(ss_connect) - 2);
-		break;
-	case ssType::pkt_disconnect:
-		recieve(buf + 2, sizeof(ss_disconnect) - 2);
-		break;
-	case ssType::pkt_heartbeats:
-		recieve(buf + 2, sizeof(ss_heartbeats) - 2);
-		break;
-	case ssType::pkt_heartbeats_response:
-		recieve(buf + 2, sizeof(ss_heartbeats_response) - 2);
-		break;
-	case ssType::pkt_room_info_success:
-		recieve(buf + 2, sizeof(ss_room_info_success) - 2);
-		break;
-	case ssType::pkt_player_info_success:
-		recieve(buf + 2, sizeof(ss_player_info_success) - 2);
-		break;
-	case ssType::pkt_room_info_failure:
-		recieve(buf + 2, sizeof(ss_room_info_failure) - 2);
-		break;
-	case ssType::pkt_player_info_failure:
-		recieve(buf + 2, sizeof(ss_player_info_failure) - 2);
-		break;
-
-		/* var data */
-	case ssType::pkt_chat:
-	case ssType::pkt_room_info_send:
-	case ssType::pkt_player_info_send:
-		recieve(buf + 2, sizeof(short));
-		unsigned short size;
-		memcpy(&size, buf + 2, sizeof(short));
-		recieve(buf + 4, size);
-		break;
-	default:
-		disconnect();
-		break;
+	if (SocketContext.recvContext.position < HEADER_SIZE){
+		_recieve(SocketContext.recvContext.Buffer + SocketContext.recvContext.position,
+			SocketContext.recvContext.remainBytes);
 	}
+	else{
+		if (SocketContext.recvContext.position == HEADER_SIZE){
+			SocketContext.recvContext.isVar = FALSE;
 
-	CPacket* msg = packetPoolManager.pop();
-	msg->type = this->type;
-	msg->owner = NULL;
-	msg->msg = buf;
+			ssType _type = (ssType)((unsigned short)(*SocketContext.recvContext.Buffer));
 
-	logicHandle.enqueue_oper(msg, true);
+			switch (_type){
+
+			case ssType::pkt_create:
+				SocketContext.recvContext.remainBytes = sizeof(ss_create)-2;
+				break;
+			case ssType::pkt_destroy:
+				SocketContext.recvContext.remainBytes = sizeof(ss_destroy)-2;
+				break;
+			case ssType::pkt_join:
+				SocketContext.recvContext.remainBytes = sizeof(ss_join)-2;
+				break;
+			case ssType::pkt_leave:
+				SocketContext.recvContext.remainBytes = sizeof(ss_leave)-2;
+				break;
+			case ssType::pkt_connect:
+				SocketContext.recvContext.remainBytes = sizeof(ss_connect)-2;
+				break;
+			case ssType::pkt_disconnect:
+				SocketContext.recvContext.remainBytes = sizeof(ss_disconnect)-2;
+				break;
+			case ssType::pkt_heartbeats:
+				SocketContext.recvContext.remainBytes = sizeof(ss_heartbeats)-2;
+				break;
+			case ssType::pkt_heartbeats_response:
+				SocketContext.recvContext.remainBytes = sizeof(ss_heartbeats_response)-2;
+				break;
+			case ssType::pkt_room_info_success:
+				SocketContext.recvContext.remainBytes = sizeof(ss_room_info_success)-2;
+				break;
+			case ssType::pkt_player_info_success:
+				SocketContext.recvContext.remainBytes = sizeof(ss_player_info_success)-2;
+				break;
+			case ssType::pkt_room_info_failure:
+				SocketContext.recvContext.remainBytes = sizeof(ss_room_info_failure)-2;
+				break;
+			case ssType::pkt_player_info_failure:
+				SocketContext.recvContext.remainBytes = sizeof(ss_player_info_failure)-2;
+				break;
+
+			case ssType::pkt_chat:
+			case ssType::pkt_room_info_send:
+			case ssType::pkt_player_info_send:
+				SocketContext.recvContext.isVar = TRUE;
+				SocketContext.recvContext.remainBytes = sizeof(short);
+				break;
+			default:
+				disconnect();
+				break;
+			}
+		}
+		if (SocketContext.recvContext.remainBytes <= 0){
+			if (SocketContext.recvContext.isVar){
+				unsigned short size;
+				memcpy(&size, SocketContext.recvContext.Buffer + 2, sizeof(short));
+				SocketContext.recvContext.remainBytes = (int)size;
+				SocketContext.recvContext.isVar = FALSE;
+			}
+			else{
+				SocketContext.recvContext.position = 0;
+				SocketContext.recvContext.remainBytes = HEADER_SIZE;
+
+				CPacket* msg = packetPoolManager.pop();
+				msg->type = this->type;
+				msg->owner = NULL;
+				msg->msg = poolManager.pop();
+				memcpy(msg->msg, SocketContext.recvContext.Buffer, BUFSIZE);
+				logicHandle.enqueue_oper(msg, true);
+			}
+		}
+
+		_recieve(SocketContext.recvContext.Buffer + SocketContext.recvContext.position,
+			SocketContext.recvContext.remainBytes);
+	}
 }
 void CInterServer::recieve(char* buf, int size)
 {
@@ -617,5 +828,6 @@ void CInterServer::packetHandling(CPacket* packet)
 		break;
 	}
 
+	this->poolManager.push(packet->msg);
 	this->packetPoolManager.push(packet);
 }

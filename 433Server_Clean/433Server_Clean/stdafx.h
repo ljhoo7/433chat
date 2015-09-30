@@ -18,7 +18,10 @@
 #include <WinSock2.h>
 #include <thread>
 #include <queue>
+#include <Windows.h>
+#include <process.h>
 
+class CIocpHandler;
 class IPeer;
 class CPlayer;
 
@@ -48,6 +51,8 @@ class CRoom;
 #define PLAYER_MAX 10
 #define HEADER_SIZE 2
 
+#include "Def.h"
+#include "MemPooler.h"
 #include "Protocol.h"
 #include "ClientProtocol.h"
 
@@ -63,6 +68,7 @@ class CRoom;
 
 #include "Usertoken.h"
 
+#include "IocpHandler.h"
 #include "LogicHandle.h"
 #include "InterServer.h"
 #include "RoomManager.h"
