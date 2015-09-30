@@ -13,6 +13,7 @@ CInterServer::CInterServer() : poolManager(10), packetPoolManager(10),
 process_thread(), heart_thread(), listen_thread()
 {
 	InitializeCriticalSection(&disconnection_lock);
+	InitializeCriticalSection(&sending_queue_lock);
 	the_other_sock = NULL;
 	SocketContext.socket = NULL;
 }
@@ -20,11 +21,27 @@ process_thread(), heart_thread(), listen_thread()
 CInterServer::~CInterServer()
 {
 	DeleteCriticalSection(&disconnection_lock);
+	DeleteCriticalSection(&sending_queue_lock);
 }
 
 void CInterServer::start(int type, int port)
 {
 	this->type = type;
+	int ErrCode=0;
+
+	if (!IocpHandler.Create(0, &ErrCode)){
+		printf("error code : %d\n", ErrCode);
+		err_quit("create IO Completion port error");
+	}
+	if (!IocpHandler.CreateThreadPool(this, 0)){
+		err_quit("Create Thread Pool Failed");
+	}
+
+	WSABUFPoolManager = new MemPooler<WSABUF>(500);
+	if (!WSABUFPoolManager){
+		err_quit("alloc error!");
+		return;
+	}
 
 	if (type == 0)
 	{
@@ -71,7 +88,7 @@ void send_player_info(CInterServer* i)
 
 	i->_send(msgBuf, msgPosition);
 	i->poolManager.push(buf);
-	i->poolManager.push(msgBuf);
+//	i->poolManager.push(msgBuf);
 }
 
 void send_room_info(CInterServer* i)
@@ -106,7 +123,7 @@ void send_room_info(CInterServer* i)
 
 	i->_send(msgBuf, msgPosition);
 	i->poolManager.push(buf);
-	i->poolManager.push(msgBuf);
+//	i->poolManager.push(msgBuf);
 }
 
 void CInterServer::makeSync()
@@ -139,20 +156,10 @@ void CInterServer::interserver_connect(char* ip, int port)
 
 	printf("InterServer Thread has been activated.\n");
 
-	if (!IocpHandler.Create(0, &ErrCode)){
-		printf("error code : %d\n", ErrCode);
-		err_quit("create IO Completion port error");
-	}
-	if (!IocpHandler.CreateThreadPool(this, 0)){
-		err_quit("Create Thread Pool Failed");
-	}
-
 	SocketContext.socket = the_other_sock;
 	SocketContext.recvContext.wsaBuf.buf = SocketContext.recvContext.Buffer;
 	SocketContext.recvContext.position = 0;
 	SocketContext.recvContext.remainBytes = HEADER_SIZE;
-	SocketContext.sendContext.wsaBuf.buf = SocketContext.sendContext.Buffer;
-
 	if (!IocpHandler.Associate(the_other_sock, reinterpret_cast<ULONG_PTR>(&SocketContext), &ErrCode))
 	{
 		printf("iocp associate error %d", ErrCode);
@@ -192,15 +199,6 @@ void CInterServer::interserver_listen(int port)
 		err_quit("listen()");
 	}
 
-	int ErrCode;
-	if (!IocpHandler.Create(0, &ErrCode)){
-		printf("error code : %d\n", ErrCode);
-		err_quit("create IO Completion port error");
-	}
-	if (!IocpHandler.CreateThreadPool(this, 0)){
-		err_quit("Create Thread Pool Failed");
-	}
-
 	listen_thread = std::thread(&CInterServer::listenProcess, this);
 }
 
@@ -223,7 +221,6 @@ void CInterServer::listenProcess()
 		printf("InterServer Thread has been activated.\n");
 
 		SocketContext.socket = the_other_sock;
-
 		SocketContext.recvContext.wsaBuf.buf = SocketContext.recvContext.Buffer;
 		SocketContext.recvContext.position = 0;
 		SocketContext.recvContext.remainBytes = HEADER_SIZE;
@@ -266,112 +263,11 @@ void CInterServer::_recieve(char* buf, int size){
 	return;
 }
 
-// this function isn't used in IOCP version
-void CInterServer::process()
-{
-	int fps = 30;
-	double block = 1000 / fps;
 
-	std::chrono::system_clock::time_point start_time;
-	std::chrono::system_clock::duration tmp;
-	std::chrono::milliseconds tmp2;
-	long long time;
-
-	start_time = std::chrono::system_clock::now();
-
-	while (1)
-	{
-		if (the_other_sock == NULL)
-		{
-			printf("interserver recieve process end..\n");
-			return;
-		}
-		tmp = std::chrono::system_clock::now() - start_time;
-		tmp2 = std::chrono::duration_cast<std::chrono::milliseconds>(tmp);
-		time = tmp2.count();
-		if (block <= time)
-		{
-			temp_recieveProcess();
-			start_time = std::chrono::system_clock::now();
-		}
-	}
-}
-
-
-void CInterServer::temp_recieveProcess(){
-	if (the_other_sock == NULL) return;
-	char* buf = poolManager.pop();
-	recieve(buf, sizeof(short));
-	/* packet handling */
-
-	ssType _type = (ssType)((unsigned short)(*buf));
-
-	switch (_type){
-
-	case ssType::pkt_create:
-		recieve(buf + 2, sizeof(ss_create)-2);
-		break;
-	case ssType::pkt_destroy:
-		recieve(buf + 2, sizeof(ss_destroy)-2);
-		break;
-	case ssType::pkt_join:
-		recieve(buf + 2, sizeof(ss_join)-2);
-		break;
-	case ssType::pkt_leave:
-		recieve(buf + 2, sizeof(ss_leave)-2);
-		break;
-	case ssType::pkt_connect:
-		recieve(buf + 2, sizeof(ss_connect)-2);
-		break;
-	case ssType::pkt_disconnect:
-		recieve(buf + 2, sizeof(ss_disconnect)-2);
-		break;
-	case ssType::pkt_heartbeats:
-		recieve(buf + 2, sizeof(ss_heartbeats)-2);
-		break;
-	case ssType::pkt_heartbeats_response:
-		recieve(buf + 2, sizeof(ss_heartbeats_response)-2);
-		break;
-	case ssType::pkt_room_info_success:
-		recieve(buf + 2, sizeof(ss_room_info_success)-2);
-		break;
-	case ssType::pkt_player_info_success:
-		recieve(buf + 2, sizeof(ss_player_info_success)-2);
-		break;
-	case ssType::pkt_room_info_failure:
-		recieve(buf + 2, sizeof(ss_room_info_failure)-2);
-		break;
-	case ssType::pkt_player_info_failure:
-		recieve(buf + 2, sizeof(ss_player_info_failure)-2);
-		break;
-
-		/* var data */
-	case ssType::pkt_chat:
-	case ssType::pkt_room_info_send:
-	case ssType::pkt_player_info_send:
-		recieve(buf + 2, sizeof(short));
-		unsigned short size;
-		memcpy(&size, buf + 2, sizeof(short));
-		recieve(buf + 4, size);
-		break;
-	default:
-		disconnect();
-		break;
-	}
-
-	CPacket* msg = packetPoolManager.pop();
-	msg->type = this->type;
-	msg->owner = NULL;
-	msg->msg = buf;
-
-	logicHandle.enqueue_oper(msg, true);
-}
 /*
 any thread
 need to handle userlist lock
 */
-
-
 /* 동기화 문제 여러 쓰레드 접근 가능 */
 void CInterServer::disconnect()
 {
@@ -436,8 +332,9 @@ void CInterServer::workerThreadProcess(){
 			SocketContext.recvContext.remainBytes -= dwBytesTransferred;
 			recieveProcess();
 		}
-		else if (pPerIoCtx==&pPerSocketCtx->sendContext){
+		else if ((PPerIoContext_send)pPerIoCtx==&pPerSocketCtx->sendContext){
 			/* sendProcess */
+			sendProcess();
 		}
 		else{
 			printf("interserver Send Context error.\n");
@@ -445,6 +342,29 @@ void CInterServer::workerThreadProcess(){
 			return;
 		}
 	}
+}
+
+void CInterServer::sendProcess()
+{
+	if (the_other_sock == NULL) return;
+
+	EnterCriticalSection(&sending_queue_lock);
+	if (sending_queue.size() <= 0) err_quit("interserver send complete error!");
+	WSABUF* a = sending_queue.front();
+	sending_queue.pop();
+
+	/* memery dealloc */
+	poolManager.push(a->buf);
+	WSABUFPoolManager->Free(a);
+
+	if (sending_queue.size() > 0){
+		_sendHandling();
+	}
+
+	LeaveCriticalSection(&sending_queue_lock);
+
+
+
 }
 /* interServer recieve thread */
 void CInterServer::recieveProcess()
@@ -516,6 +436,8 @@ void CInterServer::recieveProcess()
 				unsigned short size;
 				memcpy(&size, SocketContext.recvContext.Buffer + 2, sizeof(short));
 				SocketContext.recvContext.remainBytes = (int)size;
+				ssType _type = (ssType)((unsigned short)(*SocketContext.recvContext.Buffer));
+				if (_type == ssType::pkt_chat) SocketContext.recvContext.remainBytes -= 4;
 				SocketContext.recvContext.isVar = FALSE;
 			}
 			else{
@@ -546,28 +468,75 @@ void CInterServer::recieve(char* buf, int size)
 	}
 }
 
+void CInterServer::_sendHandling(){
+	if (sending_queue.size() <= 0){
+		printf("queue is empty!\n");
+		return;
+	}
+
+	WSABUF* wsabuf = sending_queue.front();
+
+	SocketContext.sendContext.wsaBuf = wsabuf;
+
+	DWORD dwSendBytes = 0;
+	DWORD dwFlags = 0;
+
+	ZeroMemory(&SocketContext.sendContext.overlapped, sizeof(WSAOVERLAPPED));
+
+	int ret = WSASend(SocketContext.socket, SocketContext.sendContext.wsaBuf, 1,
+		&dwSendBytes, dwFlags, &(SocketContext.sendContext.overlapped), NULL);
+
+//	WSABUFPoolManager->Free(wsabuf);
+
+	if (SOCKET_ERROR == ret)
+	{
+		int ErrCode = WSAGetLastError();
+		if (ErrCode != WSA_IO_PENDING)
+		{
+			LeaveCriticalSection(&sending_queue_lock);
+			err_quit("interserver send queue process error!");
+			return;
+		}
+	}
+}
+
 void CInterServer::_send(char* buf, int size)
 {
 	if (the_other_sock == NULL) return;
-	int ret = send(the_other_sock, buf, size, 0);
+
+	WSABUF* wsabuf = WSABUFPoolManager->Alloc();
+	wsabuf->buf = buf;
+	wsabuf->len = size;
+
+	EnterCriticalSection(&sending_queue_lock);
+	sending_queue.push(wsabuf);
+	if (sending_queue.size() == 1){
+		_sendHandling();
+	}
+	LeaveCriticalSection(&sending_queue_lock);
+	
+
+/*	int ret = send(the_other_sock, buf, size, 0);
 	if (ret == SOCKET_ERROR)
 	{
 		//printf("inter-server send() error\n");
 		disconnect();
-	}
+	}*/
 }
 
 void CInterServer::heartbeat_check()
 {
 	while (true)
 	{
+		char *buf = poolManager.pop();
+
 		beat_check = false;
 		if (the_other_sock == NULL) break;
 
 		printf("hearth check send!\n");
-		ss_heartbeats msg;
-		msg.type = ssType::pkt_heartbeats;
-		_send((char *)&msg, sizeof(msg));
+		ss_heartbeats* msg = (ss_heartbeats *)buf;
+		msg->type = ssType::pkt_heartbeats;
+		_send((char *)msg, sizeof(ss_heartbeats));
 		std::this_thread::sleep_for(std::chrono::seconds(5));
 		if (beat_check == false) break;
 	}
@@ -596,16 +565,18 @@ void CInterServer::packetHandling(CPacket* packet)
 		return;
 	}
 
+	
 	ssType _type = (ssType)(*packet->msg);
 
 	switch (_type)
 	{
 	case ssType::pkt_heartbeats:
-	{
+	{   
 		printf("recieve heartbeat check. send response\n");
-		ss_heartbeats_response msg;
-		msg.type = ssType::pkt_heartbeats_response;
-		_send((char *)&msg, sizeof(msg));
+		char* sendMsg = poolManager.pop();
+		ss_heartbeats_response* msg = (ss_heartbeats_response *)sendMsg;
+		msg->type = ssType::pkt_heartbeats_response;
+		_send((char *)msg, sizeof(*msg));
 		break;
 	}
 	case ssType::pkt_heartbeats_response:
@@ -674,15 +645,17 @@ void CInterServer::packetHandling(CPacket* packet)
 				position += sizeof(player_info);
 			}
 
-			ss_player_info_success msg;
-			msg.type = ssType::pkt_player_info_success;
-			this->_send((char *)&msg, sizeof(msg));
+			char* sendMsg = poolManager.pop();
+			ss_player_info_success* msg = (ss_player_info_success*)sendMsg;
+			msg->type = ssType::pkt_player_info_success;
+			this->_send((char *)msg, sizeof(*msg));
 			poolManager.push(buf);
 		}
 		else{
-			ss_player_info_failure msg;
-			msg.type = ssType::pkt_player_info_failure;
-			this->_send((char *)&msg, sizeof(msg));
+			char* sendMsg = poolManager.pop();
+			ss_player_info_failure* msg = (ss_player_info_failure*)sendMsg;
+			msg->type = ssType::pkt_player_info_failure;
+			this->_send((char *)msg, sizeof(*msg));
 		}
 
 		break;
@@ -725,23 +698,26 @@ void CInterServer::packetHandling(CPacket* packet)
 
 			if (check)
 			{
-				ss_room_info_success msg;
-				msg.type = ssType::pkt_room_info_success;
-				this->_send((char *)&msg, sizeof(msg));
+				char* sendMsg = poolManager.pop();
+				ss_room_info_success* msg = (ss_room_info_success*)sendMsg;
+				msg->type = ssType::pkt_room_info_success;
+				this->_send((char *)msg, sizeof(*msg));
 				poolManager.push(buf);
 			}
 			else
 			{
-				ss_room_info_failure msg;
-				msg.type = ssType::pkt_room_info_failure;
-				this->_send((char *)&msg, sizeof(msg));
+				char* sendMsg = poolManager.pop();
+				ss_room_info_failure* msg = (ss_room_info_failure*)sendMsg;
+				msg->type = ssType::pkt_room_info_failure;
+				this->_send((char *)msg, sizeof(*msg));
 			}
 		}
 		else
 		{
-			ss_room_info_failure msg;
-			msg.type = ssType::pkt_room_info_failure;
-			this->_send((char *)&msg, sizeof(msg));
+			char* sendMsg = poolManager.pop();
+			ss_room_info_failure* msg = (ss_room_info_failure*)sendMsg;
+			msg->type = ssType::pkt_room_info_failure;
+			this->_send((char *)msg, sizeof(*msg));
 		}
 
 		break;

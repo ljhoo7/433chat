@@ -22,13 +22,12 @@ public:
 
 	void makeSync();
 	void listenProcess();
-	void process();
 
 	void workerThreadProcess();
 
 	void _recieve(char* buf, int size);
-	void temp_recieveProcess();
-	void recieveProcess();
+	void recieveProcess(); // recieve complete
+	void sendProcess(); // send complete
 	void disconnect();
 	void packetHandling(CPacket* packet);
 	void heartbeat_check();
@@ -37,13 +36,18 @@ public:
 
 	void recieve(char* buf, int size);
 	void _send(char* buf, int size);
+	void _sendHandling();
 
 	void start(int type, int port);
 
 private:
+	std::queue<WSABUF *> sending_queue;
+	MemPooler<WSABUF> * WSABUFPoolManager;
+
 	CIocpHandler IocpHandler;
 	PerSocketContext SocketContext;
 
 	CRITICAL_SECTION disconnection_lock;
+	CRITICAL_SECTION sending_queue_lock;
 
 };

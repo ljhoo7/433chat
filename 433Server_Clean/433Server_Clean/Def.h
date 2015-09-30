@@ -1,6 +1,6 @@
 #pragma once
 
-typedef struct tagPerIoContext
+typedef struct tagPerIoContext_recieve
 {
 
 	WSAOVERLAPPED overlapped;
@@ -14,11 +14,19 @@ typedef struct tagPerIoContext
 
 } PerIoContext, *PPerIoContext;
 
+
+typedef struct tagPerIoContext_send
+{
+
+	WSAOVERLAPPED overlapped;
+	WSABUF* wsaBuf;
+} PerIoContext_send, *PPerIoContext_send;
+
 typedef struct tagPerSocketContext
 {
 
 	SOCKET socket;
 	PerIoContext recvContext;
-	PerIoContext sendContext;
+	PerIoContext_send sendContext;
 
 } PerSocketContext, *PPerSocketContext;
