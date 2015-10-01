@@ -9,6 +9,8 @@ char randStr[RANDSTR_SIZE][RANDSTR_LENG] =
 extern unsigned long		ip;
 extern int					port;
 
+extern HANDLE				hEvent;
+
 DWORD WINAPI ReceivingThread(LPVOID arg);
 
 CBot::CBot(const int& room_num, const int& time_span, const int& bot_num) : m_nRoom_num(room_num), m_pStateMachine(nullptr), hReceiving(NULL), sock(NULL), m_nToken(-1)
@@ -43,8 +45,10 @@ CBot::CBot(const int& room_num, const int& time_span, const int& bot_num) : m_nR
 	retval = connect(sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
 	if (retval == SOCKET_ERROR) err_quit(const_cast<char*>(("connect()" + std::to_string(bot_num)).c_str()));
 
-	// starting the receivingi thread
+	// starting the receiving thread
 	m_pReceivingThread = new std::thread(&CBot::ReceivingThread, this);
+	// starting the chatting thread
+	m_pChattingThread = new std::thread(&CBot::ChattingThread, this);
 
 	// Initialize The State Machine
 	m_pStateMachine = new StateMachine<CBot>(this);
@@ -77,6 +81,42 @@ void CBot::errorQuitWithBotNum(std::string str)
 	err_quit(const_cast<char*>((str + std::to_string(m_nBot_num)).c_str()));
 }
 
+void CBot::ChattingThread()
+{
+	static std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
+	std::chrono::system_clock::duration tmp;
+	std::chrono::milliseconds tmp2;
+
+	int fps = 30;
+	double block = 1000 / fps;
+
+	long long time;
+	int retval = 0;
+	std::string tmpStr;
+	int size = 0, sum = 0, remain = 0, fixedRemain, strSize;
+	unsigned short len;
+
+	WaitForSingleObject(hEvent, INFINITE);
+
+	while (1)
+	{
+		tmp = std::chrono::system_clock::now() - start_time;
+		tmp2 = std::chrono::duration_cast<std::chrono::milliseconds>(tmp);
+		time = tmp2.count();
+		if (block <= time)
+		{
+			//std::cout << this->nickname << '~';
+				//if (GetStateMachine()->CurrentState() == CRoom::Instance())
+			{
+				SendChatMessage(randStr[time % RANDSTR_SIZE]);
+				//std::cout << this->nickname << ',';
+			}
+
+			start_time = std::chrono::system_clock::now();
+		}
+	}
+}
+
 void CBot::ReceivingThread()
 {
 	static std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
@@ -99,10 +139,6 @@ void CBot::ReceivingThread()
 		time = tmp2.count();
 		if (block <= time)
 		{
-
-			if (GetStateMachine()->CurrentState() == CRoom::Instance())
-				SendChatMessage(randStr[time % RANDSTR_SIZE]);
-
 			t_create_failure		tmpCreateFailure;
 			t_join_success			tmpJoinSuccess;
 			t_join_failure			tmpJoinFailure;

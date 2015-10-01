@@ -5,6 +5,7 @@ class CBot
 	SOCKET sock;
 
 	std::thread *m_pReceivingThread;
+	std::thread *m_pChattingThread;
 
 	char nickname[NICK_SIZE];
 
@@ -32,6 +33,7 @@ public:
 	~CBot();
 
 	void ReceivingThread();
+	void ChattingThread();
 
 	StateMachine<CBot>		*GetStateMachine()
 	{

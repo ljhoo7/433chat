@@ -34,7 +34,8 @@ int recvn(SOCKET s, char *buf, int len, int flags)
 	char *ptr = buf;
 	int left = len;
 
-	while (left > 0){
+	while (left > 0)
+	{
 		received = recv(s, ptr, left, flags);
 		if (received == SOCKET_ERROR)
 			return SOCKET_ERROR;

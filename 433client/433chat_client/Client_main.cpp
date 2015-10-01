@@ -31,7 +31,6 @@ int main(int argc, char *argv[])
 			time = tmp2.count();
 			if (block <= time)
 			{
-
 				for (std::vector<CClient*>::iterator iter = t_vClient.begin()
 					; iter != t_vClient.end(); ++iter)
 				{
