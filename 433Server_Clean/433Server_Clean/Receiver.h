@@ -2,9 +2,6 @@
 
 class CReceiver
 {
-	void addUserList(CUserToken* user);
-	void deleteUserList(CUserToken* user);
-
 	void recieveProcess();
 	void acceptProcess();
 
@@ -12,15 +9,19 @@ class CReceiver
 	SOCKET listenSocket;
 	SOCKADDR_IN serveraddr;
 
-	FD_SET reads;
-	FD_SET copy_set;
-	std::list<CUserToken*> userList;
-
 public:
 	CReceiver();
 	~CReceiver();
 
 	void start(int port, void(*callback)(CUserToken* token));
 	void process();
+	void workerThreadProcess();
+
+
+private:
+	void deleteUser(CUserToken* user);
+
+	CIocpHandler IocpHandler;
+
 };
 

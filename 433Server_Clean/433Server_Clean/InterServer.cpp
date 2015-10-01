@@ -33,7 +33,7 @@ void CInterServer::start(int type, int port)
 		printf("error code : %d\n", ErrCode);
 		err_quit("create IO Completion port error");
 	}
-	if (!IocpHandler.CreateThreadPool(this, 0)){
+	if (!IocpHandler.CreateThreadPool((void *)this, 0, 0)){
 		err_quit("Create Thread Pool Failed");
 	}
 
@@ -321,7 +321,6 @@ void CInterServer::workerThreadProcess(){
 		if (!bRet || dwBytesTransferred == 0){
 			if (!bRet)
 			{
-				DWORD temp1, temp2;
 				WSAGetOverlappedResult(pPerSocketCtx->socket, &pPerIoCtx->overlapped, NULL, FALSE, NULL);
 				err_display("WSAGetOverlappedResult");
 			}

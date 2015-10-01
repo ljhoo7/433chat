@@ -11,10 +11,37 @@ CUserToken::CUserToken(SOCKET clientSocket, SOCKADDR_IN clientAddr, IPeer* peer)
 	this->clientSocket = clientSocket;
 	this->clientAddr = clientAddr;
 
-	position = 0;
-	remainBytes = 0;
+
+	SocketContext.token = this;
+	SocketContext.recvContext.wsaBuf.buf = SocketContext.recvContext.Buffer;
+	SocketContext.recvContext.position = 0;
+	SocketContext.recvContext.remainBytes = HEADER_SIZE;
 
 	this->peer = peer;
+}
+
+
+void CUserToken::_recieve(char* buf, int size){
+	if (size == 0) return;
+	DWORD dwRecvBytes = 0;
+	DWORD dwFlags = 0;
+	ZeroMemory(&SocketContext.recvContext.overlapped, sizeof(WSAOVERLAPPED));
+
+	SocketContext.recvContext.wsaBuf.buf = buf;
+	SocketContext.recvContext.wsaBuf.len = size;
+	SocketContext.recvContext.remainBytes = size;
+	int ret = WSARecv(SocketContext.token->clientSocket, &(SocketContext.recvContext.wsaBuf), 1,
+		&dwRecvBytes, &dwFlags, &(SocketContext.recvContext.overlapped), NULL);
+
+	if (SOCKET_ERROR == ret){
+		int ErrCode = WSAGetLastError();
+		if (ErrCode != WSA_IO_PENDING){
+			printf("interserver recieve error!");
+			remove();
+		}
+	}
+
+	return;
 }
 
 CUserToken::~CUserToken()
@@ -26,16 +53,14 @@ bool CUserToken::operator==(const CUserToken& right)
 	return this->clientSocket == right.clientSocket;
 }
 
-bool CUserToken::recieveProcess()
+void CUserToken::recieveProcess()
 {
 	if (this->peer != NULL){
-		return this->peer->recieveProcess();
+		this->peer->recieveProcess();
 	}
 	else
 	{
 		std::cout << "There is a weired CUserToken which has no player." << std::endl;
-
-		return false;
 	}
 }
 
@@ -48,22 +73,6 @@ void CUserToken::remove()
 	}
 }
 
-bool CUserToken::read_until()
-{
-	int read_size = recv(clientSocket, buf + position, remainBytes, 0);
-	//printf("%d\n", read_size);
-	if (read_size == SOCKET_ERROR){
-		/* client recieve error! */;
-		return false;
-	}
-	else if (read_size == 0){
-		return false;
-	}
-
-	position += read_size;
-	remainBytes -= read_size;
-	return true;
-}
 
 void CUserToken::on_msg(char* buf, int size)
 {

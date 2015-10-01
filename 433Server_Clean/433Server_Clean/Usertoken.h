@@ -13,15 +13,17 @@ public:
 	SOCKET clientSocket;
 	SOCKADDR_IN clientAddr;
 
-	char buf[BUFSIZE];
+	/*char buf[BUFSIZE];
 	int position;
 	int remainBytes;
-	bool var;
+	bool var;*/
 	IPeer* peer;
+	PerUserContext SocketContext;
 
 	bool operator==(const CUserToken& right);
 
-	bool recieveProcess();
+	void _recieve(char* buf, int size);
+	void recieveProcess();
 	void on_msg(char* buf, int size);
 	void send_msg(char *buf, int len);
 	void remove();

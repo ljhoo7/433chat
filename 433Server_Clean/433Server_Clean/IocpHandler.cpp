@@ -52,7 +52,18 @@ unsigned WINAPI ThreadFunction(void* arg)
 	return 0;
 }
 
-bool CIocpHandler::CreateThreadPool(CInterServer* in, int nNumOfPooledThread){
+unsigned WINAPI ThreadFunction2(void* arg)
+{
+	CReceiver *i = (CReceiver *)arg;
+	i->workerThreadProcess();
+
+	return 0;
+}
+
+/* type 0 : server to server 
+   type 1 : client to server */
+
+bool CIocpHandler::CreateThreadPool(void* in, int nNumOfPooledThread, int type){
 	if (nNumOfPooledThread < 0){
 		err_quit("num of threads >= 0 !");
 	}
@@ -70,7 +81,8 @@ bool CIocpHandler::CreateThreadPool(CInterServer* in, int nNumOfPooledThread){
 
 	for (int i = 0; i < createdThreadNumber; i++){
 		unsigned int dwThreadID = 0;
-		CloseHandle((HANDLE)_beginthreadex(NULL, 0, ThreadFunction, (void *)in, 0, &dwThreadID));
+		if (type==0) CloseHandle((HANDLE)_beginthreadex(NULL, 0, ThreadFunction, (void *)in, 0, &dwThreadID));
+		else if(type == 1)  CloseHandle((HANDLE)_beginthreadex(NULL, 0, ThreadFunction2, (void *)in, 0, &dwThreadID));
 	}
 	return true;
 }

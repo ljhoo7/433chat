@@ -22,6 +22,8 @@ void accept_callback(CUserToken* token)
 	token->peer = p;
 	p->token = token;
 
+//	
+
 	ss_connect* tmpConnect = (ss_connect *)malloc(sizeof(ss_connect));
 	tmpConnect->type = ssType::pkt_connect;
 	tmpConnect->client_socket = p->token->clientSocket;

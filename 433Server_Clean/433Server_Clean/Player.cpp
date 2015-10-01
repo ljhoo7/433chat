@@ -19,93 +19,82 @@ CPlayer::CPlayer(bool isMine) : poolManager(10), packetPoolManager(10)
 	this->identifier = identifier_seed++;
 }
 
-bool CPlayer::recieveProcess()
+void CPlayer::recieveProcess()
 {
+	PPerIoContext t = &this->token->SocketContext.recvContext;
 	if (token->clientSocket == NULL)
 	{
 		std::cout << "There is a weired UserToken which has note connecd socket." << std::endl;
-		return false;
+		return;
 	}
-	char* buf = this->token->buf;
+	char* buf = this->token->SocketContext.recvContext.Buffer;
 
-	if (this->token->position < HEADER_SIZE)
+	if (t->position < HEADER_SIZE)
 	{
-		if (token->position == 0){
-			token->remainBytes = HEADER_SIZE;
+		if (t->position == 0){
+			t->remainBytes = HEADER_SIZE;
 		}
-		return recieve(buf + token->position, token->remainBytes);
+		this->token->_recieve(buf + t->position, t->remainBytes);
+		return;
 	}
 	else
 	{
-		if (token->position == HEADER_SIZE){
-			token->var = false;
+		if (t->position == HEADER_SIZE){
+			t->isVar = FALSE;
 			pkt_type _type = (pkt_type)((unsigned short)(*buf));
 			switch (_type)
 			{
 			case pkt_type::pt_create:
-				token->remainBytes = sizeof(t_create) - 2;
+				t->remainBytes = sizeof(t_create)-2;
 				break;
 			case pkt_type::pt_destroy:
-				token->remainBytes = sizeof(t_destroy) - 2;
+				t->remainBytes = sizeof(t_destroy)-2;
 				break;
 			case pkt_type::pt_join:
-				token->remainBytes = sizeof(t_join) - 2;
+				t->remainBytes = sizeof(t_join)-2;
 				break;
 			case pkt_type::pt_leave:
-				token->remainBytes = sizeof(t_leave) - 2;
+				t->remainBytes = sizeof(t_leave)-2;
 				break;
 			case pkt_type::pt_chat:
-				token->var = true;
-				token->remainBytes = sizeof(short);
+				t->isVar = TRUE;
+				t->remainBytes = sizeof(short);
 				break;
 			default:
 				//disconnect();
-				return false;
+				this->remove();
+				return;
 			}
 		}
-		bool check = recieve(buf + token->position, token->remainBytes);
-		if (token->remainBytes <= 0)
+		if (t->remainBytes <= 0)
 		{
-			if (token->var)
+			if (t->isVar)
 			{
 				int typePlusLength = HEADER_SIZE << 1;
-				if (this->token->position == typePlusLength){
-					memcpy(&token->remainBytes, buf + HEADER_SIZE, sizeof(short));
-					token->remainBytes -= typePlusLength;
+				if (t->position == typePlusLength){
+					memcpy(&t->remainBytes, buf + HEADER_SIZE, sizeof(short));
+					t->remainBytes -= typePlusLength;
 				}
-				token->var = false;
+				t->isVar = false;
 			}
 			else
 			{
-				token->position = 0;
 				char* buf = poolManager.pop();
 				CPacket* msg = packetPoolManager.pop();
 				msg->type = 2;
 				msg->owner = this->token;
 				msg->msg = buf;
-				memcpy(buf, token->buf, BUFSIZE);
+				memcpy(buf, t->Buffer, BUFSIZE);
 				logicHandle.enqueue_oper(msg, false);
+
+				t->position = 0;
+				t->remainBytes = HEADER_SIZE;
 			}
 		}
-		return check;
+		this->token->_recieve(buf + t->position, t->remainBytes);
+		return;
 	}
-	return true;
-}
-
-bool CPlayer::recieve(char* buf, int size)
-{
-	if (size == 0) return true;
-	int ret = recv(token->clientSocket, buf, size, 0);
-	if (ret == SOCKET_ERROR)
-	{
-		printf("recieve error\n");
-		//disconnect();
-		return false;
-	}
-	token->position += ret;
-	token->remainBytes -= ret;
-
-	return true;
+	return;
 }
 
 void CPlayer::disconnect()
@@ -120,9 +109,30 @@ void CPlayer::disconnect()
 
 void CPlayer::send_msg(char *buf, int size)
 {
-	if (send(token->clientSocket, (char *)buf, size, 0) == SOCKET_ERROR)
+	WSABUF temp;
+	temp.buf = buf;
+	temp.len = size;
+
+	token->SocketContext.sendContext.wsaBuf = &temp;
+
+	DWORD dwSendBytes = 0;
+	DWORD dwFlags = 0;
+
+	ZeroMemory(&token->SocketContext.sendContext.overlapped, sizeof(WSAOVERLAPPED));
+
+	int ret = WSASend(token->clientSocket, token->SocketContext.sendContext.wsaBuf, 1,
+		&dwSendBytes, dwFlags, &(token->SocketContext.sendContext.overlapped), NULL);
+
+	//WSABUFPoolManager->Free(wsabuf);
+
+	if (SOCKET_ERROR == ret)
 	{
-		std::cout << "Send() error" << std::endl;
+		int ErrCode = WSAGetLastError();
+		if (ErrCode != WSA_IO_PENDING)
+		{
+			err_quit("interserver send queue process error!");
+			return;
+		}
 	}
 }
 

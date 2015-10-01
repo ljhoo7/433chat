@@ -22,8 +22,8 @@ public:
 	bool valid_Packet(CPacket *packet);
 	void playerSync(char *buf, int size);
 
-	bool recieve(char* buf, int size);
-	bool recieveProcess();
+	void recieve(char* buf, int size);
+	void recieveProcess();
 	void send_msg(char *buf, int size);
 	void recieve_msg(char* buf, int size);
 	void remove();

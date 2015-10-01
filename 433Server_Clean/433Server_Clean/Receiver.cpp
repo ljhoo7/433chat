@@ -14,6 +14,17 @@ void CReceiver::start(int port, void(*callback)(CUserToken* token))
 {
 	printf("chatting server start\n");
 
+	int ErrCode = 0;
+
+	if (!IocpHandler.Create(0, &ErrCode)){
+		printf("error code : %d\n", ErrCode);
+		err_quit("create IO Completion port error");
+	}
+	if (!IocpHandler.CreateThreadPool((void *)this, 0, 1)){
+		err_quit("Create Thread Pool Failed");
+	}
+
+
 	int retval;
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
@@ -30,12 +41,9 @@ void CReceiver::start(int port, void(*callback)(CUserToken* token))
 	retval = bind(listenSocket, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
 	if (retval == SOCKET_ERROR) err_quit("bind()");
 
+
 	retval = listen(listenSocket, SOMAXCONN);
 	if (retval == SOCKET_ERROR) err_quit("listen()");
-
-	u_long on = 1;
-	retval = ioctlsocket(listenSocket, FIONBIO, &on);
-	if (retval == SOCKET_ERROR) err_display("ioctlsocket()");
 
 	this->callback = callback;
 	return;
@@ -43,40 +51,8 @@ void CReceiver::start(int port, void(*callback)(CUserToken* token))
 
 void CReceiver::process()
 {
-	FD_ZERO(&reads);
-	FD_SET(listenSocket, &reads);
-
-	static std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
-	std::chrono::system_clock::duration tmp;
-	std::chrono::milliseconds tmp2;
-
-	long long time;
-	int fps = 30;
-	double block = 1000 / fps;
-
 	while (true){
-		copy_set = reads;
-
-		int retval;
-		retval = select(0, &copy_set, 0, NULL, NULL);
-		if (retval == SOCKET_ERROR){
-			err_quit("select()");
-			return;
-		}
-		if (retval == 0) continue;
-
-
-		tmp = std::chrono::system_clock::now() - start_time;
-		tmp2 = std::chrono::duration_cast<std::chrono::milliseconds>(tmp);
-		time = tmp2.count();
-
-		if (block <= time){
-			acceptProcess();
-			recieveProcess();
-
-			start_time = std::chrono::system_clock::now();
-		}
-
+		acceptProcess();
 	}
 }
 
@@ -86,20 +62,27 @@ void CReceiver::acceptProcess()
 	int addrlen;
 	SOCKADDR_IN clientaddr;
 
-	if (FD_ISSET(listenSocket, &copy_set)){
-		addrlen = sizeof(clientaddr);
-		clientSocket = accept(listenSocket, (struct sockaddr*)&clientaddr, &addrlen);
-		CUserToken *user = new CUserToken(clientSocket, clientaddr, NULL);
-		printf("connected client: %d\n", clientSocket);
+	addrlen = sizeof(clientaddr);
+	clientSocket = accept(listenSocket, (struct sockaddr*)&clientaddr, &addrlen);
+	CUserToken *user = new CUserToken(clientSocket, clientaddr, NULL);
+	printf("connected client: %d\n", clientSocket);
 
-		this->callback(user);
-		addUserList(user);
+	this->callback(user);
+
+	int ErrCode;
+
+	if (!IocpHandler.Associate(clientSocket, reinterpret_cast<ULONG_PTR>(&user->SocketContext), &ErrCode))
+	{
+		printf("iocp associate error %d", ErrCode);
+		err_quit("iocp associate()");
 	}
 
+	user->_recieve(user->SocketContext.recvContext.Buffer, HEADER_SIZE);
 }
 void CReceiver::recieveProcess()
 {
-	std::list<CUserToken*>::iterator iter;
+
+/*	std::list<CUserToken*>::iterator iter;
 	for (iter = userList.begin(); iter != userList.end(); iter++){
 		if (FD_ISSET((*iter)->clientSocket, &copy_set)){
 			if (!(*iter)->recieveProcess()){
@@ -108,23 +91,56 @@ void CReceiver::recieveProcess()
 				break;
 			}
 		}
-	}
+	}*/
 }
 
-void CReceiver::addUserList(CUserToken* user)
+void CReceiver::deleteUser(CUserToken* user)
 {
-	FD_SET(user->clientSocket, &reads);
-	userList.push_back(user);
-}
-
-
-void CReceiver::deleteUserList(CUserToken* user)
-{
-	FD_CLR(user->clientSocket, &reads);
-	userList.remove(user);
+	printf("closed client:%d\n", user->clientSocket);
 	user->remove();
-
 	closesocket(user->clientSocket);
-
 	delete user;
+}
+
+void CReceiver::workerThreadProcess(){
+	PPerUserContext user = NULL;
+	PPerIoContext pPerIoCtx = NULL;
+	DWORD dwBytesTransferred = 0;
+	int ErrCode = 0;
+
+	while (TRUE)
+	{
+		BOOL bRet = IocpHandler.GetCompletionStatus(reinterpret_cast<ULONG_PTR*>(&user),
+			&dwBytesTransferred,
+			reinterpret_cast<LPOVERLAPPED*>(&pPerIoCtx),
+			&ErrCode);
+
+		if (!bRet || dwBytesTransferred == 0){
+		/*	if (!bRet)
+			{
+				WSAGetOverlappedResult(user->token->clientSocket, &pPerIoCtx->overlapped, NULL, FALSE, NULL);
+				//err_display("WSAGetOverlappedResult");
+			}*/
+
+			printf("Client Connection Close, Socket will Close.\n");
+			deleteUser(user->token);
+			return;
+			//err_quit("interserver iocp recieve complete error!");
+		}
+
+		if (pPerIoCtx == &user->token->SocketContext.recvContext){
+			user->token->SocketContext.recvContext.position += dwBytesTransferred;
+			user->token->SocketContext.recvContext.remainBytes -= dwBytesTransferred;
+			user->token->recieveProcess();
+		}
+		else if ((PPerIoContext_send)pPerIoCtx == &user->token->SocketContext.sendContext){
+			/* sendProcess */
+			//user->sendProcess();
+		}
+		else{
+			printf("interserver Send Context error.\n");
+			deleteUser(user->token);
+			return;
+		}
+	}
 }

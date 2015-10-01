@@ -30,3 +30,10 @@ typedef struct tagPerSocketContext
 	PerIoContext_send sendContext;
 
 } PerSocketContext, *PPerSocketContext;
+
+typedef struct tagPerSocketContext_userToken
+{
+	CUserToken* token;
+	PerIoContext recvContext;
+	PerIoContext_send sendContext;
+} PerUserContext, *PPerUserContext;
