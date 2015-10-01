@@ -109,6 +109,9 @@ void CPlayer::disconnect()
 
 void CPlayer::send_msg(char *buf, int size)
 {
+	if (size == 0) return;
+	if (token->clientSocket == NULL) return;
+
 	WSABUF temp;
 	temp.buf = buf;
 	temp.len = size;
