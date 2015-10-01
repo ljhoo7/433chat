@@ -256,7 +256,8 @@ void CInterServer::_recieve(char* buf, int size){
 	if (SOCKET_ERROR == ret){
 		int ErrCode = WSAGetLastError();
 		if (ErrCode != WSA_IO_PENDING){
-			err_quit("interserver recieve error!");
+			printf("interserver recieve error!");
+			disconnect();
 		}
 	}
 
@@ -318,9 +319,13 @@ void CInterServer::workerThreadProcess(){
 			&ErrCode);
 
 		if (!bRet || dwBytesTransferred == 0){
-			if (NULL == pPerIoCtx){
-				printf("Getting Completion Packet Faild %d\n", ErrCode);
+			if (!bRet)
+			{
+				DWORD temp1, temp2;
+				WSAGetOverlappedResult(pPerSocketCtx->socket, &pPerIoCtx->overlapped, NULL, FALSE, NULL);
+				err_display("WSAGetOverlappedResult");
 			}
+
 			printf("Client Connection Close, Socket will Close.\n");
 			disconnect();
 			return;
@@ -349,7 +354,12 @@ void CInterServer::sendProcess()
 	if (the_other_sock == NULL) return;
 
 	EnterCriticalSection(&sending_queue_lock);
-	if (sending_queue.size() <= 0) err_quit("interserver send complete error!");
+	if (sending_queue.size() <= 0){
+		printf("interserver send complete error!");
+		LeaveCriticalSection(&sending_queue_lock);
+
+		return;
+	}
 	WSABUF* a = sending_queue.front();
 	sending_queue.pop();
 
@@ -486,7 +496,7 @@ void CInterServer::_sendHandling(){
 	int ret = WSASend(SocketContext.socket, SocketContext.sendContext.wsaBuf, 1,
 		&dwSendBytes, dwFlags, &(SocketContext.sendContext.overlapped), NULL);
 
-//	WSABUFPoolManager->Free(wsabuf);
+	//WSABUFPoolManager->Free(wsabuf);
 
 	if (SOCKET_ERROR == ret)
 	{
