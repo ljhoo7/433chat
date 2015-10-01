@@ -321,7 +321,8 @@ void CPlayer::packetHandling(CPacket *packet)
 		memcpy(packet->msg, &type, sizeof(unsigned short));
 		playerSync((char *)packet->msg, size);
 
-		std::cout << "chat alarm message has been sent." << std::endl;		break;
+		//std::cout << "chat alarm message has been sent." << std::endl;
+		break;
 	}
 
 	this->packetPoolManager.push(packet);

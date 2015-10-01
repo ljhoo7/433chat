@@ -422,7 +422,7 @@ void CReceiver::acceptProcess()
 		printf("connected client: %d\n", ck.sock);
 
 		this->callback(user);
-		addUserList(user);
+		//addUserList(user);
 
 		// Assignment the client socket to the iocp kernel object
 		CreateIoCompletionPort((HANDLE)ck.sock, hcp, (ULONG_PTR)&ck, 0);
@@ -447,7 +447,7 @@ void CReceiver::acceptProcess()
 
 		flags = 0;
 		retval = WSARecv(ck.sock, &ptr->recv_wsabuf, 1, &recvbytes, &flags, &ptr->overlapped, NULL);
-		if (retval = SOCKET_ERROR)
+		if (retval == SOCKET_ERROR)
 		{
 			if (WSAGetLastError() != ERROR_IO_PENDING)
 			{

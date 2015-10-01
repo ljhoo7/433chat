@@ -88,7 +88,13 @@ int main(int argc, char *argv[])
 
 	g_bExitSignal = false;
 
+	CBot *tBot;
+
 	//CHECK_FAILURE(
+
+		hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+		if (hEvent == NULL)
+			return 1;
 
 		for (int m = 0; m < g_nBot_num; ++m)
 		{
@@ -103,7 +109,7 @@ int main(int argc, char *argv[])
 				time = tmp2.count();
 			}
 
-			CBot *tBot = new CBot(-1, g_nTime_span, m);
+			tBot = new CBot(-1, g_nTime_span, m);
 			t_vClient.push_back(tBot);
 
 			theRoom = (m / PLAYER_MAX);
@@ -129,10 +135,6 @@ int main(int argc, char *argv[])
 
 			start_time = std::chrono::system_clock::now();
 		}
-
-		hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-		if (hEvent == NULL)
-			return 1;
 		
 		HANDLE hServant;
 		if ((hServant = CreateThread(NULL, 0, Servant, NULL, 0, NULL)) == NULL)
