@@ -109,12 +109,13 @@ void CReceiver::workerThreadProcess(){
 
 	while (TRUE)
 	{
-		BOOL bRet = IocpHandler.GetCompletionStatus(reinterpret_cast<ULONG_PTR*>(&user),
+		BOOL bRet = IocpHandler.GetCompletionStatus((ULONG_PTR*)(&user),
 			&dwBytesTransferred,
-			reinterpret_cast<LPOVERLAPPED*>(&pPerIoCtx),
+			(LPOVERLAPPED*)(&pPerIoCtx),
 			&ErrCode);
 
-		if (!bRet || dwBytesTransferred == 0){
+		if (!bRet || dwBytesTransferred == 0)
+		{
 		/*	if (!bRet)
 			{
 				WSAGetOverlappedResult(user->token->clientSocket, &pPerIoCtx->overlapped, NULL, FALSE, NULL);
@@ -124,7 +125,6 @@ void CReceiver::workerThreadProcess(){
 			printf("Client Connection Close, Socket will Close.\n");
 			deleteUser(user->token);
 			return;
-			//err_quit("interserver iocp recieve complete error!");
 		}
 
 		if (pPerIoCtx == &user->token->SocketContext.recvContext){

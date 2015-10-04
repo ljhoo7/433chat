@@ -31,7 +31,8 @@ void CPlayer::recieveProcess()
 
 	if (t->position < HEADER_SIZE)
 	{
-		if (t->position == 0){
+		if (t->position == 0)
+		{
 			t->remainBytes = HEADER_SIZE;
 		}
 		this->token->_recieve(buf + t->position, t->remainBytes);
@@ -39,7 +40,8 @@ void CPlayer::recieveProcess()
 	}
 	else
 	{
-		if (t->position == HEADER_SIZE){
+		if (t->position == HEADER_SIZE)
+		{
 			t->isVar = FALSE;
 			pkt_type _type = (pkt_type)((unsigned short)(*buf));
 			switch (_type)
@@ -61,7 +63,6 @@ void CPlayer::recieveProcess()
 				t->remainBytes = sizeof(short);
 				break;
 			default:
-				//disconnect();
 				this->remove();
 				return;
 			}
