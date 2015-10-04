@@ -24,7 +24,6 @@ void CReceiver::start(int port, void(*callback)(CUserToken* token))
 		err_quit("Create Thread Pool Failed");
 	}
 
-
 	int retval;
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
