@@ -14,6 +14,8 @@ CPlayer::CPlayer(){
 
 CPlayer::CPlayer(bool isMine)
 {
+	this->Socket_ = NULL;
+
 	this->isMine = isMine;
 	this->nickname = "";
 	this->roomNum = -1;
@@ -148,6 +150,7 @@ void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 	}
 }
 
+/* 동기화 문제! */
 void CPlayer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		printf("disconnect success, %d\n", this->GetSocket());
@@ -168,6 +171,10 @@ void CPlayer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 	}
 	
+}
+
+void CPlayer::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
+	/* nothing to do */
 }
 
 bool CPlayer::valid_Packet(CPacket *packet)

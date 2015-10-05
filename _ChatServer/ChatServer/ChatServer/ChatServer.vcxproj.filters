@@ -22,8 +22,20 @@
     <Filter Include="CliServer\Sources">
       <UniqueIdentifier>{d9577607-4748-4189-b84a-055bc58c9faf}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CliServerClass">
-      <UniqueIdentifier>{84b72938-2aa5-453b-90f2-db30ee53ae4d}</UniqueIdentifier>
+    <Filter Include="Server">
+      <UniqueIdentifier>{ecfc4230-8fc1-4a01-81d2-5b98d807e322}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Server\Headers">
+      <UniqueIdentifier>{8e917dc8-5466-4431-ab5d-1331066dc84c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Server\Sources">
+      <UniqueIdentifier>{efd5e0b2-ac8d-4cf3-a96c-0d1af1aa3002}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="InterServer\Headers">
+      <UniqueIdentifier>{f2879c72-4d3c-478d-8799-c6fbf97e4e8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="InterServer\Sources">
+      <UniqueIdentifier>{8ff8260e-67a0-4ff6-b3c7-8ebefee5b9a1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -48,38 +60,11 @@
     <ClInclude Include="ClientProtocol.h">
       <Filter>CliServer\Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Cli.h">
-      <Filter>CliServer\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Receiver.h">
-      <Filter>CliServer\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Sender.h">
-      <Filter>CliServer\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="TcpSocket.h">
-      <Filter>CliServer\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="TcpListenSocket.h">
-      <Filter>CliServer\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Disconnector.h">
-      <Filter>CliServer\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Acceptor.h">
-      <Filter>CliServer\Headers</Filter>
-    </ClInclude>
     <ClInclude Include="MemPooler.h">
       <Filter>Lib\Headers</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="Packet.h">
-      <Filter>CliServer\Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Room.h">
-      <Filter>CliServer\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Player.h">
       <Filter>CliServer\Headers</Filter>
     </ClInclude>
     <ClInclude Include="RoomManager.h">
@@ -88,42 +73,54 @@
     <ClInclude Include="TcpClientServer.h">
       <Filter>CliServer\Headers</Filter>
     </ClInclude>
-    <ClInclude Include="InterServer.h">
+    <ClInclude Include="PlayerSocket.h">
       <Filter>CliServer\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Acceptor.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Connector.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Disconnector.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
     <ClInclude Include="LogicHandle.h">
-      <Filter>CliServer\Headers</Filter>
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Receiver.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Sender.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TcpListenSocket.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TcpSocket.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="InterConnectSocket.h">
+      <Filter>InterServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="InterSocket.h">
+      <Filter>InterServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TcpInterServer.h">
+      <Filter>InterServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Def.h">
+      <Filter>Lib\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="InterProtocol.h">
+      <Filter>InterServer\Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Acceptor.cpp">
-      <Filter>CliServer\Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Proactor.cpp">
-      <Filter>CliServer\Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="TcpSocket.cpp">
-      <Filter>CliServer\Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Receiver.cpp">
-      <Filter>CliServer\Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Sender.cpp">
-      <Filter>CliServer\Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Disconnector.cpp">
-      <Filter>CliServer\Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="TcpListenSocket.cpp">
-      <Filter>CliServer\Sources</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Packet.cpp">
-      <Filter>CliServer\Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>CliServer\Sources</Filter>
-    </ClCompile>
     <ClCompile Include="Room.cpp">
       <Filter>CliServer\Sources</Filter>
     </ClCompile>
@@ -133,8 +130,47 @@
     <ClCompile Include="TcpClientServer.cpp">
       <Filter>CliServer\Sources</Filter>
     </ClCompile>
-    <ClCompile Include="LogicHandle.cpp">
+    <ClCompile Include="PlayerSocket.cpp">
       <Filter>CliServer\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Acceptor.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Connector.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Disconnector.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicHandle.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Packet.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Proactor.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Receiver.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Sender.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TcpSocket.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TcpListenSocket.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="InterConnectSocket.cpp">
+      <Filter>InterServer\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="InterSocket.cpp">
+      <Filter>InterServer\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TcpInterServer.cpp">
+      <Filter>InterServer\Sources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

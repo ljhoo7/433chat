@@ -33,18 +33,21 @@ void TcpSocket::InitBuf()
 	ZeroMemory(AcceptBuf_, BUFSIZE);
 }
 
-void TcpSocket::InitAct(Proactor* proactor, Acceptor* acceptor, Disconnector* disconnector, Sender* sender, Receiver* receiver)
+void TcpSocket::InitAct(Proactor* proactor, Acceptor* acceptor, Disconnector* disconnector,
+	Connector* connector, Sender* sender, Receiver* receiver)
 {
 	Proactor_ = proactor;
 	Acceptor_ = acceptor;
 	Disconnector_ = disconnector;
 	Sender_ = sender;
 	Receiver_ = receiver;
+	Connector_ = connector;
 
 	Act_[ACT_ACCEPT].Init(Acceptor_, this);
 	Act_[ACT_RECV].Init(Receiver_, this);
 	Act_[ACT_SEND].Init(Sender_, this);
 	Act_[ACT_DISCONNECT].Init(Disconnector_, this);
+	Act_[ACT_CONNECT].Init(Connector_, this);
 }
 
 SOCKET TcpSocket::GetSocket() const

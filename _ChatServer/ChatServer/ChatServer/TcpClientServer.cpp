@@ -50,7 +50,7 @@ void TcpClientServer::Start()
 	{
 		CPlayer* socket = new CPlayer(true);
 		socket->Init();
-		socket->InitAct(Proactor_, Acceptor_, Disconnector_, Sender_, Receiver_);
+		socket->InitAct(Proactor_, Acceptor_, Disconnector_, NULL, Sender_, Receiver_);
 
 		Acceptor_->Register(*socket);
 	}

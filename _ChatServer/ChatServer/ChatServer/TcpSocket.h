@@ -14,7 +14,8 @@ public:
 public:
 	void Init();
 	void InitBuf();
-	void InitAct(Proactor* proactor, Acceptor* acceptor, Disconnector* disconnector, Sender* sender, Receiver* receiver);
+	void InitAct(Proactor* proactor, Acceptor* acceptor, Disconnector* disconnector,
+		Connector* connector, Sender* sender, Receiver* receiver);
 
 	SOCKET GetSocket() const;
 
@@ -24,11 +25,13 @@ public:
 	void Send(char* buf, int buflen);
 	void Reuse();
 	void Disconnect();
+	void Connect();
 
 	virtual void RecvProcess(bool isError, Act* act, DWORD bytes_transferred) = 0;
 	virtual void SendProcess(bool isError, Act* act, DWORD bytes_transferred) = 0;
 	virtual void AcceptProcess(bool isError, Act* act, DWORD bytes_transferred) = 0;
 	virtual void DisconnProcess(bool isError, Act* act, DWORD bytes_transferred) = 0;
+	virtual void ConnProcess(bool isError, Act* act, DWORD bytes_transferred) = 0;
 
 public:
 	enum ACT_TYPE
@@ -37,6 +40,7 @@ public:
 		ACT_RECV,
 		ACT_ACCEPT,
 		ACT_DISCONNECT,
+		ACT_CONNECT,
 		ACT_TYPE_CNT
 	};
 
@@ -61,5 +65,6 @@ public:
 	Disconnector*	Disconnector_;
 	Sender*			Sender_;
 	Receiver*		Receiver_;
+	Connector* Connector_;
 
 };

@@ -35,19 +35,26 @@ class Acceptor;
 class Receiver;
 class Sender;
 class Disconnector;
+class Connector;
 class TcpListenSocket;
 class TcpSocket;
 
 class WinSockBase;
 class TcpClientServer;
 
+class InterSocket;
+class InterConnectSocket;
+class TcpInterServer;
+
 #include "ClientProtocol.h"
+#include "InterProtocol.h"
 #include "MemPooler.h"
 
 #include "Acceptor.h"
 #include "Disconnector.h"
 #include "Receiver.h"
 #include "Sender.h"
+#include "Connector.h"
 
 #include "TcpAct.h"
 #include "TcpListenSocket.h"
@@ -56,8 +63,12 @@ class TcpClientServer;
 #include "WinSockBase.h"
 #include "TcpClientServer.h"
 
-#include "Player.h"
+#include "PlayerSocket.h"
 #include "Room.h"
 #include "RoomManager.h"
 #include "Packet.h"
 #include "LogicHandle.h"
+
+#include "InterSocket.h";
+#include "InterConnectSocket.h";
+#include "TcpInterServer.h";
