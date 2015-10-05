@@ -1,4 +1,5 @@
-#include "Proactor.h"
+
+#include "stdafx.h"
 
 Proactor::Proactor()
 {

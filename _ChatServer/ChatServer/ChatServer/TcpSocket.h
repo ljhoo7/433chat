@@ -2,7 +2,6 @@
 
 #define BUFSIZE 8192
 
-#include "stdafx.h"
 
 class TcpSocket
 {
@@ -19,6 +18,7 @@ public:
 
 public:
 	void Recv();
+	void Recv(BYTE* buf, int buflen);
 	void Send(BYTE* buf, int buflen);
 	void Reuse();
 	void Disconnect();

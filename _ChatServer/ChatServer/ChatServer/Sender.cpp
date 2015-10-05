@@ -1,4 +1,5 @@
-#include "Sender.h"
+
+#include "stdafx.h"
 
 void Sender::ProcEvent(Act* act, DWORD bytes_transferred)
 {

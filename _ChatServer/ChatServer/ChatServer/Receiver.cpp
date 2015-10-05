@@ -1,4 +1,5 @@
-#include "Receiver.h"
+
+#include "stdafx.h"
 
 void Receiver::ProcEvent(Act* act, DWORD bytes_transferred)
 {

@@ -1,5 +1,5 @@
-#include "TcpSocket.h"
-#include "TcpListenSocket.h"
+
+#include "stdafx.h"
 
 TcpSocket::TcpSocket()
 {
@@ -57,6 +57,27 @@ void TcpSocket::Recv()
 	DWORD recvbytes = 0;
 	DWORD flags = 0;
 
+
+	INT ret = WSARecv(Socket_, &(wsaRecvBuf), 1, &recvbytes, &flags, static_cast<OVERLAPPED*>(&(Act_[ACT_RECV])), NULL);
+
+	if (ret != 0)
+	{
+		int error = WSAGetLastError();
+
+		if (error != ERROR_IO_PENDING)
+		{
+			printf("WSARecv() Error!!! s(%d) err(%d)\n", Socket_, error);
+			Disconnect();
+		}
+	}
+}
+
+void TcpSocket::Recv(BYTE* buf, int buflen)
+{
+	DWORD recvbytes = 0;
+	DWORD flags = 0;
+	wsaRecvBuf.buf = reinterpret_cast<char*>(buf);
+	wsaRecvBuf.len = buflen;
 
 	INT ret = WSARecv(Socket_, &(wsaRecvBuf), 1, &recvbytes, &flags, static_cast<OVERLAPPED*>(&(Act_[ACT_RECV])), NULL);
 

@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <cstdio>
 #include <tchar.h>
 #include <list>
@@ -14,9 +13,6 @@
 #include <queue>
 #include <Windows.h>
 #include <process.h>
-
-#include "ClientProtocol.h"
-#include "MemPooler.h"
 
 class CPlayer;
 class CReceiver;
@@ -42,6 +38,9 @@ class TcpSocket;
 class WinSockBase;
 class TcpServer;
 
+#include "ClientProtocol.h"
+#include "MemPooler.h"
+
 #include "Acceptor.h"
 #include "Disconnector.h"
 #include "Receiver.h"
@@ -53,3 +52,6 @@ class TcpServer;
 
 #include "WinSockBase.h"
 #include "TcpServer.h"
+
+#include "Player.h"
+#include "Packet.h"

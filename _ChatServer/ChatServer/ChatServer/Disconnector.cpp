@@ -1,4 +1,5 @@
-#include "Disconnector.h"
+
+#include "stdafx.h"
 
 void Disconnector::ProcEvent(Act* act, DWORD bytes_transferred)
 {

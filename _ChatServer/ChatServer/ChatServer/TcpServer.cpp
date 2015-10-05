@@ -1,4 +1,5 @@
-#include "TcpServer.h"
+
+#include "stdafx.h"
 
 TcpServer::TcpServer()
 {
