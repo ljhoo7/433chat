@@ -1,5 +1,7 @@
 #pragma once
 
+#include "stdafx.h"
+
 class Disconnector : public Actor
 {
 public:

@@ -1,5 +1,6 @@
+#pragma once
 
-#include "cli.h"
+#include "stdafx.h"
 
 CPlayer::CPlayer(bool isMine, int cnt)
 {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "stdafx.h"
+
 #define BUFSIZE 8192
 
 
