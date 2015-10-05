@@ -1,4 +1,5 @@
-#include "stdafx.h"
+#include "TcpSocket.h"
+#include "TcpListenSocket.h"
 
 TcpSocket::TcpSocket()
 {

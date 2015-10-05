@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "Acceptor.h"
 
 void Acceptor::ProcEvent(Act* act, DWORD bytes_transferred)
 {
