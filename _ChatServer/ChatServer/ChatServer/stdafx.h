@@ -9,11 +9,8 @@
 
 #include <WinSock2.h>
 #include <MSWSock.h>
-#include <thread>
-#include <queue>
-#include <Windows.h>
-#include <process.h>
-#include <assert.h>
+
+class LogWriter;
 
 class Actor;
 class Proactor;

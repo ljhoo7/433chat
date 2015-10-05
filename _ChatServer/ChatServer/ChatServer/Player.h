@@ -1,23 +1,40 @@
 #pragma once
 
-class CPlayer
+struct msg_buffer{
+	char buf[BUFSIZE];
+};
+
+class CPlayer : public TcpSocket 
 {
 public:
 	CPlayer();
+	CPlayer(bool isMine);
+
 	~CPlayer();
 
+public:
 	bool isMine;
 	std::string nickname;
 	int roomNum;
-	TcpSocket* token;
 	// token ( it has the other meaning )
 	int identifier;
 
-	CPlayer(bool isMine, int cnt);
+	int position;
+	int remainBytes;
+	bool isVar;
 
+	MemPooler<msg_buffer> *poolManager;
+	MemPooler<CPacket> *packetPoolManager;
+
+	
+public:
 	bool valid_Packet(CPacket *packet);
 	void playerSync(char *buf, int size);
-	void remove();
 	void packetHandling(CPacket *packet);
+
+	void RecvProcess(bool isError, Act* act, DWORD bytes_transferred);
+	void SendProcess(bool isError, Act* act, DWORD bytes_transferred);
+	void AcceptProcess(bool isError, Act* act, DWORD bytes_transferred);
+	void DisconnProcess(bool isError, Act* act, DWORD bytes_transferred);
 };
 

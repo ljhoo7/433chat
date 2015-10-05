@@ -14,14 +14,17 @@
 #include <Windows.h>
 #include <process.h>
 
+#define ROOM_MAX 100
+#define TOTAL_PLAYER 1000
+
+// one room
+#define PLAYER_MAX 10
+#define HEADER_SIZE 2
+
 class CPlayer;
-class CReceiver;
 
 class CPacket;
 class CUserToken;
-
-class CBufPoolManager;
-class CPacketPoolManager;
 
 class CLogicHandle;
 
@@ -36,7 +39,7 @@ class TcpListenSocket;
 class TcpSocket;
 
 class WinSockBase;
-class TcpServer;
+class TcpClientServer;
 
 #include "ClientProtocol.h"
 #include "MemPooler.h"
@@ -51,7 +54,10 @@ class TcpServer;
 #include "TcpSocket.h"
 
 #include "WinSockBase.h"
-#include "TcpServer.h"
+#include "TcpClientServer.h"
 
 #include "Player.h"
+#include "Room.h"
+#include "RoomManager.h"
 #include "Packet.h"
+#include "LogicHandle.h"

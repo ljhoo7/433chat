@@ -14,7 +14,7 @@ void Acceptor::ProcEvent(Act* act, DWORD bytes_transferred)
 
 	Proactor_->Register((HANDLE)(tcpsocket.GetSocket()));
 
-	tcpsocket.Recv();
+	tcpsocket.AcceptProcess(false, act, bytes_transferred);
 }
 
 void Acceptor::ProcError(Act* act, DWORD error)
@@ -28,6 +28,8 @@ void Acceptor::ProcError(Act* act, DWORD error)
 	TcpSocket& tcpsocket = *tcpact.TcpSocket_;
 
 	printf("...에러처리 Acceptor s(%d) err(%d)\n", tcpsocket.GetSocket(), error);
+
+	tcpsocket.AcceptProcess(true, act, error);
 }
 
 void Acceptor::Init(TcpListenSocket* tcplistensocket, Proactor* proactor)

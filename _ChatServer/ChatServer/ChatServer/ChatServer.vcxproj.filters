@@ -57,9 +57,6 @@
     <ClInclude Include="Sender.h">
       <Filter>CliServer\Headers</Filter>
     </ClInclude>
-    <ClInclude Include="TcpServer.h">
-      <Filter>CliServer\Headers</Filter>
-    </ClInclude>
     <ClInclude Include="TcpSocket.h">
       <Filter>CliServer\Headers</Filter>
     </ClInclude>
@@ -72,31 +69,37 @@
     <ClInclude Include="Acceptor.h">
       <Filter>CliServer\Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>CliServerClass</Filter>
-    </ClInclude>
-    <ClInclude Include="Room.h">
-      <Filter>CliServerClass</Filter>
-    </ClInclude>
-    <ClInclude Include="RoomManager.h">
-      <Filter>CliServerClass</Filter>
-    </ClInclude>
-    <ClInclude Include="Packet.h">
-      <Filter>CliServerClass</Filter>
-    </ClInclude>
     <ClInclude Include="MemPooler.h">
       <Filter>Lib\Headers</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Packet.h">
+      <Filter>CliServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Room.h">
+      <Filter>CliServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>CliServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="RoomManager.h">
+      <Filter>CliServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TcpClientServer.h">
+      <Filter>CliServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="InterServer.h">
+      <Filter>CliServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="LogicHandle.h">
+      <Filter>CliServer\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Acceptor.cpp">
       <Filter>CliServer\Sources</Filter>
     </ClCompile>
     <ClCompile Include="Proactor.cpp">
-      <Filter>CliServer\Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="TcpServer.cpp">
       <Filter>CliServer\Sources</Filter>
     </ClCompile>
     <ClCompile Include="TcpSocket.cpp">
@@ -115,17 +118,23 @@
       <Filter>CliServer\Sources</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Packet.cpp">
+      <Filter>CliServer\Sources</Filter>
+    </ClCompile>
     <ClCompile Include="Player.cpp">
-      <Filter>CliServerClass</Filter>
+      <Filter>CliServer\Sources</Filter>
     </ClCompile>
     <ClCompile Include="Room.cpp">
-      <Filter>CliServerClass</Filter>
+      <Filter>CliServer\Sources</Filter>
     </ClCompile>
     <ClCompile Include="RoomManager.cpp">
-      <Filter>CliServerClass</Filter>
+      <Filter>CliServer\Sources</Filter>
     </ClCompile>
-    <ClCompile Include="Packet.cpp">
-      <Filter>CliServerClass</Filter>
+    <ClCompile Include="TcpClientServer.cpp">
+      <Filter>CliServer\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicHandle.cpp">
+      <Filter>CliServer\Sources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

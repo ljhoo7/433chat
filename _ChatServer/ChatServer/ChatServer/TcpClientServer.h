@@ -2,12 +2,11 @@
 
 #include "stdafx.h"
 
-class TcpServer : public WinSockBase
+class TcpClientServer : public WinSockBase
 {
 public:
-	TcpServer();
-
-public:
+	TcpClientServer();
+	TcpClientServer(WORD Port, int ThreadPoolSize, int SocketPoolSize);
 	void Start();
 
 public:

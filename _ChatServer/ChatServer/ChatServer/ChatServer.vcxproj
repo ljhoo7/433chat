@@ -69,6 +69,8 @@
     <ClInclude Include="Actor.h" />
     <ClInclude Include="Cli.h" />
     <ClInclude Include="ClientProtocol.h" />
+    <ClInclude Include="InterServer.h" />
+    <ClInclude Include="LogicHandle.h" />
     <ClInclude Include="MemPooler.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="Player.h" />
@@ -82,12 +84,13 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TcpAct.h" />
     <ClInclude Include="TcpListenSocket.h" />
-    <ClInclude Include="TcpServer.h" />
+    <ClInclude Include="TcpClientServer.h" />
     <ClInclude Include="TcpSocket.h" />
     <ClInclude Include="WinSockBase.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Acceptor.cpp" />
+    <ClCompile Include="LogicHandle.cpp" />
     <ClCompile Include="Packet.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Disconnector.cpp" />
@@ -98,7 +101,7 @@
     <ClCompile Include="RoomManager.cpp" />
     <ClCompile Include="Sender.cpp" />
     <ClCompile Include="TcpListenSocket.cpp" />
-    <ClCompile Include="TcpServer.cpp" />
+    <ClCompile Include="TcpClientServer.cpp" />
     <ClCompile Include="TcpSocket.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

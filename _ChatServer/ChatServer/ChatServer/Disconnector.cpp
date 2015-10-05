@@ -12,8 +12,11 @@ void Disconnector::ProcEvent(Act* act, DWORD bytes_transferred)
 
 	assert(tcpsocket.Acceptor_);
 
+	tcpsocket.DisconnProcess(false, act, bytes_transferred);
 	// reuse socket
 	tcpsocket.Reuse();
+
+	
 }
 
 void Disconnector::ProcError(Act* act, DWORD error)
@@ -27,6 +30,8 @@ void Disconnector::ProcError(Act* act, DWORD error)
 	TcpSocket& tcpsocket = *tcpact.TcpSocket_;
 
 	printf("...에러처리 Disconnector s(%d) err(%d)\n", tcpsocket.GetSocket(), error);
+
+	tcpsocket.DisconnProcess(true, act, error);
 }
 
 void Disconnector::Init(Proactor* proactor)

@@ -47,6 +47,7 @@ void Proactor::ProcEvents()
 
 		OVERLAPPED* overlapped = NULL;
 
+	//printf("thread ready\n");
 		BOOL status = ::GetQueuedCompletionStatus(Iocp_, &bytes_transferred, static_cast<PULONG_PTR>(&completionkey), &overlapped, TimeOut_);
 
 		if (status == TRUE)

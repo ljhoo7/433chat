@@ -20,10 +20,15 @@ public:
 
 public:
 	void Recv();
-	void Recv(BYTE* buf, int buflen);
-	void Send(BYTE* buf, int buflen);
+	void Recv(char* buf, int buflen);
+	void Send(char* buf, int buflen);
 	void Reuse();
 	void Disconnect();
+
+	virtual void RecvProcess(bool isError, Act* act, DWORD bytes_transferred) = 0;
+	virtual void SendProcess(bool isError, Act* act, DWORD bytes_transferred) = 0;
+	virtual void AcceptProcess(bool isError, Act* act, DWORD bytes_transferred) = 0;
+	virtual void DisconnProcess(bool isError, Act* act, DWORD bytes_transferred) = 0;
 
 public:
 	enum ACT_TYPE
@@ -42,10 +47,10 @@ public:
 	SOCKADDR_IN		Addr_;
 
 public:
-	char			AcceptBuf_[BUFSIZE];
+	char			AcceptBuf_[BUFSIZE]; //may not use
 
 	char			RecvBuf_[BUFSIZE];
-	char			SendBuf_[BUFSIZE];
+	char			SendBuf_[BUFSIZE]; //may not use
 
 	WSABUF			wsaRecvBuf;
 	WSABUF			wsaSendBuf;

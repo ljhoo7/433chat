@@ -72,11 +72,11 @@ void TcpSocket::Recv()
 	}
 }
 
-void TcpSocket::Recv(BYTE* buf, int buflen)
+void TcpSocket::Recv(char* buf, int buflen)
 {
 	DWORD recvbytes = 0;
 	DWORD flags = 0;
-	wsaRecvBuf.buf = reinterpret_cast<char*>(buf);
+	wsaRecvBuf.buf = buf;
 	wsaRecvBuf.len = buflen;
 
 	INT ret = WSARecv(Socket_, &(wsaRecvBuf), 1, &recvbytes, &flags, static_cast<OVERLAPPED*>(&(Act_[ACT_RECV])), NULL);
@@ -93,10 +93,11 @@ void TcpSocket::Recv(BYTE* buf, int buflen)
 	}
 }
 
-void TcpSocket::Send(BYTE* buf, int buflen)
+void TcpSocket::Send(char* buf, int buflen)
 {
+	if (buflen == 0) return;
 	DWORD sentbytes = 0;
-	wsaSendBuf.buf = reinterpret_cast<char*>(buf);
+	wsaSendBuf.buf = buf;
 	wsaSendBuf.len = buflen;
 
 	INT ret = WSASend(Socket_, &(wsaSendBuf), 1, &sentbytes, 0, static_cast<OVERLAPPED*>(&(Act_[ACT_SEND])), NULL);
