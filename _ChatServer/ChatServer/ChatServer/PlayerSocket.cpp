@@ -1,147 +1,180 @@
+#pragma once
+
 #include "stdafx.h"
 
 extern CRoomManager roomManager;
 extern CLogicHandle logicHandle;
 
-extern CInterServer listen_server;
-extern CInterServer connect_server;
-
-extern CReceiver receiver;
-
 extern int identifier_seed;
 extern std::list<CPlayer*> g_vPlayers;
 
-CPlayer::CPlayer(bool isMine) : poolManager(10), packetPoolManager(10)
+CPlayer::CPlayer(){
+
+}
+
+CPlayer::CPlayer(bool isMine)
 {
+	this->Socket_ = NULL;
+
 	this->isMine = isMine;
 	this->nickname = "";
 	this->roomNum = -1;
-	this->identifier = identifier_seed++;
+	this->identifier = -1;
+
+	this->position = 0;
+	this->remainBytes = HEADER_SIZE;
+	this->isVar = false;
+
+	poolManager = new MemPooler<msg_buffer>(10);
+	if (!poolManager){
+		/* error handling */
+		return;
+	}
+
+	packetPoolManager = new MemPooler<CPacket>(10);
+	if (!packetPoolManager){
+		/* error handling */
+		return;
+	}
 }
 
-void CPlayer::recieveProcess()
-{
-	PPerIoContext t = &this->token->SocketContext.recvContext;
-	if (token->clientSocket == NULL)
-	{
-		std::cout << "There is a weired UserToken which has note connecd socket." << std::endl;
-		return;
-	}
-	char* buf = this->token->SocketContext.recvContext.Buffer;
+void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
+	if (!isError){
+		if (bytes_transferred == 0){
+			Disconnect();
+		}
 
-	if (t->position < HEADER_SIZE)
-	{
-		if (t->position == 0)
-		{
-			t->remainBytes = HEADER_SIZE;
+
+		this->position += bytes_transferred;
+		this->remainBytes -= bytes_transferred;
+
+		if (this->GetSocket() == NULL){
+			/* error handling */
 		}
-		this->token->_recieve(buf + t->position, t->remainBytes);
-		return;
-	}
-	else
-	{
-		if (t->position == HEADER_SIZE)
-		{
-			t->isVar = FALSE;
-			pkt_type _type = (pkt_type)((unsigned short)(*buf));
-			switch (_type)
-			{
-			case pkt_type::pt_create:
-				t->remainBytes = sizeof(t_create)-2;
-				break;
-			case pkt_type::pt_destroy:
-				t->remainBytes = sizeof(t_destroy)-2;
-				break;
-			case pkt_type::pt_join:
-				t->remainBytes = sizeof(t_join)-2;
-				break;
-			case pkt_type::pt_leave:
-				t->remainBytes = sizeof(t_leave)-2;
-				break;
-			case pkt_type::pt_chat:
-				t->isVar = TRUE;
-				t->remainBytes = sizeof(short);
-				break;
-			default:
-				this->remove();
-				return;
-			}
-		}
-		if (t->remainBytes <= 0)
-		{
-			if (t->isVar)
-			{
-				int typePlusLength = HEADER_SIZE << 1;
-				if (t->position == typePlusLength){
-					memcpy(&t->remainBytes, buf + HEADER_SIZE, sizeof(short));
-					t->remainBytes -= typePlusLength;
+		else{
+			char* buf = this->RecvBuf_;
+
+			if (this->position < HEADER_SIZE){
+				if (position == 0){
+					remainBytes = HEADER_SIZE;
 				}
-				t->isVar = false;
+				Recv(buf + position, remainBytes);
 			}
-			else
-			{
-				char* buf = poolManager.pop();
-				CPacket* msg = packetPoolManager.pop();
-				msg->type = 2;
-				msg->owner = this->token;
-				msg->msg = buf;
-				memcpy(buf, t->Buffer, BUFSIZE);
-				logicHandle.enqueue_oper(msg, false);
+			else{
+				if (position == HEADER_SIZE){
+					isVar = false;
+					pkt_type _type = (pkt_type)((unsigned short)(*buf));
+					switch (_type)
+					{
+						case pkt_type::pt_create:
+							remainBytes = sizeof(t_create)-2;
+							break;
+						case pkt_type::pt_destroy:
+							remainBytes = sizeof(t_destroy)-2;
+							break;
+						case pkt_type::pt_join:
+							remainBytes = sizeof(t_join)-2;
+							break;
+						case pkt_type::pt_leave:
+							remainBytes = sizeof(t_leave)-2;
+							break;
+						case pkt_type::pt_chat:
+							isVar = true;
+							remainBytes = sizeof(short);
+							break;
+						default:
+							Disconnect();
+					}
+				}
+				
+				if (remainBytes <= 0)
+				{
+					if (isVar)
+					{
+						int typePlusLength = HEADER_SIZE << 1;
+						if (position == typePlusLength){
+							memcpy(&remainBytes, buf + HEADER_SIZE, sizeof(short));
+							remainBytes -= typePlusLength;
+						}
+						isVar = false;
+					}
+					else
+					{
+						position = 0;
+						msg_buffer* buf_ = poolManager->Alloc();
+						CPacket* msg = packetPoolManager->Alloc();
+						msg->type = 2;
+						msg->owner = this;
+						msg->msg = buf_->buf;
+						memcpy(msg->msg, buf, BUFSIZE);
 
-				t->position = 0;
-				t->remainBytes = HEADER_SIZE;
+						printf("msg complete!\n");
+
+						position = 0;
+						remainBytes = HEADER_SIZE;
+						logicHandle.enqueue_oper(msg, false);
+					}
+				}
+				Recv(buf + position, remainBytes);
 			}
 		}
-		this->token->_recieve(buf + t->position, t->remainBytes);
-		return;
 	}
-	return;
+	else{
+		/* error handling */
+		Disconnect();
+	}
+	
 }
 
-void CPlayer::disconnect()
-{
-	if (token->clientSocket != NULL)
-	{
-		printf("closed a connection with a client.\n");
-		closesocket(token->clientSocket);
-		token->clientSocket = NULL;
+void CPlayer::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
+	if (!isError){
+		printf("send success\n");
+	}
+	else{
+
 	}
 }
 
-void CPlayer::send_msg(char *buf, int size)
-{
-	if (size == 0) return;
-	if (token->clientSocket == NULL) return;
+void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
+	if (!isError){
+		printf("connect success, %d\n", this->GetSocket());
+		this->identifier = identifier_seed++;
+		g_vPlayers.push_back(this);
 
-	WSABUF temp;
-	temp.buf = buf;
-	temp.len = size;
+		/* inter connection message send */
 
-	token->SocketContext.sendContext.wsaBuf = &temp;
+		Recv(this->RecvBuf_, HEADER_SIZE);
+	}
+	else{
+		/* error handling */
+	}
+}
 
-	DWORD dwSendBytes = 0;
-	DWORD dwFlags = 0;
+/* 동기화 문제! */
+void CPlayer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
+	if (!isError){
+		printf("disconnect success, %d\n", this->GetSocket());
+		CRoom* room = roomManager.findRoom(this->roomNum);
 
-	ZeroMemory(&token->SocketContext.sendContext.overlapped, sizeof(WSAOVERLAPPED));
-
-	int ret = WSASend(token->clientSocket, token->SocketContext.sendContext.wsaBuf, 1,
-		&dwSendBytes, dwFlags, &(token->SocketContext.sendContext.overlapped), NULL);
-
-	//WSABUFPoolManager->Free(wsabuf);
-
-	if (SOCKET_ERROR == ret)
-	{
-		int ErrCode = WSAGetLastError();
-		if (ErrCode != WSA_IO_PENDING)
+		if (room != NULL)
 		{
-			err_quit("interserver send queue process error!");
-			return;
+			printf("remove in room...\n");
 		}
+
+		if (this->GetSocket() != NULL){
+
+		}
+		/* remove in list */
+		g_vPlayers.remove(this);
 	}
+	else{
+
+	}
+	
 }
 
-void CPlayer::recieve_msg(char* buf, int size)
-{
+void CPlayer::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
+	/* nothing to do */
 }
 
 bool CPlayer::valid_Packet(CPacket *packet)
@@ -184,21 +217,11 @@ bool CPlayer::valid_Packet(CPacket *packet)
 	return true;
 }
 
-void CPlayer::playerSync(char *buf, int size)
-{
-	if (listen_server.the_other_sock != NULL)
-	{
-		listen_server._send(buf, size);
-	}
-	if (connect_server.the_other_sock != NULL)
-	{
-		connect_server._send(buf, size);
-	}
+void CPlayer::playerSync(char *buf, int size){
 }
 
-void CPlayer::packetHandling(CPacket *packet)
-{
-	if (token->clientSocket == NULL)
+void CPlayer::packetHandling(CPacket *packet){
+	if (Socket_ == NULL)
 	{
 		return;
 	}
@@ -234,17 +257,17 @@ void CPlayer::packetHandling(CPacket *packet)
 		result = roomManager.createRoom(tmpCreate->room_num);
 		if (result == -1)
 		{
-			ss_create* msg = (ss_create *)poolManager.pop();
+		/*	ss_create* msg = (ss_create *)poolManager.pop();
 			msg->type = ssType::pkt_create;
 			msg->client_socket = token->clientSocket;
 			msg->room_num = tmpCreate->room_num;
 			playerSync((char *)msg, sizeof(*msg));
-			std::cout << "create has been sent." << std::endl;
+			std::cout << "create has been sent." << std::endl;*/
 
 			//------------------------------------------------------------------------
 
 			tmpCreateSuccess.type = pkt_type::pt_create_success;
-			send_msg((char *)&tmpCreateSuccess, sizeof(t_create_success));
+			Send((char *)&tmpCreateSuccess, sizeof(t_create_success));
 			std::cout << "create message has been sent." << std::endl;
 		}
 		else if (result == fail_signal::fs_overflow)
@@ -252,7 +275,7 @@ void CPlayer::packetHandling(CPacket *packet)
 			tmpCreateFailure.type = pkt_type::pt_create_failure;
 			tmpCreateFailure.fail_signal = fail_signal::fs_overflow;
 
-			send_msg((char *)&tmpCreateFailure, sizeof(t_create_failure));
+			Send((char *)&tmpCreateFailure, sizeof(t_create_failure));
 			std::cout << "create overflow message has been sent." << std::endl;
 		}
 		else if (result == fail_signal::fs_alreadyexist)
@@ -260,7 +283,7 @@ void CPlayer::packetHandling(CPacket *packet)
 			tmpCreateFailure.type = pkt_type::pt_create_failure;
 			tmpCreateFailure.fail_signal = fail_signal::fs_alreadyexist;
 
-			send_msg((char *)&tmpCreateFailure, sizeof(t_create_failure));
+			Send((char *)&tmpCreateFailure, sizeof(t_create_failure));
 			std::cout << "create already exist message has been sent." << std::endl;
 		}
 		break;
@@ -269,16 +292,16 @@ void CPlayer::packetHandling(CPacket *packet)
 		result = roomManager.destroyRoom(tmpDestroy->room_num);
 		if (result == -1)
 		{
-			ss_destroy* msg = (ss_destroy*)poolManager.pop();
+			/*ss_destroy* msg = (ss_destroy*)poolManager.pop();
 			msg->type = ssType::pkt_destroy;
 			msg->client_socket = token->clientSocket;
 			msg->room_num = tmpDestroy->room_num;
-			playerSync((char *)msg, sizeof(*msg));
+			playerSync((char *)msg, sizeof(*msg));*/
 
 			//------------------------------------------------------------------------
 
 			tmpDestroySuccess.type = pkt_type::pt_destroy_success;
-			send_msg((char *)&tmpDestroySuccess, sizeof(t_destroy_success));
+			Send((char *)&tmpDestroySuccess, sizeof(t_destroy_success));
 			std::cout << "destroy success message has been sent." << std::endl;
 		}
 		else if (result == fail_signal::fs_no_exist)
@@ -286,7 +309,7 @@ void CPlayer::packetHandling(CPacket *packet)
 			tmpDestroyFailure.type = pkt_type::pt_destroy_failure;
 			tmpDestroyFailure.fail_signal = fail_signal::fs_no_exist;
 
-			send_msg((char *)&tmpDestroyFailure, sizeof(t_destroy_failure));
+			Send((char *)&tmpDestroyFailure, sizeof(t_destroy_failure));
 			std::cout << "destroy no exist message has been sent." << std::endl;
 		}
 		break;
@@ -297,21 +320,21 @@ void CPlayer::packetHandling(CPacket *packet)
 		result = roomManager.enterRoom(this, tmpJoin->room_num);
 		if (result == -1)
 		{
-			ss_join* msg = (ss_join *)poolManager.pop();
+			/*ss_join* msg = (ss_join *)poolManager.pop();
 			msg->type = ssType::pkt_join;
 			msg->client_socket = token->clientSocket;
 			msg->room_num = tmpJoin->room_num;
 			memcpy(msg->nickname, tmpJoin->nickname, sizeof(msg->nickname));
 			playerSync((char *)msg, sizeof(*msg));
 
-			std::cout << "join message has been sent." << std::endl;
+			std::cout << "join message has been sent." << std::endl;*/
 
 			//------------------------------------------------------------------------
 
 			tmpJoinSuccess.type = pkt_type::pt_join_success;
 			tmpJoinSuccess.token = this->identifier;
 
-			send_msg((char *)&tmpJoinSuccess, sizeof(t_join_success));
+			Send((char *)&tmpJoinSuccess, sizeof(t_join_success));
 			std::cout << "join success message has been sent." << std::endl;
 
 
@@ -321,7 +344,7 @@ void CPlayer::packetHandling(CPacket *packet)
 			tmpJoinFailure.type = pkt_type::pt_join_failure;
 			tmpJoinFailure.fail_signal = fail_signal::fs_overflow;
 
-			send_msg((char *)&tmpJoinFailure, sizeof(t_join_failure));
+			Send((char *)&tmpJoinFailure, sizeof(t_join_failure));
 			std::cout << "join overflow message has been sent." << std::endl;
 		}
 		else if (result == fail_signal::fs_alreadyexist)
@@ -329,7 +352,7 @@ void CPlayer::packetHandling(CPacket *packet)
 			tmpJoinFailure.type = pkt_type::pt_join_failure;
 			tmpJoinFailure.fail_signal = fail_signal::fs_alreadyexist;
 
-			send_msg((char *)&tmpJoinFailure, sizeof(t_join_failure));
+			Send((char *)&tmpJoinFailure, sizeof(t_join_failure));
 			std::cout << "join alreadyexist message has been sent." << std::endl;
 		}
 		else if (result == fail_signal::fs_no_exist)
@@ -337,7 +360,7 @@ void CPlayer::packetHandling(CPacket *packet)
 			tmpJoinFailure.type = pkt_type::pt_join_failure;
 			tmpJoinFailure.fail_signal = fail_signal::fs_no_exist;
 
-			send_msg((char *)&tmpJoinFailure, sizeof(t_join_failure));
+			Send((char *)&tmpJoinFailure, sizeof(t_join_failure));
 			std::cout << "join no exist message has been sent." << std::endl;
 		}
 		break;
@@ -348,18 +371,18 @@ void CPlayer::packetHandling(CPacket *packet)
 
 		if (_result == true)
 		{
-			ss_leave* msg = (ss_leave *)poolManager.pop();
+			/*ss_leave* msg = (ss_leave *)poolManager.pop();
 			msg->type = ssType::pkt_leave;
 			msg->client_socket = token->clientSocket;
 			msg->room_num = tmpLeave->room_num;
 			msg->token = tmpLeave->token;
 			memcpy(msg->nickname, tmpLeave->nickname, sizeof(msg->nickname));
-			playerSync((char *)msg, sizeof(*msg));
+			playerSync((char *)msg, sizeof(*msg));*/
 
 			//------------------------------------------------------------------------
 
 			tmpLeaveSuccess.type = pkt_type::pt_leave_success;
-			send_msg((char *)&tmpLeaveSuccess, sizeof(t_leave_success));
+			Send((char *)&tmpLeaveSuccess, sizeof(t_leave_success));
 
 			std::cout << "leave success message has been sent." << std::endl;
 		}
@@ -378,59 +401,13 @@ void CPlayer::packetHandling(CPacket *packet)
 		roomManager.findRoom(this->roomNum)->broadcast_msg(packet->msg, size);
 
 
-		type = ssType::pkt_chat;
+	/*	type = ssType::pkt_chat;
 		memcpy(packet->msg, &type, sizeof(unsigned short));
 		playerSync((char *)packet->msg, size);
 
-		std::cout << "chat alarm message has been sent." << std::endl;		break;
+		std::cout << "chat alarm message has been sent." << std::endl;		*/break;
 	}
 
-	//this->poolManager.push(packet->msg);
-	this->packetPoolManager.push(packet);
-}
-
-void CPlayer::remove()
-{
-	CRoom* room = roomManager.findRoom(this->roomNum);
-
-	if (room != NULL)
-	{
-		//-----------------------------------------------
-		char* sendMsg = poolManager.pop();
-		ss_leave* msg = (ss_leave*)sendMsg;
-		msg->type = ssType::pkt_leave;
-		msg->client_socket = this->token->clientSocket;
-		msg->room_num = this->roomNum;
-		memcpy(msg->nickname, this->nickname.c_str(), sizeof(msg->nickname));
-
-		if (listen_server.the_other_sock == NULL)
-		{
-			connect_server._send((char *)msg, sizeof(ss_leave));
-		}
-		else
-		{
-			listen_server._send((char *)msg, sizeof(ss_leave));
-		}
-		roomManager.leaveRoom(this, this->roomNum);
-
-		printf("remove in room...\n");
-	}
-
-	if (token->clientSocket != NULL){
-		char* sendMsg = poolManager.pop();
-		ss_disconnect* tmpDisconnect = (ss_disconnect*)sendMsg;
-
-		tmpDisconnect->type = ssType::pkt_disconnect;
-		tmpDisconnect->client_socket = this->token->clientSocket;
-
-		if (listen_server.the_other_sock == NULL)
-		{
-			connect_server._send((char *)tmpDisconnect, sizeof(ss_disconnect));
-		}
-		else{
-			listen_server._send((char *)tmpDisconnect, sizeof(ss_disconnect));
-		}
-	}
-	/* remove in list */
-	g_vPlayers.remove(this);
+	poolManager->Free((msg_buffer *)packet->msg);
+	packetPoolManager->Free(packet);
 }

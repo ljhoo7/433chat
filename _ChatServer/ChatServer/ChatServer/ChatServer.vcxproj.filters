@@ -1,0 +1,176 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Lib">
+      <UniqueIdentifier>{f3b2e6b0-b981-4dfe-bce2-7ecc6dd75c35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="InterServer">
+      <UniqueIdentifier>{e7f5c00d-0c52-4a9a-aae9-650fc8576684}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CliServer">
+      <UniqueIdentifier>{395fc639-c914-4554-8490-e3a35ee50332}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lib\Sources">
+      <UniqueIdentifier>{71e6d110-091c-4148-885d-5aef2a3e1574}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lib\Headers">
+      <UniqueIdentifier>{c1779445-4c7d-4742-9c11-03afa19e9a32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CliServer\Headers">
+      <UniqueIdentifier>{da5eb418-e788-4cc6-810a-1efb64af4d6a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CliServer\Sources">
+      <UniqueIdentifier>{d9577607-4748-4189-b84a-055bc58c9faf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Server">
+      <UniqueIdentifier>{ecfc4230-8fc1-4a01-81d2-5b98d807e322}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Server\Headers">
+      <UniqueIdentifier>{8e917dc8-5466-4431-ab5d-1331066dc84c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Server\Sources">
+      <UniqueIdentifier>{efd5e0b2-ac8d-4cf3-a96c-0d1af1aa3002}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="InterServer\Headers">
+      <UniqueIdentifier>{f2879c72-4d3c-478d-8799-c6fbf97e4e8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="InterServer\Sources">
+      <UniqueIdentifier>{8ff8260e-67a0-4ff6-b3c7-8ebefee5b9a1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Act.h">
+      <Filter>Lib\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Lib\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Actor.h">
+      <Filter>Lib\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Proactor.h">
+      <Filter>Lib\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TcpAct.h">
+      <Filter>Lib\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="WinSockBase.h">
+      <Filter>Lib\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientProtocol.h">
+      <Filter>CliServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="MemPooler.h">
+      <Filter>Lib\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Room.h">
+      <Filter>CliServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="RoomManager.h">
+      <Filter>CliServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TcpClientServer.h">
+      <Filter>CliServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerSocket.h">
+      <Filter>CliServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Acceptor.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Connector.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Disconnector.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="LogicHandle.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Receiver.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Sender.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TcpListenSocket.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TcpSocket.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="InterConnectSocket.h">
+      <Filter>InterServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="InterSocket.h">
+      <Filter>InterServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TcpInterServer.h">
+      <Filter>InterServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Def.h">
+      <Filter>Lib\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="InterProtocol.h">
+      <Filter>InterServer\Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Room.cpp">
+      <Filter>CliServer\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="RoomManager.cpp">
+      <Filter>CliServer\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TcpClientServer.cpp">
+      <Filter>CliServer\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerSocket.cpp">
+      <Filter>CliServer\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Acceptor.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Connector.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Disconnector.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicHandle.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Packet.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Proactor.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Receiver.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Sender.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TcpSocket.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TcpListenSocket.cpp">
+      <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="InterConnectSocket.cpp">
+      <Filter>InterServer\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="InterSocket.cpp">
+      <Filter>InterServer\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TcpInterServer.cpp">
+      <Filter>InterServer\Sources</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
