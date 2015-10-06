@@ -1,45 +1,45 @@
 #include "stdafx.h"
 
-extern TcpInterServer* g_listenServer;
-extern TcpInterServer* g_connectServer;
+extern TcpInterServer* listenServer;
+extern TcpInterServer* connectServer;
 
 CLogicHandle::CLogicHandle()
 {
-	InitializeCriticalSection(&operation_lock);
-	InitializeCriticalSection(&inter_operation_lock);
+	InitializeCriticalSection(&operationLock);
+	InitializeCriticalSection(&interOperationLock);
 }
 CLogicHandle::~CLogicHandle()
 {
-	DeleteCriticalSection(&operation_lock);
-	DeleteCriticalSection(&inter_operation_lock);
+	DeleteCriticalSection(&operationLock);
+	DeleteCriticalSection(&interOperationLock);
 }
 
-void CLogicHandle::enqueue_oper(CPacket* msg, bool interServer)
+void CLogicHandle::EnqueueOper(CPacket* msg, bool interServer)
 {
 	if (!interServer)
 	{
-		EnterCriticalSection(&operation_lock);
-		operation_queue.push(msg);
+		EnterCriticalSection(&operationLock);
+		operationQueue.push(msg);
 		//_event.Set();
-		LeaveCriticalSection(&operation_lock);
+		LeaveCriticalSection(&operationLock);
 	}
 	else
 	{
-		EnterCriticalSection(&inter_operation_lock);
-		inter_operation_queue.push(msg);
+		EnterCriticalSection(&interOperationLock);
+		interOperationQueue.push(msg);
 		//_event.Set();
-		LeaveCriticalSection(&inter_operation_lock);
+		LeaveCriticalSection(&interOperationLock);
 	}
 
 }
 
-void CLogicHandle::process()
+void CLogicHandle::Process()
 {
 	while (true)
 	{
-		if (inter_operation_queue.size() <= 0)
+		if (interOperationQueue.size() <= 0)
 		{
-			if (operation_queue.size() <= 0)
+			if (operationQueue.size() <= 0)
 			{
 				continue;
 				/* wait! */
@@ -47,20 +47,20 @@ void CLogicHandle::process()
 			}
 			CPacket* packet = nullptr;
 
-			EnterCriticalSection(&operation_lock);
-			if (operation_queue.size() > 0)
+			EnterCriticalSection(&operationLock);
+			if (operationQueue.size() > 0)
 			{
-				packet = operation_queue.front();
-				operation_queue.pop();
+				packet = operationQueue.front();
+				operationQueue.pop();
 			}
-			LeaveCriticalSection(&operation_lock);
+			LeaveCriticalSection(&operationLock);
 
 			if (packet != nullptr)
 			{
 				if (packet->type == 2)
 				{
 					CPlayer *tPlayer = static_cast<CPlayer *>(packet->owner);
-					tPlayer->packetHandling(packet);
+					tPlayer->PacketHandling(packet);
 				}
 			}
 			continue;
@@ -69,23 +69,23 @@ void CLogicHandle::process()
 		}
 		CPacket* packet = nullptr;
 
-		EnterCriticalSection(&inter_operation_lock);
-		if (inter_operation_queue.size() > 0)
+		EnterCriticalSection(&interOperationLock);
+		if (interOperationQueue.size() > 0)
 		{
-			packet = inter_operation_queue.front();
-			inter_operation_queue.pop();
+			packet = interOperationQueue.front();
+			interOperationQueue.pop();
 		}
-		LeaveCriticalSection(&inter_operation_lock);
+		LeaveCriticalSection(&interOperationLock);
 
 		if (packet != nullptr)
 		{
 			if (packet->type == 0)
 			{
-				g_connectServer->packetHandling(packet);
+				connectServer->packetHandling(packet);
 			}
 			else if (packet->type == 1)
 			{
-				g_listenServer->packetHandling(packet);
+				listenServer->packetHandling(packet);
 			}
 		}
 

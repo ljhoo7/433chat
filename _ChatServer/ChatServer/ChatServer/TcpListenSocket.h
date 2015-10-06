@@ -11,9 +11,9 @@ public:
 	void Listen(Proactor* proactor);
 
 public:
-	SOCKET		Socket_;
-	SOCKADDR_IN Addr_;
+	SOCKET		socket_;
+	SOCKADDR_IN addr_;
 
-	int			BacklogSize_;
+	int			backlogSize_;
 };
 

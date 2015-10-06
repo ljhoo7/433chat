@@ -5,14 +5,14 @@ void Connector::ProcEvent(Act* act, DWORD bytes_transferred)
 {
 	TcpAct& tcpact = *dynamic_cast<TcpAct*>(act);
 
-	assert(tcpact.TcpSocket_);
-	TcpSocket& tcpsocket = *tcpact.TcpSocket_;
+	assert(tcpact.tcpSocket_);
+	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
-	assert(Proactor_);
+	assert(proactor_);
 
 	//printf("...Acceptor s(%d)\n", tcpsocket.GetSocket());
 
-	Proactor_->Register((HANDLE)(tcpsocket.Socket_));
+	proactor_->Register((HANDLE)(tcpsocket.socket_));
 
 	tcpsocket.ConnProcess(false, act, bytes_transferred);
 }
@@ -23,16 +23,16 @@ void Connector::ProcError(Act* act, DWORD error)
 
 	TcpAct& tcpact = *dynamic_cast<TcpAct*>(act);
 
-	assert(tcpact.TcpSocket_);
+	assert(tcpact.tcpSocket_);
 
-	TcpSocket& tcpsocket = *tcpact.TcpSocket_;
+	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
-	printf("...俊矾贸府 Acceptor s(%d) err(%d)\n", tcpsocket.Socket_, error);
+	printf("...俊矾贸府 Acceptor s(%d) err(%d)\n", tcpsocket.socket_, error);
 
 	tcpsocket.ConnProcess(true, act, error);
 }
 
 void Connector::Init(Proactor* proactor)
 {
-	Proactor_ = proactor;
+	proactor_ = proactor;
 }

@@ -10,14 +10,14 @@ public:
 	void Start(bool connect);
 
 public:
-	Proactor*		Proactor_;
-	Acceptor*		Acceptor_;
-	Receiver*		Receiver_;
-	Sender*			Sender_;
-	Disconnector*	Disconnector_;
-	Connector*		Connector_;
+	Proactor*		proactor_;
+	Acceptor*		acceptor_;
+	Receiver*		receiver_;
+	Sender*			sender_;
+	Disconnector*	disconnector_;
+	Connector*		connector_;
 
-	TcpListenSocket	ListenSocket_;
+	TcpListenSocket	listenSocket_;
 
 public:
 	TcpSocket* socket;
@@ -31,7 +31,7 @@ public:
 
 	void Connect(char* ip, WORD port);
 
-	bool beat_check;
+	bool beatCheck;
 	int position;
 	int remainBytes;
 	bool isVar;
@@ -42,8 +42,8 @@ public:
 
 
 private:
-	WORD			Port_;
-	int				ThreadPoolSize_;
+	WORD			port_;
+	int				threadPoolSize_;
 
 	void SendPlayerInfo();
 	void SendRoomInfo();

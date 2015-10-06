@@ -15,10 +15,10 @@ UINT WINAPI Proactor::ThreadProc(void* pProactor)
 
 void Proactor::Init(int numofthreads)
 {
-	TimeOut_ = INFINITE;
-	NumOfThreads_ = numofthreads;
+	timeOut_ = INFINITE;
+	numOfThreads_ = numofthreads;
 
-	Iocp_ = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, NULL, numofthreads);
+	iocp_ = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, NULL, numofthreads);
 
 	for (int i = 0; i<numofthreads; i++)
 	{
@@ -29,12 +29,12 @@ void Proactor::Init(int numofthreads)
 
 void Proactor::Register(HANDLE pHandle)
 {
-	::CreateIoCompletionPort(pHandle, Iocp_, 0, 0);
+	::CreateIoCompletionPort(pHandle, iocp_, 0, 0);
 }
 
 void Proactor::PostPrivateEvent(DWORD pId, Act* act)
 {
-	BOOL ret = ::PostQueuedCompletionStatus(Iocp_, 0, pId, act);
+	BOOL ret = ::PostQueuedCompletionStatus(iocp_, 0, pId, act);
 }
 
 void Proactor::ProcEvents()
@@ -48,7 +48,7 @@ void Proactor::ProcEvents()
 		OVERLAPPED* overlapped = NULL;
 
 	//printf("thread ready\n");
-		BOOL status = ::GetQueuedCompletionStatus(Iocp_, &bytes_transferred, static_cast<PULONG_PTR>(&completionkey), &overlapped, TimeOut_);
+		BOOL status = ::GetQueuedCompletionStatus(iocp_, &bytes_transferred, static_cast<PULONG_PTR>(&completionkey), &overlapped, timeOut_);
 
 		if (status == TRUE)
 		{

@@ -2,15 +2,15 @@
 
 class CLogicHandle
 {
-	std::queue<CPacket *> operation_queue;
-	std::queue<CPacket *> inter_operation_queue;
-	CRITICAL_SECTION operation_lock;
-	CRITICAL_SECTION inter_operation_lock;
+	std::queue<CPacket *> operationQueue;
+	std::queue<CPacket *> interOperationQueue;
+	CRITICAL_SECTION operationLock;
+	CRITICAL_SECTION interOperationLock;
 public:
 	CLogicHandle();
 	~CLogicHandle();
 
-	void enqueue_oper(CPacket* msg, bool interServer);
-	void process();
+	void EnqueueOper(CPacket* msg, bool interServer);
+	void Process();
 };
 

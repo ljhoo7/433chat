@@ -48,9 +48,6 @@
     <ClInclude Include="Actor.h">
       <Filter>Lib\Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Proactor.h">
-      <Filter>Lib\Headers</Filter>
-    </ClInclude>
     <ClInclude Include="TcpAct.h">
       <Filter>Lib\Headers</Filter>
     </ClInclude>
@@ -117,6 +114,9 @@
     </ClInclude>
     <ClInclude Include="InterProtocol.h">
       <Filter>InterServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Proactor.h">
+      <Filter>Server\Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

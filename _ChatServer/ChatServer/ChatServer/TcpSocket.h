@@ -2,9 +2,6 @@
 
 #include "stdafx.h"
 
-#define BUFSIZE 8192
-
-
 class TcpSocket
 {
 
@@ -42,27 +39,27 @@ public:
 		ACT_TYPE_CNT
 	};
 
-	TcpAct			Act_[ACT_TYPE_CNT];
+	TcpAct			act_[ACT_TYPE_CNT];
 
 public:
-	SOCKET			Socket_;
-	SOCKADDR_IN		Addr_;
+	SOCKET			socket_;
+	SOCKADDR_IN		addr_;
 
 public:
-	char			AcceptBuf_[BUFSIZE]; //may not use
+	char			acceptBuf_[BUFSIZE]; //may not use
 
-	char			RecvBuf_[BUFSIZE];
-	char			SendBuf_[BUFSIZE]; //may not use
+	char			recvBuf_[BUFSIZE];
+	char			sendBuf_[BUFSIZE]; //may not use
 
 	WSABUF			wsaRecvBuf;
 	WSABUF			wsaSendBuf;
 
 public:
-	Proactor*		Proactor_;
-	Acceptor*		Acceptor_;
-	Disconnector*	Disconnector_;
-	Sender*			Sender_;
-	Receiver*		Receiver_;
-	Connector* Connector_;
+	Proactor*		proactor_;
+	Acceptor*		acceptor_;
+	Disconnector*	disconnector_;
+	Sender*			sender_;
+	Receiver*		receiver_;
+	Connector* connector_;
 
 };

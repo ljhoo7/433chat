@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-BOOL InterConnectSocket::load_mswsock(void){
+BOOL InterConnectSocket::LoadMswsock(void){
 	SOCKET sock;
 	DWORD dwBytes;
 	int rc;
@@ -27,9 +27,9 @@ BOOL InterConnectSocket::load_mswsock(void){
 	return TRUE;
 }
 InterConnectSocket::InterConnectSocket(TcpInterServer* InterServer){
-	InterServer_ = InterServer;
+	interServer_ = InterServer;
 
-	if (!load_mswsock()) {
+	if (!LoadMswsock()) {
 		printf("Error loading mswsock functions: %d\n", WSAGetLastError());
 		return;
 	}
@@ -42,7 +42,7 @@ void  InterConnectSocket::Bind(){
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY;
 	addr.sin_port = 0;
-	rc = bind(Socket_, (SOCKADDR*)&addr, sizeof(addr));
+	rc = bind(socket_, (SOCKADDR*)&addr, sizeof(addr));
 	if (rc != 0) {
 		printf("bind failed: %d\n", WSAGetLastError());
 		return;
@@ -50,11 +50,11 @@ void  InterConnectSocket::Bind(){
 }
 
 void InterConnectSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
-	this->InterServer_->RecvProcess(isError, act, bytes_transferred);
+	this->interServer_->RecvProcess(isError, act, bytes_transferred);
 }
 
 void InterConnectSocket::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
-	this->InterServer_->SendProcess(isError, act, bytes_transferred);
+	this->interServer_->SendProcess(isError, act, bytes_transferred);
 }
 
 void InterConnectSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
@@ -62,11 +62,11 @@ void InterConnectSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_trans
 }
 
 void InterConnectSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
-	this->InterServer_->DisconnProcess(isError, act, bytes_transferred);
+	this->interServer_->DisconnProcess(isError, act, bytes_transferred);
 }
 
 void InterConnectSocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
-	this->InterServer_->ConnProcess(isError, act, bytes_transferred);
+	this->interServer_->ConnProcess(isError, act, bytes_transferred);
 }
 
 
@@ -77,15 +77,15 @@ void InterConnectSocket::Connect(char* ip, WORD port){
 	addr.sin_addr.s_addr = inet_addr(ip); // google.com
 	addr.sin_port = htons(port);
 
-	int ok = mswsock.ConnectEx(Socket_, (SOCKADDR*)&addr, sizeof(addr), NULL, 0, NULL, 
-		static_cast<OVERLAPPED*>(&Act_[TcpSocket::ACT_CONNECT]));
+	int ok = mswsock.ConnectEx(socket_, (SOCKADDR*)&addr, sizeof(addr), NULL, 0, NULL, 
+		static_cast<OVERLAPPED*>(&act_[TcpSocket::ACT_CONNECT]));
 	if (ok) {
 		printf("ConnectEx succeeded immediately\n");
 	}
 
 	int error = WSAGetLastError();
 	if (ok == FALSE && WSAGetLastError() != ERROR_IO_PENDING) {
-		printf("ConnectEx Error!!! s(%d), err(%d)\n", Socket_, error);
+		printf("ConnectEx Error!!! s(%d), err(%d)\n", socket_, error);
 	}
 	printf("Connect Request..\n");
 }

@@ -13,13 +13,13 @@ public:
 		Offset = 0;
 		OffsetHigh = 0;
 
-		Actor_ = NULL;
+		actor_ = NULL;
 	}
 
 	virtual void Complete(DWORD bytes_transferred) = 0;
 	virtual void Error(DWORD error) = 0;
 
 public:
-	Actor*	Actor_;
+	Actor*	actor_;
 };
 

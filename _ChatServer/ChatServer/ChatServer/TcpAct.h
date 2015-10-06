@@ -7,31 +7,31 @@ class TcpAct : public Act
 public:
 	TcpAct()
 	{
-		TcpSocket_ = NULL;
+		tcpSocket_ = NULL;
 	}
 
 	void Complete(DWORD bytes_transferred)
 	{
-		Actor_->ProcEvent(this, bytes_transferred);
+		actor_->ProcEvent(this, bytes_transferred);
 	}
 
 	void Error(DWORD error)
 	{
-		Actor_->ProcError(this, error);
+		actor_->ProcError(this, error);
 	}
 
 	void Init(Actor* actor, TcpSocket* tcpsocket)
 	{
-		Actor_ = actor;
-		TcpSocket_ = tcpsocket;
+		actor_ = actor;
+		tcpSocket_ = tcpsocket;
 	}
 
 	const TcpSocket* GetTcpSocket()
 	{
-		return TcpSocket_;
+		return tcpSocket_;
 	}
 
 public:
-	TcpSocket* TcpSocket_;
+	TcpSocket* tcpSocket_;
 };
 

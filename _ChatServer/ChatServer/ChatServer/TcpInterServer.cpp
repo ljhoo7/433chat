@@ -3,33 +3,33 @@
 
 extern CLogicHandle logicHandle;
 extern CRoomManager roomManager;
-extern std::list<CPlayer*> g_vPlayers;
+extern std::list<CPlayer*> players;
 
 TcpInterServer::TcpInterServer()
 {
-	Proactor_ = NULL;
-	Acceptor_ = NULL;
-	Receiver_ = NULL;
-	Sender_ = NULL;
-	Disconnector_ = NULL;
-	Connector_ = NULL;
+	proactor_ = NULL;
+	acceptor_ = NULL;
+	receiver_ = NULL;
+	sender_ = NULL;
+	disconnector_ = NULL;
+	connector_ = NULL;
 	isConnect = false;
 
 	socket = NULL;
 
 	isUse = false;
 
-	Port_ = 0;
-	ThreadPoolSize_ = 0;
+	port_ = 0;
+	threadPoolSize_ = 0;
 }
 
 TcpInterServer::TcpInterServer(WORD Port, int ThreadPoolSize)
 {
 	TcpInterServer();
-	Port_ = Port;
-	ThreadPoolSize_ = ThreadPoolSize;
+	port_ = Port;
+	threadPoolSize_ = ThreadPoolSize;
 
-	beat_check = false;
+	beatCheck = false;
 	position = 0;
 	remainBytes = HEADER_SIZE;
 	isVar = false;
@@ -49,51 +49,51 @@ TcpInterServer::TcpInterServer(WORD Port, int ThreadPoolSize)
 
 void TcpInterServer::Start(bool connect)
 {
-	Proactor_ = new Proactor;
-	Acceptor_ = new Acceptor;
-	Receiver_ = new Receiver;
-	Sender_ = new Sender;
-	Disconnector_ = new Disconnector;
-	Connector_ = new Connector;
+	proactor_ = new Proactor;
+	acceptor_ = new Acceptor;
+	receiver_ = new Receiver;
+	sender_ = new Sender;
+	disconnector_ = new Disconnector;
+	connector_ = new Connector;
 
 	// Proactor initialize
-	Proactor_->Init(ThreadPoolSize_);
+	proactor_->Init(threadPoolSize_);
 	
 	// Receiver initialize - Manager user Pool, data transmission, parsing data
-	Receiver_->Init(Proactor_);
+	receiver_->Init(proactor_);
 	// Disconnector initialize  - Manage socket pool with Acceptor
-	Disconnector_->Init(Proactor_);
+	disconnector_->Init(proactor_);
 	// Sender initialize 
-	Sender_->Init(Proactor_);
+	sender_->Init(proactor_);
 
 	
 
 	isConnect = connect;
 	if (connect){
-		Connector_->Init(Proactor_);
+		connector_->Init(proactor_);
 
 		socket = new InterConnectSocket(this);
 		socket->Init();
-		socket->InitAct(Proactor_, NULL, Disconnector_, Connector_, Sender_, Receiver_);
+		socket->InitAct(proactor_, NULL, disconnector_, connector_, sender_, receiver_);
 
 		static_cast<InterConnectSocket *>(socket)->Bind();
 
 
-		Proactor_->Register((HANDLE)socket->Socket_);
+		proactor_->Register((HANDLE)socket->socket_);
 		printf("InterConnectSocket start....\n");
 	}
 	else{
 		// Listen sock initialize
-		ListenSocket_.Init(Port_);
+		listenSocket_.Init(port_);
 		// Listen start
-		ListenSocket_.Listen(Proactor_);
+		listenSocket_.Listen(proactor_);
 		// Acceptor initialize - Manage socket pool with Disconnector
-		Acceptor_->Init(&ListenSocket_, Proactor_);
+		acceptor_->Init(&listenSocket_, proactor_);
 
 		socket = new InterSocket(this);
 		socket->Init();
-		socket->InitAct(Proactor_, Acceptor_, Disconnector_, NULL, Sender_, Receiver_);
-		Acceptor_->Register(*socket);
+		socket->InitAct(proactor_, acceptor_, disconnector_, NULL, sender_, receiver_);
+		acceptor_->Register(*socket);
 		printf("InterSocket start....\n");
 	}
 }
@@ -117,12 +117,12 @@ void TcpInterServer::SendPlayerInfo()
 	msg.type = ssType::pkt_player_info_send;
 
 	std::list<CPlayer*>::iterator iter;
-	for (iter = g_vPlayers.begin(); iter != g_vPlayers.end(); iter++)
+	for (iter = players.begin(); iter != players.end(); iter++)
 	{
 		CPlayer *p = (*iter);
 
 		player_info info;
-		info.client_socket = p->Socket_;
+		info.client_socket = p->socket_;
 		info.room_num = p->roomNum;
 		memcpy(info.nickname, p->nickname.c_str(), sizeof(info.nickname));
 		info.token = p->identifier;
@@ -130,7 +130,7 @@ void TcpInterServer::SendPlayerInfo()
 		memcpy(buf + position, &info, sizeof(info));
 		position += sizeof(info);
 	}
-	msg.player_cnt = g_vPlayers.size();
+	msg.player_cnt = players.size();
 	msg.length = position + 2;
 
 	memcpy(msgBuf + msgPosition, &msg, sizeof(msg));
@@ -199,7 +199,7 @@ void TcpInterServer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred
 		position += bytes_transferred;
 		remainBytes -= bytes_transferred;
 
-		char* buf = socket->RecvBuf_;
+		char* buf = socket->recvBuf_;
 
 		if (position < HEADER_SIZE){
 			socket->Recv(buf + position, remainBytes);
@@ -279,7 +279,7 @@ void TcpInterServer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred
 					msg->owner = NULL;
 					msg->msg = poolManager->Alloc()->buf;
 					memcpy(msg->msg, buf, BUFSIZE);
-					logicHandle.enqueue_oper(msg, true);
+					logicHandle.EnqueueOper(msg, true);
 				}
 			}
 			socket->Recv(buf + position, remainBytes);
@@ -297,16 +297,16 @@ void TcpInterServer::DisconnProcess(bool isError, Act* act, DWORD bytes_transfer
 		isUse = false;
 
 		std::list<CPlayer*>::iterator iter;
-		for (iter = g_vPlayers.begin(); iter != g_vPlayers.end();)
+		for (iter = players.begin(); iter != players.end();)
 		{
 			if (!(*iter)->isMine)
 			{
 				if ((*iter)->roomNum != -1)
 				{
-					roomManager.leaveRoom((*iter), (*iter)->roomNum);
+					roomManager.LeaveRoom((*iter), (*iter)->roomNum);
 				}
-				printf("delete other server's user : %d\n", (*iter)->Socket_);
-				iter = g_vPlayers.erase(iter);
+				printf("delete other server's user : %d\n", (*iter)->socket_);
+				iter = players.erase(iter);
 			}
 			else
 			{
@@ -335,7 +335,7 @@ void TcpInterServer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferr
 	if (!isError){
 		isUse = true;
 		MakeSync();
-		socket->Recv(socket->RecvBuf_, HEADER_SIZE);
+		socket->Recv(socket->recvBuf_, HEADER_SIZE);
 	}
 	else{
 		printf("interServer accept error\n");
@@ -346,7 +346,7 @@ void TcpInterServer::ConnProcess(bool isError, Act* act, DWORD bytes_transferred
 	if (!isError){
 		isUse = true;
 		MakeSync();
-		socket->Recv(socket->RecvBuf_, HEADER_SIZE);
+		socket->Recv(socket->recvBuf_, HEADER_SIZE);
 	}
 	else{
 		printf("interServer connect error\n");
@@ -357,10 +357,10 @@ void TcpInterServer::ConnProcess(bool isError, Act* act, DWORD bytes_transferred
 CPlayer* find_player_by_socket(SOCKET socket)
 {
 	std::list<CPlayer*>::iterator iter;
-	for (iter = g_vPlayers.begin(); iter != g_vPlayers.end(); iter++)
+	for (iter = players.begin(); iter != players.end(); iter++)
 	{
 		CPlayer* p = *(iter);
-		if (!p->isMine && p->Socket_ == socket)
+		if (!p->isMine && p->socket_ == socket)
 		{
 			return p;
 		}
@@ -369,7 +369,7 @@ CPlayer* find_player_by_socket(SOCKET socket)
 }
 
 void TcpInterServer::packetHandling(CPacket *packet){
-	if (socket->Socket_ == NULL) return;
+	if (socket->socket_ == NULL) return;
 
 	ssType _type = (ssType)(*packet->msg);
 
@@ -388,7 +388,7 @@ void TcpInterServer::packetHandling(CPacket *packet){
 		case ssType::pkt_heartbeats_response:
 		{
 			printf("recieve heartbeat response\n");
-			beat_check = true;
+			beatCheck = true;
 			break;
 		}
 		case ssType::pkt_connect:
@@ -398,8 +398,8 @@ void TcpInterServer::packetHandling(CPacket *packet){
 			memcpy(&msg, packet->msg, sizeof(msg));
 
 			CPlayer* p = new CPlayer(false);
-			g_vPlayers.push_back(p);
-			p->Socket_ = (SOCKET)msg.client_socket;
+			players.push_back(p);
+			p->socket_ = (SOCKET)msg.client_socket;
 
 			//printf("%d\n", g_vPlayers.size());
 			break;
@@ -410,11 +410,11 @@ void TcpInterServer::packetHandling(CPacket *packet){
 			ss_disconnect msg;
 			memcpy(&msg, packet->msg, sizeof(msg));
 			std::list<CPlayer*>::iterator iter;
-			for (iter = g_vPlayers.begin(); iter != g_vPlayers.end(); iter++)
+			for (iter = players.begin(); iter != players.end(); iter++)
 			{
-				if ((*iter)->Socket_ == msg.client_socket) break;
+				if ((*iter)->socket_ == msg.client_socket) break;
 			}
-			g_vPlayers.remove((*iter));
+			players.remove((*iter));
 
 			//printf("%d\n", g_vPlayers.size());
 			break;
@@ -424,7 +424,7 @@ void TcpInterServer::packetHandling(CPacket *packet){
 			printf("player_info_send recieve!\n");
 			ss_player_info_send msg = *((ss_player_info_send *)packet->msg);
 
-			if (msg.player_cnt + g_vPlayers.size() <= TOTAL_PLAYER)
+			if (msg.player_cnt + players.size() <= TOTAL_PLAYER)
 			{
 				char* buf = poolManager->Alloc()->buf;
 				int position = 0;
@@ -436,8 +436,8 @@ void TcpInterServer::packetHandling(CPacket *packet){
 					info = (player_info*)(buf + position);
 
 					CPlayer* p = new CPlayer(false);
-					g_vPlayers.push_back(p);
-					p->Socket_ = (SOCKET)info->client_socket;
+					players.push_back(p);
+					p->socket_ = (SOCKET)info->client_socket;
 					p->identifier = info->token;
 					p->roomNum = info->room_num;
 					p->nickname = info->nickname;
@@ -475,19 +475,19 @@ void TcpInterServer::packetHandling(CPacket *packet){
 				{
 					info = (room_info *)(buf + position);
 					printf("create room number : %d\n", info->room_num);
-					roomManager.createRoom(info->room_num);
+					roomManager.CreateRoom(info->room_num);
 
 					position += sizeof(room_info);
 				}
 
 				bool check = true;
 				std::list<CPlayer*>::iterator iter;
-				for (iter = g_vPlayers.begin(); iter != g_vPlayers.end(); iter++)
+				for (iter = players.begin(); iter != players.end(); iter++)
 				{
 					CPlayer* p = (*iter);
 					if (!p->isMine && p->roomNum != -1)
 					{
-						int ret = roomManager.enterRoom(p, p->roomNum);
+						int ret = roomManager.EnterRoom(p, p->roomNum);
 						if (ret != -1){
 							//	disconnect();
 							check = false;
@@ -543,7 +543,7 @@ void TcpInterServer::packetHandling(CPacket *packet){
 				printf("not available!\n");
 				break;
 			}
-			roomManager.createRoom(msg.room_num);
+			roomManager.CreateRoom(msg.room_num);
 			break;
 		}
 		case ssType::pkt_destroy:
@@ -556,7 +556,7 @@ void TcpInterServer::packetHandling(CPacket *packet){
 				printf("not available!\n");
 				break;
 			}
-			roomManager.destroyRoom(msg.room_num);
+			roomManager.DestroyRoom(msg.room_num);
 			break;
 		}
 		case ssType::pkt_join:
@@ -570,7 +570,7 @@ void TcpInterServer::packetHandling(CPacket *packet){
 				break;
 			}
 			p->nickname = msg.nickname;
-			roomManager.enterRoom(p, msg.room_num);
+			roomManager.EnterRoom(p, msg.room_num);
 			break;
 		}
 		case ssType::pkt_leave:
@@ -584,7 +584,7 @@ void TcpInterServer::packetHandling(CPacket *packet){
 				break;
 			}
 			p->nickname = msg.nickname;
-			roomManager.leaveRoom(p, msg.room_num);
+			roomManager.LeaveRoom(p, msg.room_num);
 			break;
 		}
 		case ssType::pkt_chat:
@@ -593,7 +593,7 @@ void TcpInterServer::packetHandling(CPacket *packet){
 			ss_chat msg = *((ss_chat *)packet->msg);
 			pkt_type type = pkt_type::pt_chat_alarm;
 			memcpy(packet->msg, &type, sizeof(short));
-			roomManager.findRoom(msg.room_num)->broadcast_msg(packet->msg, msg.length);
+			roomManager.FindRoom(msg.room_num)->BroadcastMsg(packet->msg, msg.length);
 			break;
 		}
 		default:

@@ -7,9 +7,9 @@ void Sender::ProcEvent(Act* act, DWORD bytes_transferred)
 
 	TcpAct& tcpact = *dynamic_cast<TcpAct*>(act);
 
-	assert(tcpact.TcpSocket_);
+	assert(tcpact.tcpSocket_);
 
-	TcpSocket& tcpsocket = *tcpact.TcpSocket_;
+	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
 	tcpsocket.SendProcess(false, act, bytes_transferred);
 	//printf("...Sender (%d byte) s(%d)\n", bytes_transferred, tcpsocket.GetSocket() );
@@ -21,16 +21,16 @@ void Sender::ProcError(Act* act, DWORD error)
 
 	TcpAct& tcpact = *dynamic_cast<TcpAct*>(act);
 
-	assert(tcpact.TcpSocket_);
+	assert(tcpact.tcpSocket_);
 
-	TcpSocket& tcpsocket = *tcpact.TcpSocket_;
+	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
-	printf("...俊矾贸府 Sender s(%d) err(%d)\n", tcpsocket.Socket_, error);
+	printf("...俊矾贸府 Sender s(%d) err(%d)\n", tcpsocket.socket_, error);
 
 	tcpsocket.SendProcess(true, act, error);
 }
 
 void Sender::Init(Proactor* proactor)
 {
-	Proactor_ = proactor;
+	proactor_ = proactor;
 }

@@ -17,10 +17,10 @@ public:
 	void ProcEvents();
 
 public:
-	HANDLE	Iocp_;
+	HANDLE	iocp_;
 
-	DWORD	TimeOut_;
-	DWORD	NumOfThreads_;
+	DWORD	timeOut_;
+	DWORD	numOfThreads_;
 
 };
 
