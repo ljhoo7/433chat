@@ -33,7 +33,9 @@ InterConnectSocket::InterConnectSocket(TcpInterServer* InterServer){
 		printf("Error loading mswsock functions: %d\n", WSAGetLastError());
 		return;
 	}
+}
 
+void  InterConnectSocket::Bind(){
 	int rc;
 	struct sockaddr_in addr;
 	ZeroMemory(&addr, sizeof(addr));
@@ -45,7 +47,6 @@ InterConnectSocket::InterConnectSocket(TcpInterServer* InterServer){
 		printf("bind failed: %d\n", WSAGetLastError());
 		return;
 	}
-
 }
 
 void InterConnectSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
@@ -61,7 +62,7 @@ void InterConnectSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_trans
 }
 
 void InterConnectSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
-	this->InterServer_->AcceptProcess(isError, act, bytes_transferred);
+	this->InterServer_->DisconnProcess(isError, act, bytes_transferred);
 }
 
 void InterConnectSocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
@@ -83,7 +84,8 @@ void InterConnectSocket::Connect(char* ip, WORD port){
 	}
 
 	int error = WSAGetLastError();
-	if (ok == FALSE && WSAGetLastError() == ERROR_IO_PENDING) {
-		printf("AcceptEx Error!!! s(%d), err(%d)\n", Socket_, error);
+	if (ok == FALSE && WSAGetLastError() != ERROR_IO_PENDING) {
+		printf("ConnectEx Error!!! s(%d), err(%d)\n", Socket_, error);
 	}
+	printf("Connect Request..\n");
 }

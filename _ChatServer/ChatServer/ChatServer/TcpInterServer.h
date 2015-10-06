@@ -36,6 +36,7 @@ public:
 	int remainBytes;
 	bool isVar;
 	bool isConnect;
+	bool isUse;
 	MemPooler<msg_buffer> *poolManager;
 	MemPooler<CPacket> *packetPoolManager;
 

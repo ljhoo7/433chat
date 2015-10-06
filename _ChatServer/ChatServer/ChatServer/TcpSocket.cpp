@@ -112,7 +112,7 @@ void TcpSocket::Send(char* buf, int buflen)
 		if (error != ERROR_IO_PENDING)
 		{
 			printf("WSASend() Error!!! s(%d) err(%d)\n", Socket_, error);
-			Disconnect();
+			//Disconnect();
 		}
 	}
 }

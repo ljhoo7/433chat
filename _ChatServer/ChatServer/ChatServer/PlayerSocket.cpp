@@ -8,6 +8,9 @@ extern CLogicHandle logicHandle;
 extern int identifier_seed;
 extern std::list<CPlayer*> g_vPlayers;
 
+extern TcpInterServer* g_listenServer;
+extern TcpInterServer* g_connectServer;
+
 CPlayer::CPlayer(){
 
 }
@@ -129,6 +132,7 @@ void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 void CPlayer::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		printf("send success\n");
+
 	}
 	else{
 
@@ -142,6 +146,11 @@ void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 		g_vPlayers.push_back(this);
 
 		/* inter connection message send */
+		ss_connect tmpConnect;
+		tmpConnect.type = ssType::pkt_connect;
+		tmpConnect.client_socket = this->Socket_;
+
+		playerSync((char *)&tmpConnect, sizeof(ss_connect));
 
 		Recv(this->RecvBuf_, HEADER_SIZE);
 	}
@@ -158,14 +167,29 @@ void CPlayer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 		if (room != NULL)
 		{
+			ss_leave msg;
+			msg.type = ssType::pkt_leave;
+			msg.client_socket = this->Socket_;
+			msg.room_num = this->roomNum;
+			memcpy(msg.nickname, this->nickname.c_str(), sizeof(msg.nickname));
+
+			playerSync((char *)&msg, sizeof(ss_leave));
+
 			printf("remove in room...\n");
 		}
 
 		if (this->GetSocket() != NULL){
+			ss_disconnect tmpDisconnect;
 
+			tmpDisconnect.type = ssType::pkt_disconnect;
+			tmpDisconnect.client_socket = Socket_;
+
+			playerSync((char *)&tmpDisconnect, sizeof(ss_disconnect));
 		}
 		/* remove in list */
 		g_vPlayers.remove(this);
+
+		this->Reuse();
 	}
 	else{
 
@@ -218,6 +242,8 @@ bool CPlayer::valid_Packet(CPacket *packet)
 }
 
 void CPlayer::playerSync(char *buf, int size){
+	if (g_connectServer->isUse) g_connectServer->socket->Send(buf, size);
+	if (g_listenServer->isUse) g_listenServer->socket->Send(buf, size);
 }
 
 void CPlayer::packetHandling(CPacket *packet){
@@ -257,12 +283,12 @@ void CPlayer::packetHandling(CPacket *packet){
 		result = roomManager.createRoom(tmpCreate->room_num);
 		if (result == -1)
 		{
-		/*	ss_create* msg = (ss_create *)poolManager.pop();
-			msg->type = ssType::pkt_create;
-			msg->client_socket = token->clientSocket;
-			msg->room_num = tmpCreate->room_num;
-			playerSync((char *)msg, sizeof(*msg));
-			std::cout << "create has been sent." << std::endl;*/
+			ss_create msg;
+			msg.type = ssType::pkt_create;
+			msg.client_socket = this->Socket_;
+			msg.room_num = tmpCreate->room_num;
+			playerSync((char *)&msg, sizeof(msg));
+			std::cout << "create has been sent." << std::endl;
 
 			//------------------------------------------------------------------------
 
@@ -292,11 +318,11 @@ void CPlayer::packetHandling(CPacket *packet){
 		result = roomManager.destroyRoom(tmpDestroy->room_num);
 		if (result == -1)
 		{
-			/*ss_destroy* msg = (ss_destroy*)poolManager.pop();
-			msg->type = ssType::pkt_destroy;
-			msg->client_socket = token->clientSocket;
-			msg->room_num = tmpDestroy->room_num;
-			playerSync((char *)msg, sizeof(*msg));*/
+			ss_destroy msg;
+			msg.type = ssType::pkt_destroy;
+			msg.client_socket = Socket_;
+			msg.room_num = tmpDestroy->room_num;
+			playerSync((char *)&msg, sizeof(msg));
 
 			//------------------------------------------------------------------------
 
@@ -320,14 +346,14 @@ void CPlayer::packetHandling(CPacket *packet){
 		result = roomManager.enterRoom(this, tmpJoin->room_num);
 		if (result == -1)
 		{
-			/*ss_join* msg = (ss_join *)poolManager.pop();
-			msg->type = ssType::pkt_join;
-			msg->client_socket = token->clientSocket;
-			msg->room_num = tmpJoin->room_num;
-			memcpy(msg->nickname, tmpJoin->nickname, sizeof(msg->nickname));
-			playerSync((char *)msg, sizeof(*msg));
+			ss_join msg;
+			msg.type = ssType::pkt_join;
+			msg.client_socket = Socket_;
+			msg.room_num = tmpJoin->room_num;
+			memcpy(msg.nickname, tmpJoin->nickname, sizeof(msg.nickname));
+			playerSync((char *)&msg, sizeof(msg));
 
-			std::cout << "join message has been sent." << std::endl;*/
+			std::cout << "join message has been sent." << std::endl;
 
 			//------------------------------------------------------------------------
 
@@ -371,13 +397,13 @@ void CPlayer::packetHandling(CPacket *packet){
 
 		if (_result == true)
 		{
-			/*ss_leave* msg = (ss_leave *)poolManager.pop();
-			msg->type = ssType::pkt_leave;
-			msg->client_socket = token->clientSocket;
-			msg->room_num = tmpLeave->room_num;
-			msg->token = tmpLeave->token;
-			memcpy(msg->nickname, tmpLeave->nickname, sizeof(msg->nickname));
-			playerSync((char *)msg, sizeof(*msg));*/
+			ss_leave msg;
+			msg.type = ssType::pkt_leave;
+			msg.client_socket = Socket_;
+			msg.room_num = tmpLeave->room_num;
+			msg.token = tmpLeave->token;
+			memcpy(msg.nickname, tmpLeave->nickname, sizeof(msg.nickname));
+			playerSync((char *)&msg, sizeof(msg));
 
 			//------------------------------------------------------------------------
 
@@ -401,11 +427,11 @@ void CPlayer::packetHandling(CPacket *packet){
 		roomManager.findRoom(this->roomNum)->broadcast_msg(packet->msg, size);
 
 
-	/*	type = ssType::pkt_chat;
+		type = ssType::pkt_chat;
 		memcpy(packet->msg, &type, sizeof(unsigned short));
 		playerSync((char *)packet->msg, size);
 
-		std::cout << "chat alarm message has been sent." << std::endl;		*/break;
+		std::cout << "chat alarm message has been sent." << std::endl;		break;
 	}
 
 	poolManager->Free((msg_buffer *)packet->msg);

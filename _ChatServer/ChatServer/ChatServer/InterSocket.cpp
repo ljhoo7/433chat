@@ -18,7 +18,7 @@ void InterSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred)
 }
 
 void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
-	this->InterServer_->AcceptProcess(isError, act, bytes_transferred);
+	this->InterServer_->DisconnProcess(isError, act, bytes_transferred);
 }
 
 void InterSocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){

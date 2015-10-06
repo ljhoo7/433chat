@@ -15,6 +15,10 @@ TcpInterServer::TcpInterServer()
 	Connector_ = NULL;
 	isConnect = false;
 
+	socket = NULL;
+
+	isUse = false;
+
 	Port_ = 0;
 	ThreadPoolSize_ = 0;
 }
@@ -30,13 +34,13 @@ TcpInterServer::TcpInterServer(WORD Port, int ThreadPoolSize)
 	remainBytes = HEADER_SIZE;
 	isVar = false;
 
-	poolManager = new MemPooler<msg_buffer>(10);
+	poolManager = new MemPooler<msg_buffer>(1000);
 	if (!poolManager){
 		/* error handling */
 		return;
 	}
 
-	packetPoolManager = new MemPooler<CPacket>(10);
+	packetPoolManager = new MemPooler<CPacket>(1000);
 	if (!packetPoolManager){
 		/* error handling */
 		return;
@@ -54,12 +58,7 @@ void TcpInterServer::Start(bool connect)
 
 	// Proactor initialize
 	Proactor_->Init(ThreadPoolSize_);
-	// Listen sock initialize
-	ListenSocket_.Init(Port_);
-	// Listen start
-	ListenSocket_.Listen(Proactor_);
-	// Acceptor initialize - Manage socket pool with Disconnector
-	Acceptor_->Init(&ListenSocket_, Proactor_);
+	
 	// Receiver initialize - Manager user Pool, data transmission, parsing data
 	Receiver_->Init(Proactor_);
 	// Disconnector initialize  - Manage socket pool with Acceptor
@@ -67,14 +66,35 @@ void TcpInterServer::Start(bool connect)
 	// Sender initialize 
 	Sender_->Init(Proactor_);
 
-	Connector_->Init(Proactor_);
+	
 
 	isConnect = connect;
 	if (connect){
+		Connector_->Init(Proactor_);
+
 		socket = new InterConnectSocket(this);
+		socket->Init();
+		socket->InitAct(Proactor_, NULL, Disconnector_, Connector_, Sender_, Receiver_);
+
+		static_cast<InterConnectSocket *>(socket)->Bind();
+
+
+		Proactor_->Register((HANDLE)socket->GetSocket());
+		printf("InterConnectSocket start....\n");
 	}
 	else{
+		// Listen sock initialize
+		ListenSocket_.Init(Port_);
+		// Listen start
+		ListenSocket_.Listen(Proactor_);
+		// Acceptor initialize - Manage socket pool with Disconnector
+		Acceptor_->Init(&ListenSocket_, Proactor_);
+
 		socket = new InterSocket(this);
+		socket->Init();
+		socket->InitAct(Proactor_, Acceptor_, Disconnector_, NULL, Sender_, Receiver_);
+		Acceptor_->Register(*socket);
+		printf("InterSocket start....\n");
 	}
 }
 
@@ -119,6 +139,7 @@ void TcpInterServer::SendPlayerInfo()
 	msgPosition += position;
 
 	socket->Send(msgBuf, msgPosition);
+
 	poolManager->Free((msg_buffer *)buf);
 	poolManager->Free((msg_buffer *)msgBuf);
 }
@@ -168,7 +189,13 @@ void TcpInterServer::MakeSync()
 
 void TcpInterServer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-		if (bytes_transferred == 0) socket->Disconnect();
+		if (bytes_transferred == 0){
+			socket->Disconnect();
+			return;
+		}
+
+	//	printf("interServer recieve complete\n");
+
 		position += bytes_transferred;
 		remainBytes -= bytes_transferred;
 
@@ -247,6 +274,8 @@ void TcpInterServer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred
 					remainBytes = HEADER_SIZE;
 
 					CPacket* msg = packetPoolManager->Alloc();
+					if (isConnect) msg->type = 0;
+					else msg->type = 1;
 					msg->owner = NULL;
 					msg->msg = poolManager->Alloc()->buf;
 					memcpy(msg->msg, buf, BUFSIZE);
@@ -257,6 +286,7 @@ void TcpInterServer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred
 		}
 	}
 	else{
+		printf("interServer recieve error\n");
 		/* Error Handling */
 		socket->Disconnect();
 	}
@@ -264,6 +294,7 @@ void TcpInterServer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred
 
 void TcpInterServer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
+		isUse = false;
 
 		std::list<CPlayer*>::iterator iter;
 		for (iter = g_vPlayers.begin(); iter != g_vPlayers.end();)
@@ -283,36 +314,42 @@ void TcpInterServer::DisconnProcess(bool isError, Act* act, DWORD bytes_transfer
 			}
 		}
 		printf("closed the other server.\n");
+
+		if (!isConnect) this->socket->Reuse();
 	}
 	else{
-
+		printf("interServer disconnect error\n");
 	}
 }
 
 void TcpInterServer::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-
+		//printf("interServer send complete\n");
 	}
 	else{
-
+		printf("interServer send error\n");
 	}
 }
 
 void TcpInterServer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-
+		isUse = true;
+		MakeSync();
+		socket->Recv(socket->RecvBuf_, HEADER_SIZE);
 	}
 	else{
-
+		printf("interServer accept error\n");
 	}
 }
 
 void TcpInterServer::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-
+		isUse = true;
+		MakeSync();
+		socket->Recv(socket->RecvBuf_, HEADER_SIZE);
 	}
 	else{
-
+		printf("interServer connect error\n");
 	}
 }
 
@@ -332,6 +369,8 @@ CPlayer* find_player_by_socket(SOCKET socket)
 }
 
 void TcpInterServer::packetHandling(CPacket *packet){
+	if (socket->Socket_ == NULL) return;
+
 	ssType _type = (ssType)(*packet->msg);
 
 	switch (_type)
@@ -562,6 +601,6 @@ void TcpInterServer::packetHandling(CPacket *packet){
 			break;
 	}
 
-	this->poolManager->Free((msg_buffer *)packet->msg);
+	//this->poolManager->Free((msg_buffer *)packet->msg);
 	this->packetPoolManager->Free(packet);
 }

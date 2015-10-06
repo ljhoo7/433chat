@@ -8,6 +8,7 @@ TcpListenSocket::TcpListenSocket()
 
 void TcpListenSocket::Init(WORD port, int backlogsize)
 {
+	printf("Listen Socket Init %d\n", port);
 	Socket_ = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 
 	Addr_.sin_family = AF_INET;

@@ -7,17 +7,32 @@ std::list<CPlayer*> g_vPlayers;
 CRoomManager roomManager;
 CLogicHandle logicHandle;
 
-TcpClientServer server(10000, 10, 3000);
-TcpInterServer listen_server(10001, 10);
-TcpInterServer connect_server(10002, 10);
+TcpClientServer* g_clientServer;
+TcpInterServer* g_listenServer;
+TcpInterServer* g_connectServer;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	
+
+	if (argc != 3){
+		printf("error command\n");
+		return 0;
+	}
+
+	WORD listenPort = atoi(argv[1]);
+	WORD connectPort = atoi(argv[2]);
+
+
+	g_listenServer = new TcpInterServer(listenPort, 10);
+	g_connectServer = new TcpInterServer(connectPort, 10);
+	g_clientServer = new TcpClientServer(listenPort + 1000, 10, 3000);
 	identifier_seed = 0;
 
 	std::thread logic_thread(&CLogicHandle::process, &logicHandle);
-	server.Start();
+	g_clientServer->Start();
+
+	g_listenServer->Start(false);
+	g_connectServer->Start(true);
 
 	while (true)
 	{
@@ -25,27 +40,16 @@ int _tmain(int argc, _TCHAR* argv[])
 		//ZeroMemory(temp, sizeof(temp));
 		std::getline(std::cin, input);
 
-		if (listen_server.the_other_sock == NULL)
+		if (input == "connect")
 		{
-			if (input == "connect")
-			{
-				connect_server.start(0, connect_port);
-			}
-			else{
-				if (input == "disconnect")
-				{
-					connect_server.disconnect();
-				}
-			}
+			g_connectServer->Connect("127.0.0.1", connectPort);
+		}
+		else if (input == "disconnect")
+		{
+			if (g_connectServer->isUse) g_connectServer->socket->Disconnect();
+			if (g_listenServer->isUse) g_listenServer->socket->Disconnect();
 		}
 
-		if (connect_server.the_other_sock == NULL)
-		{
-			if (input == "disconnect")
-			{
-				listen_server.disconnect();
-			}
-		}
 		if (input == "show")
 		{
 			std::list<CPlayer*>::iterator iter;
@@ -54,7 +58,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			{
 				CPlayer *p = (*iter);
 				printf("is Mine : %d, client socket : %d, room Num : %d, nickname : %s\n",
-					p->isMine, p->token->clientSocket, p->roomNum, p->nickname.c_str());
+					p->isMine, p->Socket_, p->roomNum, p->nickname.c_str());
 			}
 			printf("-----------------------------------------------------------\n");
 		}

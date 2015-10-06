@@ -1,5 +1,8 @@
 #include "stdafx.h"
 
+extern TcpInterServer* g_listenServer;
+extern TcpInterServer* g_connectServer;
+
 CLogicHandle::CLogicHandle()
 {
 	InitializeCriticalSection(&operation_lock);
@@ -74,17 +77,17 @@ void CLogicHandle::process()
 		}
 		LeaveCriticalSection(&inter_operation_lock);
 
-	/*	if (packet != nullptr)
+		if (packet != nullptr)
 		{
 			if (packet->type == 0)
 			{
-				connect_server.packetHandling(packet);
+				g_connectServer->packetHandling(packet);
 			}
 			else if (packet->type == 1)
 			{
-				listen_server.packetHandling(packet);
+				g_listenServer->packetHandling(packet);
 			}
-		}*/
+		}
 
 	}
 }

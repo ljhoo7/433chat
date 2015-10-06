@@ -10,12 +10,10 @@ void Disconnector::ProcEvent(Act* act, DWORD bytes_transferred)
 
 	//printf("...Disconnector s(%d)\n", tcpsocket.GetSocket());
 
-	assert(tcpsocket.Acceptor_);
+	assert(tcpsocket.Disconnector_);
 
 	tcpsocket.DisconnProcess(false, act, bytes_transferred);
 	// reuse socket
-	tcpsocket.Reuse();
-
 	
 }
 
