@@ -50,11 +50,6 @@ void TcpSocket::InitAct(Proactor* proactor, Acceptor* acceptor, Disconnector* di
 	Act_[ACT_CONNECT].Init(Connector_, this);
 }
 
-SOCKET TcpSocket::GetSocket() const
-{
-	return Socket_;
-}
-
 void TcpSocket::Recv()
 {
 	DWORD recvbytes = 0;

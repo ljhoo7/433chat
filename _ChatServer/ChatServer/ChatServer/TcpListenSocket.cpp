@@ -25,8 +25,3 @@ void TcpListenSocket::Listen(Proactor* proactor)
 	bind(Socket_, (SOCKADDR*)&Addr_, sizeof(Addr_));
 	listen(Socket_, BacklogSize_);
 }
-
-SOCKET TcpListenSocket::GetSocket() const
-{
-	return Socket_;
-}

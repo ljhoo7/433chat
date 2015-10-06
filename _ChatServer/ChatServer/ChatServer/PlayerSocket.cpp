@@ -51,7 +51,7 @@ void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 		this->position += bytes_transferred;
 		this->remainBytes -= bytes_transferred;
 
-		if (this->GetSocket() == NULL){
+		if (this->Socket_ == NULL){
 			/* error handling */
 		}
 		else{
@@ -141,7 +141,7 @@ void CPlayer::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-		printf("connect success, %d\n", this->GetSocket());
+		printf("connect success, %d\n", this->Socket_);
 		this->identifier = identifier_seed++;
 		g_vPlayers.push_back(this);
 
@@ -162,7 +162,7 @@ void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 /* 동기화 문제! */
 void CPlayer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-		printf("disconnect success, %d\n", this->GetSocket());
+		printf("disconnect success, %d\n", this->Socket_);
 		CRoom* room = roomManager.findRoom(this->roomNum);
 
 		if (room != NULL)
@@ -178,7 +178,7 @@ void CPlayer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 			printf("remove in room...\n");
 		}
 
-		if (this->GetSocket() != NULL){
+		if (this->Socket_ != NULL){
 			ss_disconnect tmpDisconnect;
 
 			tmpDisconnect.type = ssType::pkt_disconnect;

@@ -25,7 +25,7 @@ void Sender::ProcError(Act* act, DWORD error)
 
 	TcpSocket& tcpsocket = *tcpact.TcpSocket_;
 
-	printf("...俊矾贸府 Sender s(%d) err(%d)\n", tcpsocket.GetSocket(), error);
+	printf("...俊矾贸府 Sender s(%d) err(%d)\n", tcpsocket.Socket_, error);
 
 	tcpsocket.SendProcess(true, act, error);
 }

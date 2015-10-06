@@ -79,7 +79,7 @@ void TcpInterServer::Start(bool connect)
 		static_cast<InterConnectSocket *>(socket)->Bind();
 
 
-		Proactor_->Register((HANDLE)socket->GetSocket());
+		Proactor_->Register((HANDLE)socket->Socket_);
 		printf("InterConnectSocket start....\n");
 	}
 	else{

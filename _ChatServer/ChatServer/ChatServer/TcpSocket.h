@@ -17,8 +17,6 @@ public:
 	void InitAct(Proactor* proactor, Acceptor* acceptor, Disconnector* disconnector,
 		Connector* connector, Sender* sender, Receiver* receiver);
 
-	SOCKET GetSocket() const;
-
 public:
 	void Recv();
 	void Recv(char* buf, int buflen);

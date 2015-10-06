@@ -9,7 +9,6 @@ public:
 	TcpListenSocket();
 	void Init(WORD port, int backlogsize = 0);
 	void Listen(Proactor* proactor);
-	SOCKET GetSocket() const;
 
 public:
 	SOCKET		Socket_;

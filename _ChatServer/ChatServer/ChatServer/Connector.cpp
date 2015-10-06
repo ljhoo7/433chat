@@ -12,7 +12,7 @@ void Connector::ProcEvent(Act* act, DWORD bytes_transferred)
 
 	//printf("...Acceptor s(%d)\n", tcpsocket.GetSocket());
 
-	Proactor_->Register((HANDLE)(tcpsocket.GetSocket()));
+	Proactor_->Register((HANDLE)(tcpsocket.Socket_));
 
 	tcpsocket.ConnProcess(false, act, bytes_transferred);
 }
@@ -27,7 +27,7 @@ void Connector::ProcError(Act* act, DWORD error)
 
 	TcpSocket& tcpsocket = *tcpact.TcpSocket_;
 
-	printf("...俊矾贸府 Acceptor s(%d) err(%d)\n", tcpsocket.GetSocket(), error);
+	printf("...俊矾贸府 Acceptor s(%d) err(%d)\n", tcpsocket.Socket_, error);
 
 	tcpsocket.ConnProcess(true, act, error);
 }
