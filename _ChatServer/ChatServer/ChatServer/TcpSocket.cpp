@@ -135,7 +135,7 @@ void TcpSocket::Disconnect()
 
 		if (error != ERROR_IO_PENDING)
 		{
-			printf("DisconnectEx Error!!! s(%d), err(%d)\n", socket_, error);
+			printf("already disconnected, DisconnectEx Error!!! s(%d), err(%d)\n", socket_, error);
 		}
 	}
 }

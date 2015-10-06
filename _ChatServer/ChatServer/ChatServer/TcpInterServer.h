@@ -40,6 +40,9 @@ public:
 	MemPooler<msg_buffer> *poolManager;
 	MemPooler<CPacket> *packetPoolManager;
 
+public:
+	std::thread heartThread;
+	void heartbeatCheck();
 
 private:
 	WORD			port_;

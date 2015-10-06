@@ -76,8 +76,7 @@ void TcpInterServer::Start(bool connect)
 		socket->Init();
 		socket->InitAct(proactor_, NULL, disconnector_, connector_, sender_, receiver_);
 
-		static_cast<InterConnectSocket *>(socket)->Bind();
-
+		static_cast<InterConnectSocket *>(socket)->Bind(true);
 
 		proactor_->Register((HANDLE)socket->socket_);
 		printf("InterConnectSocket start....\n");
@@ -315,7 +314,12 @@ void TcpInterServer::DisconnProcess(bool isError, Act* act, DWORD bytes_transfer
 		}
 		printf("closed the other server.\n");
 
+		if (heartThread.joinable()) heartThread.join();
 		if (!isConnect) this->socket->Reuse();
+		else{
+			static_cast<InterConnectSocket *>(socket)->Bind(false);
+			proactor_->Register((HANDLE)socket->socket_);
+		}
 	}
 	else{
 		printf("interServer disconnect error\n");
@@ -336,6 +340,8 @@ void TcpInterServer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferr
 		isUse = true;
 		MakeSync();
 		socket->Recv(socket->recvBuf_, HEADER_SIZE);
+
+	//	heartThread = std::thread(&TcpInterServer::heartbeatCheck, this);
 	}
 	else{
 		printf("interServer accept error\n");
@@ -347,6 +353,8 @@ void TcpInterServer::ConnProcess(bool isError, Act* act, DWORD bytes_transferred
 		isUse = true;
 		MakeSync();
 		socket->Recv(socket->recvBuf_, HEADER_SIZE);
+
+	//	heartThread = std::thread(&TcpInterServer::heartbeatCheck, this);
 	}
 	else{
 		printf("interServer connect error\n");
@@ -603,4 +611,27 @@ void TcpInterServer::packetHandling(CPacket *packet){
 
 	//this->poolManager->Free((msg_buffer *)packet->msg);
 	this->packetPoolManager->Free(packet);
+}
+
+void TcpInterServer::heartbeatCheck(){
+	while (true)
+	{
+		char *buf = poolManager->Alloc()->buf;
+
+		beatCheck = false;
+
+		if (isUse){
+			printf("hearth check send!\n");
+			ss_heartbeats* msg = (ss_heartbeats *)buf;
+			msg->type = ssType::pkt_heartbeats;
+			socket->Send((char *)msg, sizeof(ss_heartbeats));
+			std::this_thread::sleep_for(std::chrono::seconds(5));
+			if (beatCheck == false) break;
+		}
+		else{
+			break;
+		}
+	}
+	printf("connection fail\n");
+	if (isUse) socket->Disconnect();
 }

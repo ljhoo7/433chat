@@ -35,7 +35,16 @@ InterConnectSocket::InterConnectSocket(TcpInterServer* InterServer){
 	}
 }
 
-void  InterConnectSocket::Bind(){
+void  InterConnectSocket::Bind(bool reuse){
+	if (!reuse){
+		socket_ = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+
+		if (socket_ == INVALID_SOCKET)
+		{
+			printf("WSASocket() Error!!! err(%d)\n", WSAGetLastError());
+		}
+
+	}
 	int rc;
 	struct sockaddr_in addr;
 	ZeroMemory(&addr, sizeof(addr));

@@ -27,7 +27,7 @@ void Connector::ProcError(Act* act, DWORD error)
 
 	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
-	printf("...俊矾贸府 Acceptor s(%d) err(%d)\n", tcpsocket.socket_, error);
+	printf("...俊矾贸府 Connector s(%d) err(%d)\n", tcpsocket.socket_, error);
 
 	tcpsocket.ConnProcess(true, act, error);
 }

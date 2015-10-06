@@ -26,10 +26,6 @@ public:
 		tcpSocket_ = tcpsocket;
 	}
 
-	const TcpSocket* GetTcpSocket()
-	{
-		return tcpSocket_;
-	}
 
 public:
 	TcpSocket* tcpSocket_;
