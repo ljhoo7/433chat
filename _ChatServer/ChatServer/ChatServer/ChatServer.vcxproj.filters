@@ -118,6 +118,12 @@
     <ClInclude Include="Proactor.h">
       <Filter>Server\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="LogAct.h">
+      <Filter>Lib\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="LogWriter.h">
+      <Filter>Lib\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -171,6 +177,9 @@
     </ClCompile>
     <ClCompile Include="TcpInterServer.cpp">
       <Filter>InterServer\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="LogWriter.cpp">
+      <Filter>Lib\Sources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

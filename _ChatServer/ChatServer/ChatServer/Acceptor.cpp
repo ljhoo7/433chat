@@ -1,4 +1,3 @@
-
 #include "stdafx.h"
 
 void Acceptor::ProcEvent(Act* act, DWORD bytes_transferred)

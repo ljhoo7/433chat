@@ -19,8 +19,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		return 0;
 	}
 
-	WORD listenPort = atoi(argv[1]);
-	WORD connectPort = atoi(argv[2]);
+	WORD listenPort = _wtoi(argv[1]);
+	WORD connectPort = _wtoi(argv[2]);
 
 
 	listenServer = new TcpInterServer(listenPort, 10);

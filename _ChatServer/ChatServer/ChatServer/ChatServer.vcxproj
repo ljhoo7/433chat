@@ -19,7 +19,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -72,7 +72,9 @@
     <ClInclude Include="Connector.h" />
     <ClInclude Include="InterConnectSocket.h" />
     <ClInclude Include="InterSocket.h" />
+    <ClInclude Include="LogAct.h" />
     <ClInclude Include="LogicHandle.h" />
+    <ClInclude Include="LogWriter.h" />
     <ClInclude Include="MemPooler.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="PlayerSocket.h" />
@@ -98,6 +100,7 @@
     <ClCompile Include="InterConnectSocket.cpp" />
     <ClCompile Include="InterSocket.cpp" />
     <ClCompile Include="LogicHandle.cpp" />
+    <ClCompile Include="LogWriter.cpp" />
     <ClCompile Include="Packet.cpp" />
     <ClCompile Include="PlayerSocket.cpp" />
     <ClCompile Include="Disconnector.cpp" />

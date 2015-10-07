@@ -2,7 +2,7 @@
 
 #include "LogAct.h"
 
-class LogWriter
+class CLogWriter
 {
 	HANDLE m_hLogIOCP;
 
@@ -12,8 +12,8 @@ class LogWriter
 public:
 	static UINT WINAPI ThreadProc(PVOID p_pRaram);
 
-	LogWriter(PTCH p_szStr, int p_nNumOfThreads);
-	~LogWriter();
+	CLogWriter(PTCH p_szStr, int p_nNumOfThreads);
+	~CLogWriter();
 
-	int LogPrint(PTCH p_szStr);
+	int myWprintf(PTCH p_szStr);
 };
