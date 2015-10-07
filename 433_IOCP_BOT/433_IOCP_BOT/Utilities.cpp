@@ -63,11 +63,14 @@ void BeforeMakingIOCPMessage(PTCH p_szStr)
 #ifdef _DEBUG
 	if (0 > wprintf_s(p_szStr))
 		wprintf_s(L"The OS has failed to write a message in debug mode before making IOCP.\n");
+	system("pause");
 	exit(1);
 #else
 	// If this state is the release mode, then make the beep sound thrice !!!
 	if (0 > wprintf_s(L"\a\a\a"))
 		wprintf_s(L"\a\a\a\a");
+	system("pause");
+	exit(1);
 	// Kill This Service ! Don't use KillProcess or TerminateProcess !
 #endif
 }

@@ -8,9 +8,9 @@ struct CLogFileInfo
 
 	CLogFileInfo(PTCH p_szFileName)
 	{
-#ifdef _DEBUG
+#ifdef MYDEF
 #else
-		m_hFile = ::CreateFileW(p_szFileName, GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, 0, NULL);
+		m_hFile = ::CreateFileW(p_szFileName, GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_FLAG_OVERLAPPED, NULL);
 		if (INVALID_HANDLE_VALUE == m_hFile)
 		{
 			BeforeMakingIOCPMessage(L"The OS Can't Create a Logfile !\n");
@@ -22,7 +22,7 @@ struct CLogFileInfo
 
 	~CLogFileInfo()
 	{
-#ifdef _DEBUG
+#ifdef MYDEF
 #else
 		CloseHandle(m_hFile);
 #endif

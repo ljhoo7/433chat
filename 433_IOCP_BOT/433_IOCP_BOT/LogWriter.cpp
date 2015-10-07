@@ -3,7 +3,7 @@
 CLogWriter::CLogWriter(PTCH p_szStr, int p_nNumOfThreads)
 :m_nNumOfThreads(p_nNumOfThreads)
 {
-#ifdef _DEBUG
+#ifdef MYDEF
 #else
 	m_hLogIOCP = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, NULL, m_nNumOfThreads);
 	
@@ -23,7 +23,9 @@ CLogWriter::CLogWriter(PTCH p_szStr, int p_nNumOfThreads)
 
 	m_pLogAct = new CLogAct(p_szStr);
 
-	if (NULL == ::CreateIoCompletionPort(m_pLogAct->m_cFile.m_hFile, m_hLogIOCP, 0, 0))
+	ULONG_PTR t_pulData = 0;
+
+	if (NULL == ::CreateIoCompletionPort(m_pLogAct->m_cFile.m_hFile, m_hLogIOCP, t_pulData, 0))
 	{
 		BeforeMakingIOCPMessage(L"The OS has failed to assign the log file to the IOCP !\n");
 	}
@@ -37,14 +39,17 @@ CLogWriter::CLogWriter(PTCH p_szStr, int p_nNumOfThreads)
 
 	if (!t_nResult)
 	{
-		BeforeMakingIOCPMessage(L"The OS has failed to write the unicode mark on the log file !\n");
+		if (GetLastError() != ERROR_IO_PENDING)
+		{
+			BeforeMakingIOCPMessage(L"The OS has failed to write the unicode mark on the log file !\n");
+		}
 	}
 #endif
 }
 
 CLogWriter::~CLogWriter()
 {
-#ifdef _DEBUG
+#ifdef MYDEF
 #else
 	CloseHandle(m_hLogIOCP);
 	delete m_pLogAct;
@@ -59,7 +64,7 @@ UINT WINAPI CLogWriter::ThreadProc(PVOID p_pRaram)
 
 int CLogWriter::myWprintf(PTCH p_szStr)
 {
-#ifdef _DEBUG
+#ifdef MYDEF
 	if(0 > wprintf_s(p_szStr))
 		BeforeMakingIOCPMessage(L"The LogWriter has failed to write a message in debug mode.\n");
 	return 0;
@@ -72,7 +77,10 @@ int CLogWriter::myWprintf(PTCH p_szStr)
 
 	if (!t_nResult)
 	{
-		BeforeMakingIOCPMessage(L"The LogWriter has failed to write a message in release mode.\n");
+		if (GetLastError() != ERROR_IO_PENDING)
+		{
+			BeforeMakingIOCPMessage(L"The LogWriter has failed to write a message in release mode.\n");
+		}
 	}
 
 	return t_nResult;

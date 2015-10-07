@@ -29,6 +29,11 @@ class CLogWriter;
 
 #define BUFSIZE 1024
 
+#ifdef _DEBUG
+	#define MYDEF
+#else
+#endif
+
 typedef struct mswsock_s {
 	LPFN_CONNECTEX ConnectEx;
 }mswsock_s;

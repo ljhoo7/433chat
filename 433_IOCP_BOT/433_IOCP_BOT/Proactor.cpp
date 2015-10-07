@@ -45,7 +45,7 @@ void CProactor::ProcEvents()
 			}
 
 			CAct *t_pAct = static_cast<CAct*>(t_pOverlapped);
-			t_pAct->Complete(t_dwByteesTransferred);
+			//t_pAct->Complete(t_dwByteesTransferred);
 		}
 		else
 		{
@@ -53,7 +53,7 @@ void CProactor::ProcEvents()
 			if (NULL != t_pOverlapped)
 			{
 				CAct *t_pAct = static_cast<CAct*>(t_pOverlapped);
-				t_pAct->Error(t_dwByteesTransferred);
+				//t_pAct->Error(t_dwByteesTransferred);
 				continue;
 			}
 			g_pLog->myWprintf(L"Proactor's ProcEvents false error !\n");

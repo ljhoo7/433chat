@@ -29,11 +29,11 @@ struct CAct : public OVERLAPPED
 
 	void Complete(DWORD p_dwBytesTransferred)
 	{
-		m_pActor->ProcEvent(this, p_dwBytesTransferred);
+		//m_pActor->ProcEvent(this, p_dwBytesTransferred);
 	}
 
 	void Error(DWORD p_dwError)
 	{
-		m_pActor->ProcError(this, p_dwError);
+		//m_pActor->ProcError(this, p_dwError);
 	}
 };
