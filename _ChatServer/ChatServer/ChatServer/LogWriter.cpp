@@ -7,7 +7,7 @@ LogWriter::LogWriter(PTCH p_szStr, int p_nNumOfThreads)
 	
 	if (NULL == m_hLogIOCP)
 	{
-		BeforeMakingIOCPMessage(L"The OS has failed to make a IOCP kernel object for the log file!\n");
+		printf("The OS has failed to make a IOCP kernel object for the log file!\n");
 	}
 
 	for( int i = 0; i < m_nNumOfThreads; ++i)
@@ -15,7 +15,7 @@ LogWriter::LogWriter(PTCH p_szStr, int p_nNumOfThreads)
 		unsigned int t_unThreadId;
 		if (-1 == _beginthreadex(NULL, 0, LogWriter::ThreadProc, (void *)this, 0, &t_unThreadId))
 		{
-			BeforeMakingIOCPMessage(L"The OS has failed to make a worker thread for log file!\n");
+			printf("The OS has failed to make a worker thread for log file!\n");
 		}
 	}
 
@@ -23,7 +23,7 @@ LogWriter::LogWriter(PTCH p_szStr, int p_nNumOfThreads)
 
 	if (NULL == ::CreateIoCompletionPort(m_pLogAct->m_cFile.m_hFile, m_hLogIOCP, 0, 0))
 	{
-		BeforeMakingIOCPMessage(L"The OS has failed to assign the log file to the IOCP !\n");
+		printf("The OS has failed to assign the log file to the IOCP !\n");
 	}
 
 	unsigned short	t_usMark = 0xFEFF;
@@ -35,7 +35,7 @@ LogWriter::LogWriter(PTCH p_szStr, int p_nNumOfThreads)
 
 	if (!t_nResult)
 	{
-		BeforeMakingIOCPMessage(L"The OS has failed to write the unicode mark on the log file !\n");
+		printf("The OS has failed to write the unicode mark on the log file !\n");
 	}
 }
 
@@ -51,11 +51,11 @@ UINT WINAPI LogWriter::ThreadProc(PVOID p_pRaram)
 	return 0;
 }
 
-int LogWriter::wprintf_s(PTCH p_szStr)
+int LogWriter::LogPrint(PTCH p_szStr)
 {
 #ifdef _DEBUG
 	if(0 > wprintf_s(p_szStr))
-		BeforeMakingIOCPMessage(L"The LogWriter has failed to write a message in debug mode.\n");
+		printf("The LogWriter has failed to write a message in debug mode.\n");
 	exit(1);
 #else
 	DWORD			t_dwNumberOfBytesWritten;

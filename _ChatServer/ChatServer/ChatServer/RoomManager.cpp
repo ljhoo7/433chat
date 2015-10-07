@@ -10,7 +10,7 @@ CRoomManager::~CRoomManager()
 {
 }
 
-void CRoomManager::printInfo(){
+void CRoomManager::PrintInfo(){
 	std::list<CRoom*>::iterator iter;
 	printf("< Current Room List >\n");
 	for (iter = rooms.begin(); iter != rooms.end(); iter++){
@@ -19,7 +19,7 @@ void CRoomManager::printInfo(){
 	printf("\n");
 }
 
-int CRoomManager::createRoom(int roomNumber){
+int CRoomManager::CreateRoom(int roomNumber){
 	if (rooms.size() > ROOM_MAX)
 	{
 		return fail_signal::fs_overflow;
@@ -42,13 +42,13 @@ int CRoomManager::createRoom(int roomNumber){
 		//enterRoom(p, roomNumber);
 		rooms.insert(iter, room);
 
-		printInfo();
+		PrintInfo();
 
 		return -1;
 	}
 }
 
-CRoom* CRoomManager::findRoom(int roomNumber){
+CRoom* CRoomManager::FindRoom(int roomNumber){
 	if (roomNumber == -1) return NULL;
 
 	std::list<CRoom*>::iterator iter;
@@ -61,8 +61,8 @@ CRoom* CRoomManager::findRoom(int roomNumber){
 	return NULL;
 }
 
-int CRoomManager::enterRoom(CPlayer* p, int roomNumber){
-	CRoom* room = findRoom(roomNumber);
+int CRoomManager::EnterRoom(CPlayer* p, int roomNumber){
+	CRoom* room = FindRoom(roomNumber);
 	if (room == NULL)
 		return fail_signal::fs_no_exist;
 	if (room->players.size() > PLAYER_MAX)
@@ -82,16 +82,16 @@ int CRoomManager::enterRoom(CPlayer* p, int roomNumber){
 		}
 	}
 
-	room->playerEnter(p);
+	room->PlayerEnter(p);
 
-	printInfo();
+	PrintInfo();
 
 	return -1;
 }
 
-int CRoomManager::destroyRoom(int roomNumber)
+int CRoomManager::DestroyRoom(int roomNumber)
 {
-	CRoom* room = findRoom(roomNumber);
+	CRoom* room = FindRoom(roomNumber);
 	if (room == NULL)
 		return fail_signal::fs_no_exist;
 
@@ -100,7 +100,7 @@ int CRoomManager::destroyRoom(int roomNumber)
 
 	tmpKick.type = pkt_type::pt_kick;
 
-	room->broadcast_msg((char*)&tmpKick, sizeof(t_kick));
+	room->BroadcastMsg((char*)&tmpKick, sizeof(t_kick));
 
 	for (std::list<CPlayer*>::iterator iter = room->players.begin();
 		iter != room->players.end(); ++iter)
@@ -110,21 +110,21 @@ int CRoomManager::destroyRoom(int roomNumber)
 
 	rooms.remove(room);
 
-	printInfo();
+	PrintInfo();
 
 	return -1;
 }
 
-bool CRoomManager::leaveRoom(CPlayer* p, int roomNumber)
+bool CRoomManager::LeaveRoom(CPlayer* p, int roomNumber)
 {
-	CRoom* room = findRoom(roomNumber);
+	CRoom* room = FindRoom(roomNumber);
 	if (room == NULL){
 		printf("No ROOM!\n");
 		return false;
 	}
-	room->playerQuit(p, true);
+	room->PlayerQuit(p, true);
 
-	printInfo();
+	PrintInfo();
 
 	return true;
 }

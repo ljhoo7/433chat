@@ -10,17 +10,17 @@ public:
 	void Start();
 
 public:
-	Proactor*		Proactor_;
-	Acceptor*		Acceptor_;
-	Receiver*		Receiver_;
-	Sender*			Sender_;
-	Disconnector*	Disconnector_;
+	Proactor*		proactor_;
+	Acceptor*		acceptor_;
+	Receiver*		receiver_;
+	Sender*			sender_;
+	Disconnector*	disconnector_;
 
-	TcpListenSocket	ListenSocket_;
+	TcpListenSocket	listenSocket_;
 
 private:
-	WORD			Port_;
-	int				ThreadPoolSize_;
-	int				SocketPoolSize_;
+	WORD			port_;
+	int				threadPoolSize_;
+	int				socketPoolSize_;
 
 };

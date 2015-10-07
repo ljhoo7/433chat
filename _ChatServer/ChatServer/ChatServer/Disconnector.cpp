@@ -5,17 +5,15 @@ void Disconnector::ProcEvent(Act* act, DWORD bytes_transferred)
 {
 	TcpAct& tcpact = *dynamic_cast<TcpAct*>(act);
 
-	assert(tcpact.TcpSocket_);
-	TcpSocket& tcpsocket = *tcpact.TcpSocket_;
+	assert(tcpact.tcpSocket_);
+	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
 	//printf("...Disconnector s(%d)\n", tcpsocket.GetSocket());
 
-	assert(tcpsocket.Acceptor_);
+	assert(tcpsocket.disconnector_);
 
 	tcpsocket.DisconnProcess(false, act, bytes_transferred);
 	// reuse socket
-	tcpsocket.Reuse();
-
 	
 }
 
@@ -25,16 +23,16 @@ void Disconnector::ProcError(Act* act, DWORD error)
 
 	TcpAct& tcpact = *dynamic_cast<TcpAct*>(act);
 
-	assert(tcpact.TcpSocket_);
+	assert(tcpact.tcpSocket_);
 
-	TcpSocket& tcpsocket = *tcpact.TcpSocket_;
+	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
-	printf("...俊矾贸府 Disconnector s(%d) err(%d)\n", tcpsocket.GetSocket(), error);
+	printf("...俊矾贸府 Disconnector s(%d) err(%d)\n", tcpsocket.socket_, error);
 
 	tcpsocket.DisconnProcess(true, act, error);
 }
 
 void Disconnector::Init(Proactor* proactor)
 {
-	Proactor_ = proactor;
+	proactor_ = proactor;
 }

@@ -2,22 +2,37 @@
 
 int identifier_seed;
 // user presence
-std::list<CPlayer*> g_vPlayers;
+std::list<CPlayer*> players;
 
 CRoomManager roomManager;
 CLogicHandle logicHandle;
 
-TcpClientServer server(10000, 10, 3000);
-TcpInterServer listen_server(10001, 10);
-TcpInterServer connect_server(10002, 10);
+TcpClientServer* clientServer;
+TcpInterServer* listenServer;
+TcpInterServer* connectServer;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	
+
+	if (argc != 3){
+		printf("error command\n");
+		return 0;
+	}
+
+	WORD listenPort = atoi(argv[1]);
+	WORD connectPort = atoi(argv[2]);
+
+
+	listenServer = new TcpInterServer(listenPort, 10);
+	connectServer = new TcpInterServer(connectPort, 10);
+	clientServer = new TcpClientServer(listenPort + 1000, 10, 3000);
 	identifier_seed = 0;
 
-	std::thread logic_thread(&CLogicHandle::process, &logicHandle);
-	server.Start();
+	std::thread logic_thread(&CLogicHandle::Process, &logicHandle);
+	clientServer->Start();
+
+	listenServer->Start(false);
+	connectServer->Start(true);
 
 	while (true)
 	{
@@ -25,36 +40,25 @@ int _tmain(int argc, _TCHAR* argv[])
 		//ZeroMemory(temp, sizeof(temp));
 		std::getline(std::cin, input);
 
-		if (listen_server.the_other_sock == NULL)
+		if (input == "connect")
 		{
-			if (input == "connect")
-			{
-				connect_server.start(0, connect_port);
-			}
-			else{
-				if (input == "disconnect")
-				{
-					connect_server.disconnect();
-				}
-			}
+			connectServer->Connect("127.0.0.1", connectPort);
+		}
+		else if (input == "disconnect")
+		{
+			if (connectServer->isUse) connectServer->socket->Disconnect();
+			if (listenServer->isUse) listenServer->socket->Disconnect();
 		}
 
-		if (connect_server.the_other_sock == NULL)
-		{
-			if (input == "disconnect")
-			{
-				listen_server.disconnect();
-			}
-		}
 		if (input == "show")
 		{
 			std::list<CPlayer*>::iterator iter;
 			printf("\n--------------------------player info----------------------\n");
-			for (iter = g_vPlayers.begin(); iter != g_vPlayers.end(); iter++)
+			for (iter = players.begin(); iter != players.end(); iter++)
 			{
 				CPlayer *p = (*iter);
 				printf("is Mine : %d, client socket : %d, room Num : %d, nickname : %s\n",
-					p->isMine, p->token->clientSocket, p->roomNum, p->nickname.c_str());
+					p->isMine, p->socket_, p->roomNum, p->nickname.c_str());
 			}
 			printf("-----------------------------------------------------------\n");
 		}

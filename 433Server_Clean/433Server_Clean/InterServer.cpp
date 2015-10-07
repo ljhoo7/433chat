@@ -552,6 +552,7 @@ void CInterServer::heartbeat_check()
 	printf("connection fail\n");
 	disconnect();
 }
+
 CPlayer* find_player_by_socket(SOCKET socket)
 {
 	std::list<CPlayer*>::iterator iter;

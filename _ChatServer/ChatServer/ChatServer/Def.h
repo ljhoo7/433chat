@@ -69,6 +69,6 @@ class TcpInterServer;
 #include "Packet.h"
 #include "LogicHandle.h"
 
-#include "InterSocket.h";
-#include "InterConnectSocket.h";
-#include "TcpInterServer.h";
+#include "InterSocket.h"
+#include "InterConnectSocket.h"
+#include "TcpInterServer.h"

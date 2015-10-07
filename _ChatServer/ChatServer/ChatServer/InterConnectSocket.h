@@ -9,14 +9,14 @@ private:
 		LPFN_CONNECTEX ConnectEx;
 	} mswsock;
 
-	BOOL load_mswsock(void);
+	BOOL LoadMswsock(void);
 
 public:
 	InterConnectSocket(TcpInterServer* InterServer);
 	~InterConnectSocket();
 
 public:
-	TcpInterServer* InterServer_;
+	TcpInterServer* interServer_;
 
 public:
 	void RecvProcess(bool isError, Act* act, DWORD bytes_transferred);
@@ -25,5 +25,6 @@ public:
 	void DisconnProcess(bool isError, Act* act, DWORD bytes_transferred);
 	void ConnProcess(bool isError, Act* act, DWORD bytes_transferred);
 
+	void Bind(bool reuse);
 	void Connect(char* ip, WORD port);
 };

@@ -15,5 +15,5 @@ public:
 	LogWriter(PTCH p_szStr, int p_nNumOfThreads);
 	~LogWriter();
 
-	int wprintf_s(PTCH p_szStr);
+	int LogPrint(PTCH p_szStr);
 };

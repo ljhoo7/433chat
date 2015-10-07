@@ -8,11 +8,11 @@ public:
 
 	std::list<CRoom*> rooms;
 
-	int createRoom(int roomNumber);
-	int destroyRoom(int roomNumber);
-	CRoom* findRoom(int roomNumber);
-	bool leaveRoom(CPlayer* p, int roomNumber);
-	int enterRoom(CPlayer* p, int roomNumber);
-	void printInfo();
+	int CreateRoom(int roomNumber);
+	int DestroyRoom(int roomNumber);
+	CRoom* FindRoom(int roomNumber);
+	bool LeaveRoom(CPlayer* p, int roomNumber);
+	int EnterRoom(CPlayer* p, int roomNumber);
+	void PrintInfo();
 };
 

@@ -5,8 +5,8 @@ void Receiver::ProcEvent(Act* act, DWORD bytes_transferred)
 {
 	assert(dynamic_cast<TcpAct*>(act));
 	TcpAct& tcpact = *dynamic_cast<TcpAct*>(act);
-	assert(tcpact.TcpSocket_);
-	TcpSocket& tcpsocket = *tcpact.TcpSocket_;
+	assert(tcpact.tcpSocket_);
+	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
 	//printf("...Receiver (%d byte) s(%d)\n", bytes_transferred, tcpsocket.GetSocket() );
 
@@ -21,9 +21,9 @@ void Receiver::ProcError(Act* act, DWORD error)
 
 	TcpAct& tcpact = *dynamic_cast<TcpAct*>(act);
 
-	assert(tcpact.TcpSocket_);
+	assert(tcpact.tcpSocket_);
 
-	TcpSocket& tcpsocket = *tcpact.TcpSocket_;
+	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
 	//printf("...에러처리 Receiver s(%d) err(%d)\n", tcpsocket.GetSocket(), error );
 
@@ -33,5 +33,5 @@ void Receiver::ProcError(Act* act, DWORD error)
 
 void Receiver::Init(Proactor* proactor)
 {
-	Proactor_ = proactor;
+	proactor_ = proactor;
 }

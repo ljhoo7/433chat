@@ -3,15 +3,15 @@
 
 TcpSocket::TcpSocket()
 {
-	Socket_ = INVALID_SOCKET;
-	Acceptor_ = NULL;
+	socket_ = INVALID_SOCKET;
+	acceptor_ = NULL;
 }
 
 void TcpSocket::Init()
 {
-	Socket_ = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+	socket_ = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 
-	if (Socket_ == INVALID_SOCKET)
+	if (socket_ == INVALID_SOCKET)
 	{
 		printf("WSASocket() Error!!! err(%d)\n", WSAGetLastError());
 	}
@@ -21,38 +21,33 @@ void TcpSocket::Init()
 
 void TcpSocket::InitBuf()
 {
-	wsaRecvBuf.buf = RecvBuf_;
+	wsaRecvBuf.buf = recvBuf_;
 	wsaRecvBuf.len = BUFSIZE;
 
-	wsaSendBuf.buf = SendBuf_;
+	wsaSendBuf.buf = sendBuf_;
 	wsaSendBuf.len = BUFSIZE;
 
-	ZeroMemory(RecvBuf_, BUFSIZE);
-	ZeroMemory(SendBuf_, BUFSIZE);
+	ZeroMemory(recvBuf_, BUFSIZE);
+	ZeroMemory(sendBuf_, BUFSIZE);
 
-	ZeroMemory(AcceptBuf_, BUFSIZE);
+	ZeroMemory(acceptBuf_, BUFSIZE);
 }
 
 void TcpSocket::InitAct(Proactor* proactor, Acceptor* acceptor, Disconnector* disconnector,
 	Connector* connector, Sender* sender, Receiver* receiver)
 {
-	Proactor_ = proactor;
-	Acceptor_ = acceptor;
-	Disconnector_ = disconnector;
-	Sender_ = sender;
-	Receiver_ = receiver;
-	Connector_ = connector;
+	proactor_ = proactor;
+	acceptor_ = acceptor;
+	disconnector_ = disconnector;
+	sender_ = sender;
+	receiver_ = receiver;
+	connector_ = connector;
 
-	Act_[ACT_ACCEPT].Init(Acceptor_, this);
-	Act_[ACT_RECV].Init(Receiver_, this);
-	Act_[ACT_SEND].Init(Sender_, this);
-	Act_[ACT_DISCONNECT].Init(Disconnector_, this);
-	Act_[ACT_CONNECT].Init(Connector_, this);
-}
-
-SOCKET TcpSocket::GetSocket() const
-{
-	return Socket_;
+	act_[ACT_ACCEPT].Init(acceptor_, this);
+	act_[ACT_RECV].Init(receiver_, this);
+	act_[ACT_SEND].Init(sender_, this);
+	act_[ACT_DISCONNECT].Init(disconnector_, this);
+	act_[ACT_CONNECT].Init(connector_, this);
 }
 
 void TcpSocket::Recv()
@@ -61,7 +56,7 @@ void TcpSocket::Recv()
 	DWORD flags = 0;
 
 
-	INT ret = WSARecv(Socket_, &(wsaRecvBuf), 1, &recvbytes, &flags, static_cast<OVERLAPPED*>(&(Act_[ACT_RECV])), NULL);
+	INT ret = WSARecv(socket_, &(wsaRecvBuf), 1, &recvbytes, &flags, static_cast<OVERLAPPED*>(&(act_[ACT_RECV])), NULL);
 
 	if (ret != 0)
 	{
@@ -69,7 +64,7 @@ void TcpSocket::Recv()
 
 		if (error != ERROR_IO_PENDING)
 		{
-			printf("WSARecv() Error!!! s(%d) err(%d)\n", Socket_, error);
+			printf("WSARecv() Error!!! s(%d) err(%d)\n", socket_, error);
 			Disconnect();
 		}
 	}
@@ -82,7 +77,7 @@ void TcpSocket::Recv(char* buf, int buflen)
 	wsaRecvBuf.buf = buf;
 	wsaRecvBuf.len = buflen;
 
-	INT ret = WSARecv(Socket_, &(wsaRecvBuf), 1, &recvbytes, &flags, static_cast<OVERLAPPED*>(&(Act_[ACT_RECV])), NULL);
+	INT ret = WSARecv(socket_, &(wsaRecvBuf), 1, &recvbytes, &flags, static_cast<OVERLAPPED*>(&(act_[ACT_RECV])), NULL);
 
 	if (ret != 0)
 	{
@@ -90,7 +85,7 @@ void TcpSocket::Recv(char* buf, int buflen)
 
 		if (error != ERROR_IO_PENDING)
 		{
-			printf("WSARecv() Error!!! s(%d) err(%d)\n", Socket_, error);
+			printf("WSARecv() Error!!! s(%d) err(%d)\n", socket_, error);
 			Disconnect();
 		}
 	}
@@ -103,7 +98,7 @@ void TcpSocket::Send(char* buf, int buflen)
 	wsaSendBuf.buf = buf;
 	wsaSendBuf.len = buflen;
 
-	INT ret = WSASend(Socket_, &(wsaSendBuf), 1, &sentbytes, 0, static_cast<OVERLAPPED*>(&(Act_[ACT_SEND])), NULL);
+	INT ret = WSASend(socket_, &(wsaSendBuf), 1, &sentbytes, 0, static_cast<OVERLAPPED*>(&(act_[ACT_SEND])), NULL);
 
 	if (ret != 0)
 	{
@@ -111,25 +106,25 @@ void TcpSocket::Send(char* buf, int buflen)
 
 		if (error != ERROR_IO_PENDING)
 		{
-			printf("WSASend() Error!!! s(%d) err(%d)\n", Socket_, error);
-			Disconnect();
+			printf("WSASend() Error!!! s(%d) err(%d)\n", socket_, error);
+			//Disconnect();
 		}
 	}
 }
 
 void TcpSocket::Reuse()
 {
-	Acceptor_->Register(*this);
+	acceptor_->Register(*this);
 }
 
 void TcpSocket::Disconnect()
 {
 	BOOL ret = TransmitFile(
-		Socket_,
+		socket_,
 		NULL,
 		0,
 		0,
-		static_cast<OVERLAPPED*>(&(Act_[ACT_DISCONNECT])),
+		static_cast<OVERLAPPED*>(&(act_[ACT_DISCONNECT])),
 		NULL,
 		TF_DISCONNECT | TF_REUSE_SOCKET
 		);
@@ -140,7 +135,7 @@ void TcpSocket::Disconnect()
 
 		if (error != ERROR_IO_PENDING)
 		{
-			printf("DisconnectEx Error!!! s(%d), err(%d)\n", Socket_, error);
+			printf("already disconnected, DisconnectEx Error!!! s(%d), err(%d)\n", socket_, error);
 		}
 	}
 }

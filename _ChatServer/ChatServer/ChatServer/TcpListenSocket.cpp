@@ -3,29 +3,25 @@
 
 TcpListenSocket::TcpListenSocket()
 {
-	BacklogSize_ = 0;
+	backlogSize_ = 0;
 }
 
 void TcpListenSocket::Init(WORD port, int backlogsize)
 {
-	Socket_ = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+	printf("Listen Socket Init %d\n", port);
+	socket_ = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 
-	Addr_.sin_family = AF_INET;
-	Addr_.sin_addr.s_addr = htonl(INADDR_ANY);
-	Addr_.sin_port = htons(port);
+	addr_.sin_family = AF_INET;
+	addr_.sin_addr.s_addr = htonl(INADDR_ANY);
+	addr_.sin_port = htons(port);
 
-	BacklogSize_ = backlogsize;
+	backlogSize_ = backlogsize;
 }
 
 void TcpListenSocket::Listen(Proactor* proactor)
 {
-	proactor->Register(reinterpret_cast<HANDLE>(Socket_));
+	proactor->Register(reinterpret_cast<HANDLE>(socket_));
 
-	bind(Socket_, (SOCKADDR*)&Addr_, sizeof(Addr_));
-	listen(Socket_, BacklogSize_);
-}
-
-SOCKET TcpListenSocket::GetSocket() const
-{
-	return Socket_;
+	bind(socket_, (SOCKADDR*)&addr_, sizeof(addr_));
+	listen(socket_, backlogSize_);
 }

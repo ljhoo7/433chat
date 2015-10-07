@@ -4,6 +4,7 @@
 #pragma comment(lib,"mswsock.lib")  
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define BUFSIZE 8192
 
 #include "targetver.h"
 
@@ -17,8 +18,10 @@ class Proactor;
 class TcpAct;
 
 #include "Act.h"
+
 #include "Proactor.h"
 #include "Actor.h"
+
 #include "Def.h"
 
 

@@ -16,5 +16,5 @@ public:
 	void Register(TcpSocket& acceptsocket);
 
 public:
-	TcpListenSocket*	TcpListenSocket_;
+	TcpListenSocket*	tcpListenSocket_;
 };

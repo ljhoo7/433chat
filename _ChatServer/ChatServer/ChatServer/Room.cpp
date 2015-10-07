@@ -9,11 +9,11 @@ CRoom::~CRoom()
 	std::list<CPlayer*>::iterator iter;
 	for (iter = players.begin(); iter != players.end(); iter++)
 	{
-		playerQuit(*iter, false);
+		PlayerQuit(*iter, false);
 	}
 }
 
-void CRoom::playerEnter(CPlayer* player)
+void CRoom::PlayerEnter(CPlayer* player)
 {
 	player->roomNum = roomNumber;
 
@@ -22,7 +22,7 @@ void CRoom::playerEnter(CPlayer* player)
 	tmpJoinAlarm.room_num = roomNumber;
 	tmpJoinAlarm.type = pkt_type::pt_join_alarm;
 
-	this->broadcast_msg((char*)&tmpJoinAlarm, sizeof(t_join_alarm));
+	this->BroadcastMsg((char*)&tmpJoinAlarm, sizeof(t_join_alarm));
 	std::cout << "join alarm message has been sent." << std::endl;
 
 	/* informing the entered */
@@ -30,7 +30,7 @@ void CRoom::playerEnter(CPlayer* player)
 }
 
 
-void CRoom::playerQuit(CPlayer* player, bool msg)
+void CRoom::PlayerQuit(CPlayer* player, bool msg)
 {
 	if (player->roomNum != this->roomNumber) return;
 	std::list<CPlayer*>::iterator iter;
@@ -55,11 +55,11 @@ void CRoom::playerQuit(CPlayer* player, bool msg)
 	players.remove(player);
 
 	/* informing the exited */
-	if (msg) this->broadcast_msg((char*)&tmpLeaveAlarm, sizeof(t_leave_alarm));
+	if (msg) this->BroadcastMsg((char*)&tmpLeaveAlarm, sizeof(t_leave_alarm));
 	std::cout << "leave alarm message has been sent." << std::endl;
 }
 
-void CRoom::broadcast_msg(char* msg, int size)
+void CRoom::BroadcastMsg(char* msg, int size)
 {
 	std::list<CPlayer*>::iterator iter;
 	//printf("CRoom %d : %d persons are connecting...\n", roomNumber, players.size());

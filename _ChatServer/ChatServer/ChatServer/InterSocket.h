@@ -9,7 +9,7 @@ public:
 	~InterSocket();
 
 public:
-	TcpInterServer* InterServer_;
+	TcpInterServer* interServer_;
 
 public:
 	void RecvProcess(bool isError, Act* act, DWORD bytes_transferred);

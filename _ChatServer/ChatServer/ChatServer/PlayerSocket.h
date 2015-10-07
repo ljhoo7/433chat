@@ -28,9 +28,9 @@ public:
 
 	
 public:
-	bool valid_Packet(CPacket *packet);
-	void playerSync(char *buf, int size);
-	void packetHandling(CPacket *packet);
+	bool ValidPacket(CPacket *packet);
+	void PlayerSync(char *buf, int size);
+	void PacketHandling(CPacket *packet);
 
 	void RecvProcess(bool isError, Act* act, DWORD bytes_transferred);
 	void SendProcess(bool isError, Act* act, DWORD bytes_transferred);
