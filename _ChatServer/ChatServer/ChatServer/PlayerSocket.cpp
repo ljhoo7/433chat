@@ -30,12 +30,14 @@ CPlayer::CPlayer(bool isMine)
 
 	poolManager = new MemPooler<msg_buffer>(10);
 	if (!poolManager){
+		PRINTF(L"CPlayer : MemPooler<msg_buffer> error\n");
 		/* error handling */
 		return;
 	}
 
 	packetPoolManager = new MemPooler<CPacket>(10);
 	if (!packetPoolManager){
+		PRINTF(L"CPlayer : MemPooler<CPacket> error\n");
 		/* error handling */
 		return;
 	}
@@ -52,6 +54,7 @@ void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 		this->remainBytes -= bytes_transferred;
 
 		if (this->socket_ == NULL){
+			PRINTF(L"CPlayer RecvProcess : recv buf socket is not available\n");
 			/* error handling */
 		}
 		else{
@@ -111,8 +114,6 @@ void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 						msg->msg = buf_->buf;
 						memcpy(msg->msg, buf, BUFSIZE);
 
-						printf("msg complete!\n");
-
 						position = 0;
 						remainBytes = HEADER_SIZE;
 						logicHandle.EnqueueOper(msg, false);
@@ -124,24 +125,24 @@ void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 	}
 	else{
 		/* error handling */
-		Disconnect();
+		PRINTF(L"CPlayer RecvProcess : Error : %d\n", WSAGetLastError());
+		//Disconnect();
 	}
 	
 }
 
 void CPlayer::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-		printf("send success\n");
-
+		/* send complete */
 	}
 	else{
-
+		PRINTF(L"CPlayer SendProcess : Error : %d\n", WSAGetLastError());
 	}
 }
 
 void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-		printf("connect success, %d\n", this->socket_);
+		PRINTF(L"connect success, %d\n", this->socket_);
 		this->identifier = identifier_seed++;
 		players.push_back(this);
 
@@ -156,13 +157,14 @@ void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 	}
 	else{
 		/* error handling */
+		PRINTF(L"CPlayer AcceptProcess : Error : %d\n", WSAGetLastError());
 	}
 }
 
 /* 동기화 문제! */
 void CPlayer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-		printf("disconnect success, %d\n", this->socket_);
+		PRINTF(L"disconnect success, %d\n", this->socket_);
 		CRoom* room = roomManager.FindRoom(this->roomNum);
 
 		if (room != NULL)
@@ -174,8 +176,6 @@ void CPlayer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 			memcpy(msg.nickname, this->nickname.c_str(), sizeof(msg.nickname));
 
 			PlayerSync((char *)&msg, sizeof(ss_leave));
-
-			printf("remove in room...\n");
 		}
 
 		if (this->socket_ != NULL){
@@ -252,7 +252,9 @@ void CPlayer::PacketHandling(CPacket *packet){
 		return;
 	}
 
-	if (!ValidPacket(packet)) return;
+	if (!ValidPacket(packet)){
+		PRINTF(L"Not Valid Packet!\n");
+	}
 
 	pkt_type _type = (pkt_type)(*packet->msg);
 
@@ -288,13 +290,13 @@ void CPlayer::PacketHandling(CPacket *packet){
 			msg.client_socket = this->socket_;
 			msg.room_num = tmpCreate->room_num;
 			PlayerSync((char *)&msg, sizeof(msg));
-			std::cout << "create has been sent." << std::endl;
+			PRINTF(L"create has been sent.");
 
 			//------------------------------------------------------------------------
 
 			tmpCreateSuccess.type = pkt_type::pt_create_success;
 			Send((char *)&tmpCreateSuccess, sizeof(t_create_success));
-			std::cout << "create message has been sent." << std::endl;
+			PRINTF(L"create message has been sent.");
 		}
 		else if (result == fail_signal::fs_overflow)
 		{
@@ -302,7 +304,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpCreateFailure.fail_signal = fail_signal::fs_overflow;
 
 			Send((char *)&tmpCreateFailure, sizeof(t_create_failure));
-			std::cout << "create overflow message has been sent." << std::endl;
+			PRINTF(L"create overflow message has been sent.");
 		}
 		else if (result == fail_signal::fs_alreadyexist)
 		{
@@ -310,7 +312,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpCreateFailure.fail_signal = fail_signal::fs_alreadyexist;
 
 			Send((char *)&tmpCreateFailure, sizeof(t_create_failure));
-			std::cout << "create already exist message has been sent." << std::endl;
+			PRINTF(L"create already exist message has been sent.");
 		}
 		break;
 	case pkt_type::pt_destroy:
@@ -328,7 +330,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 
 			tmpDestroySuccess.type = pkt_type::pt_destroy_success;
 			Send((char *)&tmpDestroySuccess, sizeof(t_destroy_success));
-			std::cout << "destroy success message has been sent." << std::endl;
+			PRINTF(L"destroy success message has been sent.");
 		}
 		else if (result == fail_signal::fs_no_exist)
 		{
@@ -336,7 +338,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpDestroyFailure.fail_signal = fail_signal::fs_no_exist;
 
 			Send((char *)&tmpDestroyFailure, sizeof(t_destroy_failure));
-			std::cout << "destroy no exist message has been sent." << std::endl;
+			PRINTF(L"destroy no exist message has been sent.");
 		}
 		break;
 
@@ -353,7 +355,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			memcpy(msg.nickname, tmpJoin->nickname, sizeof(msg.nickname));
 			PlayerSync((char *)&msg, sizeof(msg));
 
-			std::cout << "join message has been sent." << std::endl;
+			PRINTF(L"join message has been sent.");
 
 			//------------------------------------------------------------------------
 
@@ -361,9 +363,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpJoinSuccess.token = this->identifier;
 
 			Send((char *)&tmpJoinSuccess, sizeof(t_join_success));
-			std::cout << "join success message has been sent." << std::endl;
-
-
+			PRINTF(L"join success message has been sent.");
 		}
 		else if (result == fail_signal::fs_overflow)
 		{
@@ -371,7 +371,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpJoinFailure.fail_signal = fail_signal::fs_overflow;
 
 			Send((char *)&tmpJoinFailure, sizeof(t_join_failure));
-			std::cout << "join overflow message has been sent." << std::endl;
+			PRINTF(L"join overflow message has been sent.");
 		}
 		else if (result == fail_signal::fs_alreadyexist)
 		{
@@ -379,7 +379,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpJoinFailure.fail_signal = fail_signal::fs_alreadyexist;
 
 			Send((char *)&tmpJoinFailure, sizeof(t_join_failure));
-			std::cout << "join alreadyexist message has been sent." << std::endl;
+			PRINTF(L"join alreadyexist message has been sent.");
 		}
 		else if (result == fail_signal::fs_no_exist)
 		{
@@ -387,7 +387,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpJoinFailure.fail_signal = fail_signal::fs_no_exist;
 
 			Send((char *)&tmpJoinFailure, sizeof(t_join_failure));
-			std::cout << "join no exist message has been sent." << std::endl;
+			PRINTF(L"join no exist message has been sent.");
 		}
 		break;
 
@@ -410,11 +410,11 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpLeaveSuccess.type = pkt_type::pt_leave_success;
 			Send((char *)&tmpLeaveSuccess, sizeof(t_leave_success));
 
-			std::cout << "leave success message has been sent." << std::endl;
+			PRINTF(L"leave success message has been sent.");
 		}
 		else
 		{
-			std::cout << "The Leave Command has been failed. This is very extra ordinary event !" << std::endl;
+			PRINTF(L"The Leave Command has been failed. This is very extra ordinary event !");
 		}
 		break;
 
@@ -431,7 +431,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 		memcpy(packet->msg, &type, sizeof(unsigned short));
 		PlayerSync((char *)packet->msg, size);
 
-		std::cout << "chat alarm message has been sent." << std::endl;		break;
+		PRINTF(L"chat alarm message has been sent.");		break;
 	}
 
 	poolManager->Free((msg_buffer *)packet->msg);

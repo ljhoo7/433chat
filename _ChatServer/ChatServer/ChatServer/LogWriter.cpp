@@ -17,6 +17,8 @@ void BeforeMakingIOCPMessage(PTCH p_szStr)
 #endif
 }
 
+
+
 CLogWriter::CLogWriter(PTCH p_szStr, int p_nNumOfThreads)
 :m_nNumOfThreads(p_nNumOfThreads)
 {
@@ -79,7 +81,7 @@ UINT WINAPI CLogWriter::ThreadProc(PVOID p_pRaram)
 	return 0;
 }
 
-int CLogWriter::myWprintf(PTCH p_szStr)
+int CLogWriter::myWPRINTF(LPTCH p_szStr)
 {
 #ifdef MYDEF
 	if (0 > wprintf_s(p_szStr))

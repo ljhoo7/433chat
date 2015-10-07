@@ -30,7 +30,7 @@ InterConnectSocket::InterConnectSocket(TcpInterServer* InterServer){
 	interServer_ = InterServer;
 
 	if (!LoadMswsock()) {
-		printf("Error loading mswsock functions: %d\n", WSAGetLastError());
+		PRINTF(L"Error loading mswsock functions: %d\n", WSAGetLastError());
 		return;
 	}
 }
@@ -41,7 +41,7 @@ void  InterConnectSocket::Bind(bool reuse){
 
 		if (socket_ == INVALID_SOCKET)
 		{
-			printf("WSASocket() Error!!! err(%d)\n", WSAGetLastError());
+			PRINTF(L"WSASocket() Error!!! err(%d)\n", WSAGetLastError());
 		}
 
 	}
@@ -53,7 +53,7 @@ void  InterConnectSocket::Bind(bool reuse){
 	addr.sin_port = 0;
 	rc = bind(socket_, (SOCKADDR*)&addr, sizeof(addr));
 	if (rc != 0) {
-		printf("bind failed: %d\n", WSAGetLastError());
+		PRINTF(L"bind failed: %d\n", WSAGetLastError());
 		return;
 	}
 }
@@ -89,12 +89,12 @@ void InterConnectSocket::Connect(char* ip, WORD port){
 	int ok = mswsock.ConnectEx(socket_, (SOCKADDR*)&addr, sizeof(addr), NULL, 0, NULL, 
 		static_cast<OVERLAPPED*>(&act_[TcpSocket::ACT_CONNECT]));
 	if (ok) {
-		printf("ConnectEx succeeded immediately\n");
+		PRINTF(L"ConnectEx succeeded immediately\n");
 	}
 
 	int error = WSAGetLastError();
 	if (ok == FALSE && WSAGetLastError() != ERROR_IO_PENDING) {
-		printf("ConnectEx Error!!! s(%d), err(%d)\n", socket_, error);
+		PRINTF(L"ConnectEx Error!!! s(%d), err(%d)\n", socket_, error);
 	}
-	printf("Connect Request..\n");
+	PRINTF(L"Connect Request..\n");
 }

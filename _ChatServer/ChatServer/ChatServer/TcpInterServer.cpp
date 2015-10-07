@@ -79,7 +79,7 @@ void TcpInterServer::Start(bool connect)
 		static_cast<InterConnectSocket *>(socket)->Bind(true);
 
 		proactor_->Register((HANDLE)socket->socket_);
-		printf("InterConnectSocket start....\n");
+		PRINTF(L"InterConnectSocket start....\n");
 	}
 	else{
 		// Listen sock initialize
@@ -93,7 +93,7 @@ void TcpInterServer::Start(bool connect)
 		socket->Init();
 		socket->InitAct(proactor_, acceptor_, disconnector_, NULL, sender_, receiver_);
 		acceptor_->Register(*socket);
-		printf("InterSocket start....\n");
+		PRINTF(L"InterSocket start....\n");
 	}
 }
 
@@ -183,7 +183,7 @@ void TcpInterServer::MakeSync()
 	SendPlayerInfo();
 	SendRoomInfo();
 
-	printf("inter server sync...\n");
+	PRINTF(L"inter server sync...\n");
 }
 
 void TcpInterServer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
@@ -193,7 +193,7 @@ void TcpInterServer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred
 			return;
 		}
 
-	//	printf("interServer recieve complete\n");
+	//	PRINTF(L"interServer recieve complete\n");
 
 		position += bytes_transferred;
 		remainBytes -= bytes_transferred;
@@ -285,7 +285,7 @@ void TcpInterServer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred
 		}
 	}
 	else{
-		printf("interServer recieve error\n");
+		PRINTF(L"interServer recieve error\n");
 		/* Error Handling */
 		socket->Disconnect();
 	}
@@ -304,7 +304,7 @@ void TcpInterServer::DisconnProcess(bool isError, Act* act, DWORD bytes_transfer
 				{
 					roomManager.LeaveRoom((*iter), (*iter)->roomNum);
 				}
-				printf("delete other server's user : %d\n", (*iter)->socket_);
+				PRINTF(L"delete other server's user : %d\n", (*iter)->socket_);
 				iter = players.erase(iter);
 			}
 			else
@@ -312,7 +312,7 @@ void TcpInterServer::DisconnProcess(bool isError, Act* act, DWORD bytes_transfer
 				iter++;
 			}
 		}
-		printf("closed the other server.\n");
+		PRINTF(L"closed the other server.\n");
 
 		if (heartThread.joinable()) heartThread.join();
 		if (!isConnect) this->socket->Reuse();
@@ -322,16 +322,16 @@ void TcpInterServer::DisconnProcess(bool isError, Act* act, DWORD bytes_transfer
 		}
 	}
 	else{
-		printf("interServer disconnect error\n");
+		PRINTF(L"interServer disconnect error\n");
 	}
 }
 
 void TcpInterServer::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-		//printf("interServer send complete\n");
+		//PRINTF(L"interServer send complete\n");
 	}
 	else{
-		printf("interServer send error\n");
+		PRINTF(L"interServer send error\n");
 	}
 }
 
@@ -344,7 +344,7 @@ void TcpInterServer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferr
 	//	heartThread = std::thread(&TcpInterServer::heartbeatCheck, this);
 	}
 	else{
-		printf("interServer accept error\n");
+		PRINTF(L"interServer accept error\n");
 	}
 }
 
@@ -357,7 +357,7 @@ void TcpInterServer::ConnProcess(bool isError, Act* act, DWORD bytes_transferred
 	//	heartThread = std::thread(&TcpInterServer::heartbeatCheck, this);
 	}
 	else{
-		printf("interServer connect error\n");
+		PRINTF(L"interServer connect error\n");
 	}
 }
 
@@ -385,7 +385,7 @@ void TcpInterServer::packetHandling(CPacket *packet){
 	{
 		case ssType::pkt_heartbeats:
 		{
-			printf("recieve heartbeat check. send response\n");
+			PRINTF(L"recieve heartbeat check. send response\n");
 			char* sendMsg = poolManager->Alloc()->buf;
 			ss_heartbeats_response* msg = (ss_heartbeats_response *)sendMsg;
 			msg->type = ssType::pkt_heartbeats_response;
@@ -395,13 +395,13 @@ void TcpInterServer::packetHandling(CPacket *packet){
 		}
 		case ssType::pkt_heartbeats_response:
 		{
-			printf("recieve heartbeat response\n");
+			PRINTF(L"recieve heartbeat response\n");
 			beatCheck = true;
 			break;
 		}
 		case ssType::pkt_connect:
 		{
-			printf("connect request!\n");
+			PRINTF(L"connect request!\n");
 			ss_connect msg;
 			memcpy(&msg, packet->msg, sizeof(msg));
 
@@ -409,12 +409,12 @@ void TcpInterServer::packetHandling(CPacket *packet){
 			players.push_back(p);
 			p->socket_ = (SOCKET)msg.client_socket;
 
-			//printf("%d\n", g_vPlayers.size());
+			//PRINTF(L"%d\n", g_vPlayers.size());
 			break;
 		}
 		case ssType::pkt_disconnect:
 		{
-			printf("disconnect request!\n");
+			PRINTF(L"disconnect request!\n");
 			ss_disconnect msg;
 			memcpy(&msg, packet->msg, sizeof(msg));
 			std::list<CPlayer*>::iterator iter;
@@ -424,12 +424,12 @@ void TcpInterServer::packetHandling(CPacket *packet){
 			}
 			players.remove((*iter));
 
-			//printf("%d\n", g_vPlayers.size());
+			//PRINTF(L"%d\n", g_vPlayers.size());
 			break;
 		}
 		case ssType::pkt_player_info_send:
 		{
-			printf("player_info_send recieve!\n");
+			PRINTF(L"player_info_send recieve!\n");
 			ss_player_info_send msg = *((ss_player_info_send *)packet->msg);
 
 			if (msg.player_cnt + players.size() <= TOTAL_PLAYER)
@@ -450,7 +450,7 @@ void TcpInterServer::packetHandling(CPacket *packet){
 					p->roomNum = info->room_num;
 					p->nickname = info->nickname;
 
-					printf("player socket : %d\n", info->client_socket);
+					PRINTF(L"player socket : %d\n", info->client_socket);
 					position += sizeof(player_info);
 				}
 
@@ -470,7 +470,7 @@ void TcpInterServer::packetHandling(CPacket *packet){
 		}
 		case ssType::pkt_room_info_send:
 		{
-			printf("room_info_send recieve!\n");
+			PRINTF(L"room_info_send recieve!\n");
 			ss_room_info_send msg = *((ss_room_info_send *)packet->msg);
 			if (msg.room_cnt + roomManager.rooms.size() <= ROOM_MAX)
 			{
@@ -482,7 +482,7 @@ void TcpInterServer::packetHandling(CPacket *packet){
 				for (int i = 0; i < msg.room_cnt; i++)
 				{
 					info = (room_info *)(buf + position);
-					printf("create room number : %d\n", info->room_num);
+					PRINTF(L"create room number : %d\n", info->room_num);
 					roomManager.CreateRoom(info->room_num);
 
 					position += sizeof(room_info);
@@ -529,26 +529,26 @@ void TcpInterServer::packetHandling(CPacket *packet){
 		}
 
 		case ssType::pkt_room_info_success:
-			printf("initial room sync success!\n");
+			PRINTF(L"initial room sync success!\n");
 			break;
 		case ssType::pkt_player_info_success:
-			printf("initial player info sync success!\n");
+			PRINTF(L"initial player info sync success!\n");
 			break;
 
 		case ssType::pkt_room_info_failure:
 		case ssType::pkt_player_info_failure:
-			printf("recieve fail msg!\n");
+			PRINTF(L"recieve fail msg!\n");
 			socket->Disconnect();
 			break;
 
 		case ssType::pkt_create:
 		{
-			printf("create call by other server\n");
+			PRINTF(L"create call by other server\n");
 			ss_create msg = *((ss_create *)packet->msg);
 			CPlayer* p = find_player_by_socket(msg.client_socket);
 			if (p == NULL)
 			{
-				printf("not available!\n");
+				PRINTF(L"not available!\n");
 				break;
 			}
 			roomManager.CreateRoom(msg.room_num);
@@ -556,12 +556,12 @@ void TcpInterServer::packetHandling(CPacket *packet){
 		}
 		case ssType::pkt_destroy:
 		{
-			printf("destroy call by other server\n");
+			PRINTF(L"destroy call by other server\n");
 			ss_destroy msg = *((ss_destroy *)packet->msg);
 			CPlayer* p = find_player_by_socket(msg.client_socket);
 			if (p == NULL)
 			{
-				printf("not available!\n");
+				PRINTF(L"not available!\n");
 				break;
 			}
 			roomManager.DestroyRoom(msg.room_num);
@@ -569,12 +569,12 @@ void TcpInterServer::packetHandling(CPacket *packet){
 		}
 		case ssType::pkt_join:
 		{
-			printf("join call by other server\n");
+			PRINTF(L"join call by other server\n");
 			ss_join msg = *((ss_join *)packet->msg);
 			CPlayer* p = find_player_by_socket(msg.client_socket);
 			if (p == NULL)
 			{
-				printf("not available!\n");
+				PRINTF(L"not available!\n");
 				break;
 			}
 			p->nickname = msg.nickname;
@@ -583,12 +583,12 @@ void TcpInterServer::packetHandling(CPacket *packet){
 		}
 		case ssType::pkt_leave:
 		{
-			printf("leave call by other server\n");
+			PRINTF(L"leave call by other server\n");
 			ss_leave msg = *((ss_leave *)packet->msg);
 			CPlayer* p = find_player_by_socket(msg.client_socket);
 			if (p == NULL)
 			{
-				printf("not available!\n");
+				PRINTF(L"not available!\n");
 				break;
 			}
 			p->nickname = msg.nickname;
@@ -597,7 +597,7 @@ void TcpInterServer::packetHandling(CPacket *packet){
 		}
 		case ssType::pkt_chat:
 		{
-			printf("chat call by other server\n");
+			PRINTF(L"chat call by other server\n");
 			ss_chat msg = *((ss_chat *)packet->msg);
 			pkt_type type = pkt_type::pt_chat_alarm;
 			memcpy(packet->msg, &type, sizeof(short));
@@ -621,7 +621,7 @@ void TcpInterServer::heartbeatCheck(){
 		beatCheck = false;
 
 		if (isUse){
-			printf("hearth check send!\n");
+			PRINTF(L"hearth check send!\n");
 			ss_heartbeats* msg = (ss_heartbeats *)buf;
 			msg->type = ssType::pkt_heartbeats;
 			socket->Send((char *)msg, sizeof(ss_heartbeats));
@@ -632,6 +632,6 @@ void TcpInterServer::heartbeatCheck(){
 			break;
 		}
 	}
-	printf("connection fail\n");
+	PRINTF(L"connection fail\n");
 	if (isUse) socket->Disconnect();
 }

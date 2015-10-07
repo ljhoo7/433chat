@@ -8,7 +8,7 @@ void Receiver::ProcEvent(Act* act, DWORD bytes_transferred)
 	assert(tcpact.tcpSocket_);
 	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
-	//printf("...Receiver (%d byte) s(%d)\n", bytes_transferred, tcpsocket.GetSocket() );
+	//PRINTF(L"...Receiver (%d byte) s(%d)\n", bytes_transferred, tcpsocket.GetSocket() );
 
 	// passive 연결끊김
 	tcpsocket.RecvProcess(false, act, bytes_transferred);
@@ -25,7 +25,7 @@ void Receiver::ProcError(Act* act, DWORD error)
 
 	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
-	//printf("...에러처리 Receiver s(%d) err(%d)\n", tcpsocket.GetSocket(), error );
+	//PRINTF(L"...에러처리 Receiver s(%d) err(%d)\n", tcpsocket.GetSocket(), error );
 
 	tcpsocket.RecvProcess(true, act, error);
 

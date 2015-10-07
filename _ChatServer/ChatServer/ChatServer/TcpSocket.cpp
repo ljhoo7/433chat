@@ -13,7 +13,7 @@ void TcpSocket::Init()
 
 	if (socket_ == INVALID_SOCKET)
 	{
-		printf("WSASocket() Error!!! err(%d)\n", WSAGetLastError());
+		PRINTF(L"WSASocket() Error!!! err(%d)\n", WSAGetLastError());
 	}
 
 	InitBuf();
@@ -64,7 +64,7 @@ void TcpSocket::Recv()
 
 		if (error != ERROR_IO_PENDING)
 		{
-			printf("WSARecv() Error!!! s(%d) err(%d)\n", socket_, error);
+			PRINTF(L"WSARecv() Error!!! s(%d) err(%d)\n", socket_, error);
 			Disconnect();
 		}
 	}
@@ -85,7 +85,7 @@ void TcpSocket::Recv(char* buf, int buflen)
 
 		if (error != ERROR_IO_PENDING)
 		{
-			printf("WSARecv() Error!!! s(%d) err(%d)\n", socket_, error);
+			PRINTF(L"WSARecv() Error!!! s(%d) err(%d)\n", socket_, error);
 			Disconnect();
 		}
 	}
@@ -106,7 +106,7 @@ void TcpSocket::Send(char* buf, int buflen)
 
 		if (error != ERROR_IO_PENDING)
 		{
-			printf("WSASend() Error!!! s(%d) err(%d)\n", socket_, error);
+			PRINTF(L"WSASend() Error!!! s(%d) err(%d)\n", socket_, error);
 			//Disconnect();
 		}
 	}
@@ -135,7 +135,7 @@ void TcpSocket::Disconnect()
 
 		if (error != ERROR_IO_PENDING)
 		{
-			printf("already disconnected, DisconnectEx Error!!! s(%d), err(%d)\n", socket_, error);
+			PRINTF(L"already disconnected, DisconnectEx Error!!! s(%d), err(%d)\n", socket_, error);
 		}
 	}
 }
