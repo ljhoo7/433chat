@@ -12,11 +12,11 @@ CRoomManager::~CRoomManager()
 
 void CRoomManager::PrintInfo(){
 	std::list<CRoom*>::iterator iter;
-	printf("< Current Room List >\n");
+	PRINTF(L"< Current Room List >\n");
 	for (iter = rooms.begin(); iter != rooms.end(); iter++){
-		printf("Room %d : %d persons are coonnecting...\n", (*iter)->roomNumber, (*iter)->players.size());
+		PRINTF(L"Room %d : %d persons are connecting...\n", (*iter)->roomNumber, (*iter)->players.size());
 	}
-	printf("\n");
+	PRINTF(L"\n");
 }
 
 int CRoomManager::CreateRoom(int roomNumber){
@@ -119,7 +119,7 @@ bool CRoomManager::LeaveRoom(CPlayer* p, int roomNumber)
 {
 	CRoom* room = FindRoom(roomNumber);
 	if (room == NULL){
-		printf("No ROOM!\n");
+		PRINTF(L"No ROOM!\n");
 		return false;
 	}
 	room->PlayerQuit(p, true);

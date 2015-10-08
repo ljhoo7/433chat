@@ -11,16 +11,19 @@ TcpClientServer* clientServer;
 TcpInterServer* listenServer;
 TcpInterServer* connectServer;
 
+CLogWriter *logWriter;
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 
 	if (argc != 3){
-		printf("error command\n");
+		PRINTF(L"error command\n");
 		return 0;
 	}
+	logWriter = new CLogWriter(L"BotLog.log", 2);
 
-	WORD listenPort = atoi(argv[1]);
-	WORD connectPort = atoi(argv[2]);
+	WORD listenPort = _wtoi(argv[1]);
+	WORD connectPort = _wtoi(argv[2]);
 
 
 	listenServer = new TcpInterServer(listenPort, 10);
@@ -53,14 +56,14 @@ int _tmain(int argc, _TCHAR* argv[])
 		if (input == "show")
 		{
 			std::list<CPlayer*>::iterator iter;
-			printf("\n--------------------------player info----------------------\n");
+			PRINTF(L"\n--------------------------player info----------------------\n");
 			for (iter = players.begin(); iter != players.end(); iter++)
 			{
 				CPlayer *p = (*iter);
-				printf("is Mine : %d, client socket : %d, room Num : %d, nickname : %s\n",
+				PRINTF(L"is Mine : %d, client socket : %d, room Num : %d, nickname : %s\n",
 					p->isMine, p->socket_, p->roomNum, p->nickname.c_str());
 			}
-			printf("-----------------------------------------------------------\n");
+			PRINTF(L"-----------------------------------------------------------\n");
 		}
 		if (input == "quit")
 		{

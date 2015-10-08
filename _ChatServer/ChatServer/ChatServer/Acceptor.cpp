@@ -1,4 +1,3 @@
-
 #include "stdafx.h"
 
 void Acceptor::ProcEvent(Act* act, DWORD bytes_transferred)
@@ -10,7 +9,7 @@ void Acceptor::ProcEvent(Act* act, DWORD bytes_transferred)
 
 	assert(proactor_);
 
-	//printf("...Acceptor s(%d)\n", tcpsocket.GetSocket());
+	//PRINTF(L"...Acceptor s(%d)\n", tcpsocket.GetSocket());
 
 	proactor_->Register((HANDLE)(tcpsocket.socket_));
 
@@ -27,7 +26,7 @@ void Acceptor::ProcError(Act* act, DWORD error)
 
 	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
-	printf("...俊矾贸府 Acceptor s(%d) err(%d)\n", tcpsocket.socket_, error);
+	PRINTF(L"...俊矾贸府 Acceptor s(%d) err(%d)\n", tcpsocket.socket_, error);
 
 	tcpsocket.AcceptProcess(true, act, error);
 }
@@ -57,6 +56,6 @@ void Acceptor::Register(TcpSocket& acceptsocket)
 
 	if (ret == FALSE && error != ERROR_IO_PENDING)
 	{
-		printf("AcceptEx Error!!! s(%d), err(%d)\n", acceptsocket.socket_, error);
+		PRINTF(L"AcceptEx Error!!! s(%d), err(%d)\n", acceptsocket.socket_, error);
 	}
 }
