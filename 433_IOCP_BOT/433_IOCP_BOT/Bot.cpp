@@ -3,6 +3,7 @@
 CBot::CBot(int p_nThreadPoolSize, int p_nSocketPoolSize)
 :m_nThreadPoolSize(p_nThreadPoolSize), m_nSocketPoolSize(p_nSocketPoolSize)
 {
+	printf("b1\n");
 	m_pProactor = new CProactor(p_nThreadPoolSize);
 
 	m_pBotConnector = new CBotConnector(m_pProactor);
@@ -15,6 +16,7 @@ CBot::CBot(int p_nThreadPoolSize, int p_nSocketPoolSize)
 
 		m_pBotConnector->Register(*sock);
 	}
+	printf("b2\n");
 }
 
 
