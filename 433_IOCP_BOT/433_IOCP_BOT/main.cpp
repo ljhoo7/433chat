@@ -74,8 +74,6 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	CBot t_cBot(t_nCPUs*2, t_nBots);
 
-	g_pLog->myWprintf(L"hello\n");
-
 	// sleep
 	Sleep(INFINITE);
 
