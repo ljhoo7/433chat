@@ -15,5 +15,5 @@ public:
 	CLogWriter(PTCH p_szStr, int p_nNumOfThreads);
 	~CLogWriter();
 
-	int myWPRINTF(LPTCH p_szStr);
+	int myWPRINTF(LPTCH p_szStr,...);
 };

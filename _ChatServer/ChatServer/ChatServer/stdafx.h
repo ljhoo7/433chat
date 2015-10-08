@@ -24,7 +24,7 @@ class TcpAct;
 class CLogWriter;
 
 extern CLogWriter* logWriter;
-#define PRINTF(Lstr, ...) logWriter->myWPRINTF(Lstr) 
+#define PRINTF logWriter->myWPRINTF
 
 #include "LogAct.h"
 #include "LogWriter.h"

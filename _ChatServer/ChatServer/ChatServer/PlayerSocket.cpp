@@ -290,13 +290,13 @@ void CPlayer::PacketHandling(CPacket *packet){
 			msg.client_socket = this->socket_;
 			msg.room_num = tmpCreate->room_num;
 			PlayerSync((char *)&msg, sizeof(msg));
-			PRINTF(L"create has been sent.");
+			PRINTF(L"create has been sent.\n");
 
 			//------------------------------------------------------------------------
 
 			tmpCreateSuccess.type = pkt_type::pt_create_success;
 			Send((char *)&tmpCreateSuccess, sizeof(t_create_success));
-			PRINTF(L"create message has been sent.");
+			PRINTF(L"create message has been sent.\n");
 		}
 		else if (result == fail_signal::fs_overflow)
 		{
@@ -304,7 +304,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpCreateFailure.fail_signal = fail_signal::fs_overflow;
 
 			Send((char *)&tmpCreateFailure, sizeof(t_create_failure));
-			PRINTF(L"create overflow message has been sent.");
+			PRINTF(L"create overflow message has been sent.\n");
 		}
 		else if (result == fail_signal::fs_alreadyexist)
 		{
@@ -312,7 +312,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpCreateFailure.fail_signal = fail_signal::fs_alreadyexist;
 
 			Send((char *)&tmpCreateFailure, sizeof(t_create_failure));
-			PRINTF(L"create already exist message has been sent.");
+			PRINTF(L"create already exist message has been sent.\n");
 		}
 		break;
 	case pkt_type::pt_destroy:
@@ -330,7 +330,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 
 			tmpDestroySuccess.type = pkt_type::pt_destroy_success;
 			Send((char *)&tmpDestroySuccess, sizeof(t_destroy_success));
-			PRINTF(L"destroy success message has been sent.");
+			PRINTF(L"destroy success message has been sent.\n");
 		}
 		else if (result == fail_signal::fs_no_exist)
 		{
@@ -338,7 +338,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpDestroyFailure.fail_signal = fail_signal::fs_no_exist;
 
 			Send((char *)&tmpDestroyFailure, sizeof(t_destroy_failure));
-			PRINTF(L"destroy no exist message has been sent.");
+			PRINTF(L"destroy no exist message has been sent.\n");
 		}
 		break;
 
@@ -355,7 +355,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			memcpy(msg.nickname, tmpJoin->nickname, sizeof(msg.nickname));
 			PlayerSync((char *)&msg, sizeof(msg));
 
-			PRINTF(L"join message has been sent.");
+			PRINTF(L"join message has been sent.\n");
 
 			//------------------------------------------------------------------------
 
@@ -363,7 +363,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpJoinSuccess.token = this->identifier;
 
 			Send((char *)&tmpJoinSuccess, sizeof(t_join_success));
-			PRINTF(L"join success message has been sent.");
+			PRINTF(L"join success message has been sent.\n");
 		}
 		else if (result == fail_signal::fs_overflow)
 		{
@@ -371,7 +371,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpJoinFailure.fail_signal = fail_signal::fs_overflow;
 
 			Send((char *)&tmpJoinFailure, sizeof(t_join_failure));
-			PRINTF(L"join overflow message has been sent.");
+			PRINTF(L"join overflow message has been sent.\n");
 		}
 		else if (result == fail_signal::fs_alreadyexist)
 		{
@@ -379,7 +379,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpJoinFailure.fail_signal = fail_signal::fs_alreadyexist;
 
 			Send((char *)&tmpJoinFailure, sizeof(t_join_failure));
-			PRINTF(L"join alreadyexist message has been sent.");
+			PRINTF(L"join alreadyexist message has been sent.\n");
 		}
 		else if (result == fail_signal::fs_no_exist)
 		{
@@ -387,7 +387,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpJoinFailure.fail_signal = fail_signal::fs_no_exist;
 
 			Send((char *)&tmpJoinFailure, sizeof(t_join_failure));
-			PRINTF(L"join no exist message has been sent.");
+			PRINTF(L"join no exist message has been sent.\n");
 		}
 		break;
 
@@ -410,11 +410,11 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpLeaveSuccess.type = pkt_type::pt_leave_success;
 			Send((char *)&tmpLeaveSuccess, sizeof(t_leave_success));
 
-			PRINTF(L"leave success message has been sent.");
+			PRINTF(L"leave success message has been sent.\n");
 		}
 		else
 		{
-			PRINTF(L"The Leave Command has been failed. This is very extra ordinary event !");
+			PRINTF(L"The Leave Command has been failed. This is very extra ordinary event !\n");
 		}
 		break;
 
@@ -431,9 +431,9 @@ void CPlayer::PacketHandling(CPacket *packet){
 		memcpy(packet->msg, &type, sizeof(unsigned short));
 		PlayerSync((char *)packet->msg, size);
 
-		PRINTF(L"chat alarm message has been sent.");		break;
+		PRINTF(L"chat alarm message has been sent.\n");		break;
 	}
 
-	poolManager->Free((msg_buffer *)packet->msg);
-	packetPoolManager->Free(packet);
+	if (!poolManager->Free((msg_buffer *)packet->msg)) PRINTF(L"free error!\n");
+	if (!packetPoolManager->Free(packet)) PRINTF(L"free error!\n");
 }

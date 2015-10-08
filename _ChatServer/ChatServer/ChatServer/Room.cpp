@@ -23,7 +23,7 @@ void CRoom::PlayerEnter(CPlayer* player)
 	tmpJoinAlarm.type = pkt_type::pt_join_alarm;
 
 	this->BroadcastMsg((char*)&tmpJoinAlarm, sizeof(t_join_alarm));
-	PRINTF(L"join alarm message has been sent.");
+	PRINTF(L"join alarm message has been sent.\n");
 
 	/* informing the entered */
 	players.push_back(player);
@@ -56,7 +56,7 @@ void CRoom::PlayerQuit(CPlayer* player, bool msg)
 
 	/* informing the exited */
 	if (msg) this->BroadcastMsg((char*)&tmpLeaveAlarm, sizeof(t_leave_alarm));
-	PRINTF(L"leave alarm message has been sent.");
+	PRINTF(L"leave alarm message has been sent.\n");
 }
 
 void CRoom::BroadcastMsg(char* msg, int size)

@@ -81,10 +81,19 @@ UINT WINAPI CLogWriter::ThreadProc(PVOID p_pRaram)
 	return 0;
 }
 
-int CLogWriter::myWPRINTF(LPTCH p_szStr)
+int CLogWriter::myWPRINTF(LPTCH p_szStr, ...)
 {
+	wchar_t buf[1000];
+	ZeroMemory(buf, 1000);
+
+	va_list argList;
+	va_start(argList, p_szStr);
+	if (0 > vswprintf(buf, 1000, p_szStr, argList))
+		BeforeMakingIOCPMessage(L"The LogWriter has failed to write a message in debug mode.\n");
+	va_end(argList);
+
 #ifdef MYDEF
-	if (0 > wprintf_s(p_szStr))
+	if (0 > wprintf_s(buf))
 		BeforeMakingIOCPMessage(L"The LogWriter has failed to write a message in debug mode.\n");
 	return 0;
 #else
@@ -92,7 +101,7 @@ int CLogWriter::myWPRINTF(LPTCH p_szStr)
 	int t_nResult;
 
 	// For Writing the Unicode Mark
-	t_nResult = ::WriteFile(m_pLogAct->m_cFile.m_hFile, p_szStr, wcslen(p_szStr) * sizeof(TCHAR), &t_dwNumberOfBytesWritten, m_pLogAct);
+	t_nResult = ::WriteFile(m_pLogAct->m_cFile.m_hFile, buf, wcslen(buf) * sizeof(TCHAR), &t_dwNumberOfBytesWritten, m_pLogAct);
 
 	if (!t_nResult)
 	{

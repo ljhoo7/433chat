@@ -139,8 +139,8 @@ void TcpInterServer::SendPlayerInfo()
 
 	socket->Send(msgBuf, msgPosition);
 
-	poolManager->Free((msg_buffer *)buf);
-	poolManager->Free((msg_buffer *)msgBuf);
+	if (!poolManager->Free((msg_buffer *)buf)) PRINTF(L"free error!\n");
+	if (!poolManager->Free((msg_buffer *)msgBuf)) PRINTF(L"free error!\n");
 }
 
 void TcpInterServer::SendRoomInfo()
@@ -174,8 +174,8 @@ void TcpInterServer::SendRoomInfo()
 	msgPosition += position;
 
 	socket->Send(msgBuf, msgPosition);
-	poolManager->Free((msg_buffer *)buf);
-	poolManager->Free((msg_buffer *)msgBuf);
+	if (!poolManager->Free((msg_buffer *)buf)) PRINTF(L"free error!\n");
+	if (!poolManager->Free((msg_buffer *)msgBuf)) PRINTF(L"free error!\n");
 }
 
 void TcpInterServer::MakeSync()
@@ -390,7 +390,7 @@ void TcpInterServer::packetHandling(CPacket *packet){
 			ss_heartbeats_response* msg = (ss_heartbeats_response *)sendMsg;
 			msg->type = ssType::pkt_heartbeats_response;
 			socket->Send((char *)msg, sizeof(*msg));
-			poolManager->Free((msg_buffer *)sendMsg);
+			if (!poolManager->Free((msg_buffer *)sendMsg)) PRINTF(L"free error!\n");
 			break;
 		}
 		case ssType::pkt_heartbeats_response:
@@ -458,7 +458,7 @@ void TcpInterServer::packetHandling(CPacket *packet){
 				msg.type = ssType::pkt_player_info_success;
 				socket->Send((char *)&msg, sizeof(msg));
 
-				poolManager->Free((msg_buffer *)buf);
+				if (!poolManager->Free((msg_buffer *)buf)) PRINTF(L"free error!\n");;
 			}
 			else{
 				ss_player_info_failure msg;
@@ -516,7 +516,7 @@ void TcpInterServer::packetHandling(CPacket *packet){
 					msg.type = ssType::pkt_room_info_failure;
 					socket->Send((char *)&msg, sizeof(msg));
 				}
-				poolManager->Free((msg_buffer *)buf);
+				if(!poolManager->Free((msg_buffer *)buf)) PRINTF(L"free error!\n");;
 			}
 			else
 			{
@@ -609,8 +609,8 @@ void TcpInterServer::packetHandling(CPacket *packet){
 			break;
 	}
 
-	//this->poolManager->Free((msg_buffer *)packet->msg);
-	this->packetPoolManager->Free(packet);
+	if (!this->poolManager->Free((msg_buffer *)packet->msg)) PRINTF(L"free error!\n");;
+	if (!this->packetPoolManager->Free(packet)) PRINTF(L"free error!\n");;
 }
 
 void TcpInterServer::heartbeatCheck(){
