@@ -20,7 +20,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		PRINTF(L"error command\n");
 		return 0;
 	}
-	logWriter = new CLogWriter(L"BotLog.log", 2);
+	logWriter = new CLogWriter(L"ServerLog.log", 2);
 
 	WORD listenPort = _wtoi(argv[1]);
 	WORD connectPort = _wtoi(argv[2]);
