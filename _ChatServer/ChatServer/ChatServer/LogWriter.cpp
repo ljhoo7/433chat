@@ -2,7 +2,7 @@
 
 void BeforeMakingIOCPMessage(PTCH p_szStr)
 {
-#ifdef _DEBUG
+#ifdef MYDEF
 	if (0 > wprintf_s(p_szStr))
 		wprintf_s(L"The OS has failed to write a message in debug mode before making IOCP.\n");
 	system("pause");
