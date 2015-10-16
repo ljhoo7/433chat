@@ -5,14 +5,14 @@
 extern ChatServer* chatServer;
 
 CPlayer::CPlayer(){
-
+	this->serverNum = chatServer->serverNum;
 }
 
-CPlayer::CPlayer(bool isMine)
+CPlayer::CPlayer(int serverNum)
 {
 	this->socket_ = NULL;
 
-	this->isMine = isMine;
+	this->serverNum = serverNum;
 	this->nickname = "";
 	this->roomNum = -1;
 	this->identifier = -1;
@@ -142,6 +142,7 @@ void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 		ss_connect tmpConnect;
 		tmpConnect.type = ssType::pkt_connect;
 		tmpConnect.client_socket = this->socket_;
+		tmpConnect.server_num = chatServer->serverNum;
 
 		PlayerSync((char *)&tmpConnect, sizeof(ss_connect));
 
@@ -187,13 +188,14 @@ void CPlayer::RemovePlayer(){
 
 		tmpDisconnect.type = ssType::pkt_disconnect;
 		tmpDisconnect.client_socket = socket_;
+		tmpDisconnect.server_num = chatServer->serverNum;
 
 		PlayerSync((char *)&tmpDisconnect, sizeof(ss_disconnect));
 	}
 	/* remove in list */
 	chatServer->DeleteUser(this);
 
-	this->Reuse();
+	this->Reuse(0);
 }
 
 void CPlayer::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
@@ -202,7 +204,7 @@ void CPlayer::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 bool CPlayer::ValidPacket(CPacket *packet)
 {
-	if (!this->isMine) return false;
+	//if (this->serverNum  != chatServer->serverNum) return false;
 
 	pkt_type _type = (pkt_type)(*packet->msg);
 
@@ -252,6 +254,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 
 	if (!ValidPacket(packet)){
 		PRINTF("Not Valid Packet!\n");
+		return;
 	}
 
 	pkt_type _type = (pkt_type)(*packet->msg);

@@ -50,8 +50,6 @@ void ChatServer::Init(){
 		info.ip = inet_addr(temp.c_str());
 		info.inter_port = port1;
 		info.client_port = port2;
-		info.isConnected = false;
-
 		serverInfo.push_back(info);
 	}
 
@@ -61,6 +59,12 @@ void ChatServer::Init(){
 
 	interServer = new TcpInterServer(serverInfo[serverNum].inter_port, 10, 10);
 	clientServer = new TcpClientServer(serverInfo[serverNum].client_port, 10, 3000);
+
+	for (int i = 0; i < MAXSERVER; i++){
+		for (int j = 0; j < MAXSERVER; j++){
+			connG[i][j] = 0;
+		}
+	}
 }
 
 void ChatServer::Start(){
@@ -110,7 +114,7 @@ void ChatServer::Start(){
 			{
 				CPlayer *p = (*iter);
 				PRINTF("is Mine : %d, client socket : %d, room Num : %d, nickname : %s\n",
-					p->isMine, p->socket_, p->roomNum, p->nickname.c_str());
+					p->serverNum, p->socket_, p->roomNum, p->nickname.c_str());
 			}
 			PRINTF("-----------------------------------------------------------\n");
 		}
@@ -135,13 +139,13 @@ void ChatServer::DeleteUser(CPlayer* player){
 	LeaveCriticalSection(&userLock);
 }
 
-CPlayer* ChatServer::FindUser(SOCKET socket){
+CPlayer* ChatServer::FindUser(SOCKET socket, int serverNum){
 	EnterCriticalSection(&userLock);
 	std::list<CPlayer*>::iterator iter;
 	for (iter = users.begin(); iter != users.end(); iter++)
 	{
 		CPlayer* p = *(iter);
-		if (!p->isMine && p->socket_ == socket)
+		if (p->serverNum == serverNum && p->socket_ == socket)
 		{
 			LeaveCriticalSection(&userLock);
 			return p;
@@ -152,7 +156,7 @@ CPlayer* ChatServer::FindUser(SOCKET socket){
 }
 
 int ChatServer::GetUserCnt(){
-	int ret;
+	int ret = 0;
 	EnterCriticalSection(&userLock);
 	ret = users.size();
 	LeaveCriticalSection(&userLock);
@@ -160,14 +164,37 @@ int ChatServer::GetUserCnt(){
 	return ret;
 }
 
-bool ChatServer::DeleteOtherServerUsers(int serverNum){
+
+void ChatServer::RemoveOtherServerUsers(int serverNum){
+	EnterCriticalSection(&chatServer->userLock);
+	std::list<CPlayer*>::iterator iter;
+	for (iter = chatServer->users.begin(); iter != chatServer->users.end();)
+	{
+		if ((*iter)->serverNum == serverNum)
+		{
+			if ((*iter)->roomNum != -1)
+			{
+				chatServer->roomManager.LeaveRoom((*iter), (*iter)->roomNum);
+			}
+			PRINTF("delete other server's user : %d\n", (*iter)->socket_);
+			iter = chatServer->users.erase(iter);
+		}
+		else
+		{
+			iter++;
+		}
+	}
+	LeaveCriticalSection(&chatServer->userLock);
+}
+
+bool ChatServer::EnterOtherServerUsers(int serverNum){
 	bool check = true;
 	EnterCriticalSection(&userLock);
 	std::list<CPlayer*>::iterator iter;
 	for (iter = users.begin(); iter != users.end(); iter++)
 	{
 		CPlayer* p = (*iter);
-		if (!p->isMine && p->roomNum != -1)
+		if (p->serverNum==serverNum && p->roomNum != -1)
 		{
 			int ret = roomManager.EnterRoom(p, p->roomNum);
 			if (ret != -1){
@@ -189,4 +216,71 @@ int ChatServer::GetServerNum(unsigned int ip, unsigned short port){
 		}
 	}
 	return -1;
+}
+
+bool ChatServer::isCycle(int i, int parent){
+	isVisit[i] = true;
+
+	for (unsigned int j = 0; j < serverInfo.size(); j++){
+		if (connG[i][j] == 1){
+			if (!isVisit[j]){
+				if (isCycle(j, i)) return true;
+			}
+			else{
+				if (j != parent) return true;
+			}
+		}
+		
+	}
+	return false;
+
+}
+
+bool ChatServer::ConnectServer(int serverNum1, int serverNum2, bool check){
+	if (serverNum1 == serverNum2) return false;
+	connG[serverNum1][serverNum2] = 1;
+	connG[serverNum2][serverNum1] = 1;
+
+	if (!check) return true;
+
+	for (unsigned int i = 0; i < serverInfo.size(); i++){
+		isVisit[i] = false;
+	}
+
+	if (isCycle(0, -1)){
+		connG[serverNum1][serverNum2] = 0;
+		connG[serverNum2][serverNum1] = 0;
+		return false;
+	}
+	return true;
+}
+
+void ChatServer::DFS(int i){
+	isVisit[i] = true;
+
+	for (unsigned int j = 0; j < serverInfo.size(); j++){
+		if (connG[i][j] == 1){
+			if (!isVisit[j]){
+				DFS(j);
+			}
+		}
+	}
+}
+
+void ChatServer::DisconnectServer(int serverNum1, int serverNum2){
+	connG[serverNum1][serverNum2] = 0;
+	connG[serverNum2][serverNum1] = 0;
+
+	for (unsigned int i = 0; i < serverInfo.size(); i++){
+		isVisit[i] = false;
+	}
+
+	DFS(serverNum);
+	
+	for (unsigned int i = 0; i < serverInfo.size(); i++){
+		if (!isVisit[i]){
+			RemoveOtherServerUsers(i);
+		}
+	}
+
 }

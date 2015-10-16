@@ -112,9 +112,9 @@ void TcpSocket::Send(char* buf, int buflen)
 	}
 }
 
-void TcpSocket::Reuse()
+void TcpSocket::Reuse(int size)
 {
-	acceptor_->Register(*this);
+	acceptor_->Register(*this, size);
 }
 
 void TcpSocket::Disconnect()

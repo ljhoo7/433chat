@@ -5,6 +5,7 @@
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define BUFSIZE 8192
+#define MAXSERVER 100
 
 #ifdef _DEBUG
 	#define MYDEF

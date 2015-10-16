@@ -67,16 +67,27 @@ void TcpInterServer::Start()
 		socket = new InterSocket(this, false);
 		socket->Init();
 		socket->InitAct(proactor_, acceptor_, disconnector_, NULL, sender_, receiver_);
-		acceptor_->Register(*socket);
+		acceptor_->Register(*socket, sizeof(int));
 		sockets.push_back(socket);
 	}
 	PRINTF("InterSocket start....\n");
 }
 
+void TcpInterServer::ConnectSocketCreate(){
+	InterSocket * socket = new InterSocket(this, true);
+	socket->Init();
+	socket->InitAct(proactor_, NULL, disconnector_, connector_, sender_, receiver_);
+
+	socket->Bind(true);
+
+	proactor_->Register((HANDLE)socket->socket_);
+	sockets[0] = socket;
+}
+
 void TcpInterServer::Connect(int num){
 	ServerInfo serverInfo = chatServer->serverInfo[num];
-	sockets[0]->serverNum = num;
-	sockets[0]->Connect(serverInfo.ip, serverInfo.inter_port);
+
+	sockets[0]->Connect(serverInfo.ip, serverInfo.inter_port, num);
 }
 
 void TcpInterServer::Disconnect(int num){

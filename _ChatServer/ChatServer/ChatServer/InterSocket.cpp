@@ -60,7 +60,7 @@ InterSocket::InterSocket(TcpInterServer* InterServer, bool isConnect){
 void InterSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		if (bytes_transferred == 0){
-			this->Disconnect();
+			Disconnect();
 			return;
 		}
 
@@ -118,6 +118,12 @@ void InterSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 				case ssType::pkt_player_info_failure:
 					remainBytes = sizeof(ss_player_info_failure)-2;
 					break;
+				case ssType::pkt_server_disconnect:
+					remainBytes = sizeof(ss_server_disconnect)-2;
+					break;
+				case ssType::pkt_server_connect:
+					remainBytes = sizeof(ss_server_connect)-2;
+					break;
 
 				case ssType::pkt_chat:
 				case ssType::pkt_room_info_send:
@@ -140,14 +146,18 @@ void InterSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 					isVar = false;
 				}
 				else{
-					position = 0;
-					remainBytes = HEADER_SIZE;
+					
 
 					CPacket* msg = packetPoolManager->Alloc();
 					msg->owner = this;
 					msg->msg = poolManager->Alloc()->buf;
-					memcpy(msg->msg, buf, BUFSIZE);
+					memcpy(msg->msg, buf, position);
+					interServer_->SendWithoutOne(serverNum, buf, position);
 					chatServer->logicHandle.EnqueueOper(msg, true);
+
+					memset(buf, 0, sizeof(buf));
+					position = 0;
+					remainBytes = HEADER_SIZE;
 				}
 			}
 			this->Recv(buf + position, remainBytes);
@@ -171,9 +181,13 @@ void InterSocket::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 void InterSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-		isUse = true;
-		serverNum = chatServer->GetServerNum((unsigned int)addr_.sin_addr.s_addr, addr_.sin_port);
+		memcpy(&serverNum, acceptBuf_, sizeof(serverNum));
+		if (!chatServer->ConnectServer(chatServer->serverNum, serverNum, true)){
+			Disconnect();
+			return;
+		}
 		
+		isUse = true;
 		PRINTF("connect with %d server\n", serverNum);
 		MakeSync();
 		Recv(recvBuf_, HEADER_SIZE);
@@ -185,38 +199,26 @@ void InterSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred)
 	}
 }
 
+
 void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		isUse = false;
+		chatServer->DisconnectServer(chatServer->serverNum, serverNum);
+
+		ss_server_disconnect msg;
+		msg.type = ssType::pkt_server_disconnect;
+		msg.server_num1 = serverNum;
+		msg.server_num2 = chatServer->serverNum;
+		interServer_->SendWithoutOne(serverNum, (char *)&msg, sizeof(ss_server_disconnect));
+
 		serverNum = -1;
-
-		EnterCriticalSection(&chatServer->userLock);
-		std::list<CPlayer*>::iterator iter;
-		for (iter = chatServer->users.begin(); iter != chatServer->users.end();)
-		{
-			if (!(*iter)->isMine)
-			{
-				if ((*iter)->roomNum != -1)
-				{
-					chatServer->roomManager.LeaveRoom((*iter), (*iter)->roomNum);
-				}
-				PRINTF("delete other server's user : %d\n", (*iter)->socket_);
-				iter = chatServer->users.erase(iter);
-			}
-			else
-			{
-				iter++;
-			}
-		}
-		LeaveCriticalSection(&chatServer->userLock);
-
+		
 		PRINTF("closed the other server.\n");
 
 		//if (heartThread.joinable()) heartThread.join();
-		if (!isConnect) this->Reuse();
+		if (!isConnect) this->Reuse(sizeof(int));
 		else{
-			this->Bind(false);
-			proactor_->Register((HANDLE)this->socket_);
+			interServer_->ConnectSocketCreate();
 		}
 	}
 	else{
@@ -226,8 +228,13 @@ void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 
 void InterSocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-		isUse = true;
+		if (!chatServer->ConnectServer(chatServer->serverNum, serverNum, true)){
+			Disconnect();
+			return;
+		}
 
+
+		isUse = true;
 		PRINTF("connect with %d server\n", serverNum);
 
 		MakeSync();
@@ -270,11 +277,12 @@ void  InterSocket::Bind(bool reuse){
 }
 
 
-void InterSocket::Connect(unsigned int ip, WORD port){
+void InterSocket::Connect(unsigned int ip, WORD port, int serverNum){
 	if (!isConnect){
 		PRINTF("only for connection socket\n");
 		return;
 	}
+	this->serverNum = serverNum;
 
 	sockaddr_in addr;
 	ZeroMemory(&addr, sizeof(addr));
@@ -282,7 +290,7 @@ void InterSocket::Connect(unsigned int ip, WORD port){
 	addr.sin_addr.s_addr = ip; // google.com
 	addr.sin_port = htons(port);
 
-	int ok = mswsock.ConnectEx(socket_, (SOCKADDR*)&addr, sizeof(addr), NULL, 0, NULL,
+	int ok = mswsock.ConnectEx(socket_, (SOCKADDR*)&addr, sizeof(addr), &chatServer->serverNum, sizeof(serverNum), NULL,
 		static_cast<OVERLAPPED*>(&act_[TcpSocket::ACT_CONNECT]));
 	if (ok) {
 		PRINTF("ConnectEx succeeded immediately\n");
@@ -297,6 +305,12 @@ void InterSocket::Connect(unsigned int ip, WORD port){
 
 void InterSocket::MakeSync()
 {
+	ss_server_connect msg;
+	msg.type = ssType::pkt_server_connect;
+	msg.server_num1 = serverNum;
+	msg.server_num2 = chatServer->serverNum;
+	interServer_->SendWithoutOne(serverNum, (char *)&msg, sizeof(msg));
+
 	SendPlayerInfo();
 	SendRoomInfo();
 
@@ -322,7 +336,8 @@ void InterSocket::SendPlayerInfo()
 		CPlayer *p = (*iter);
 
 		player_info info;
-		info.client_socket = p->socket_;
+		info.server_num = p->serverNum;
+		info.client_socket = static_cast<int>(p->socket_);
 		info.room_num = p->roomNum;
 		memcpy(info.nickname, p->nickname.c_str(), sizeof(info.nickname));
 		info.token = p->identifier;
@@ -382,9 +397,9 @@ void InterSocket::SendRoomInfo()
 }
 
 
-CPlayer* find_player_by_socket(SOCKET socket)
+CPlayer* InterSocket::FindPlayerBySocket(SOCKET socket)
 {
-	return chatServer->FindUser(socket);
+	return chatServer->FindUser(socket, serverNum);
 }
 
 void InterSocket::packetHandling(CPacket *packet){
@@ -416,7 +431,7 @@ void InterSocket::packetHandling(CPacket *packet){
 		ss_connect msg;
 		memcpy(&msg, packet->msg, sizeof(msg));
 
-		CPlayer* p = new CPlayer(false);
+		CPlayer* p = new CPlayer(msg.server_num);
 		chatServer->AddUser(p);
 		p->socket_ = (SOCKET)msg.client_socket;
 
@@ -429,7 +444,7 @@ void InterSocket::packetHandling(CPacket *packet){
 		ss_disconnect msg;
 		memcpy(&msg, packet->msg, sizeof(msg));
 
-		chatServer->DeleteUser(chatServer->FindUser(msg.client_socket));
+		chatServer->DeleteUser(chatServer->FindUser(msg.client_socket, msg.server_num));
 
 		//PRINTF("%d\n", g_vPlayers.size());
 		break;
@@ -450,7 +465,7 @@ void InterSocket::packetHandling(CPacket *packet){
 			{
 				info = (player_info*)(buf + position);
 
-				CPlayer* p = new CPlayer(false);
+				CPlayer* p = new CPlayer(info->server_num);
 				chatServer->AddUser(p);
 				p->socket_ = (SOCKET)info->client_socket;
 				p->identifier = info->token;
@@ -468,6 +483,7 @@ void InterSocket::packetHandling(CPacket *packet){
 			if (!poolManager->Free((msg_buffer *)buf)) PRINTF("free error!\n");;
 		}
 		else{
+			PRINTF("max player error!\n");
 			ss_player_info_failure msg;
 			msg.type = ssType::pkt_player_info_failure;
 			this->Send((char *)&msg, sizeof(msg));
@@ -495,7 +511,7 @@ void InterSocket::packetHandling(CPacket *packet){
 				position += sizeof(room_info);
 			}
 
-			bool check = chatServer->DeleteOtherServerUsers(-1);
+			bool check = chatServer->EnterOtherServerUsers(serverNum);
 
 
 			if (check)
@@ -506,6 +522,7 @@ void InterSocket::packetHandling(CPacket *packet){
 			}
 			else
 			{
+				PRINTF("enter room error!\n");
 				ss_room_info_failure msg;
 				msg.type = ssType::pkt_room_info_failure;
 				this->Send((char *)&msg, sizeof(msg));
@@ -514,6 +531,7 @@ void InterSocket::packetHandling(CPacket *packet){
 		}
 		else
 		{
+			PRINTF("max room error!\n");
 			ss_room_info_failure msg;
 			msg.type = ssType::pkt_room_info_failure;
 			this->Send((char *)&msg, sizeof(msg));
@@ -539,7 +557,7 @@ void InterSocket::packetHandling(CPacket *packet){
 	{
 		PRINTF("create call by other server\n");
 		ss_create msg = *((ss_create *)packet->msg);
-		CPlayer* p = find_player_by_socket(msg.client_socket);
+		CPlayer* p = FindPlayerBySocket(msg.client_socket);
 		if (p == NULL)
 		{
 			PRINTF("not available!\n");
@@ -552,7 +570,7 @@ void InterSocket::packetHandling(CPacket *packet){
 	{
 		PRINTF("destroy call by other server\n");
 		ss_destroy msg = *((ss_destroy *)packet->msg);
-		CPlayer* p = find_player_by_socket(msg.client_socket);
+		CPlayer* p = FindPlayerBySocket(msg.client_socket);
 		if (p == NULL)
 		{
 			PRINTF("not available!\n");
@@ -565,7 +583,7 @@ void InterSocket::packetHandling(CPacket *packet){
 	{
 		PRINTF("join call by other server\n");
 		ss_join msg = *((ss_join *)packet->msg);
-		CPlayer* p = find_player_by_socket(msg.client_socket);
+		CPlayer* p = FindPlayerBySocket(msg.client_socket);
 		if (p == NULL)
 		{
 			PRINTF("not available!\n");
@@ -579,7 +597,7 @@ void InterSocket::packetHandling(CPacket *packet){
 	{
 		PRINTF("leave call by other server\n");
 		ss_leave msg = *((ss_leave *)packet->msg);
-		CPlayer* p = find_player_by_socket(msg.client_socket);
+		CPlayer* p = FindPlayerBySocket(msg.client_socket);
 		if (p == NULL)
 		{
 			PRINTF("not available!\n");
@@ -596,6 +614,20 @@ void InterSocket::packetHandling(CPacket *packet){
 		pkt_type type = pkt_type::pt_chat_alarm;
 		memcpy(packet->msg, &type, sizeof(short));
 		chatServer->roomManager.FindRoom(msg.room_num)->BroadcastMsg(packet->msg, msg.length);
+		break;
+	}
+	case ssType::pkt_server_disconnect:
+	{
+		ss_server_disconnect msg = *((ss_server_disconnect *)packet->msg);
+		PRINTF("%d, %d server disconnect\n", msg.server_num1, msg.server_num2);
+		chatServer->DisconnectServer(msg.server_num1, msg.server_num2);
+		break;
+	}
+	case ssType::pkt_server_connect:
+	{
+		ss_server_connect msg = *((ss_server_connect *)packet->msg);
+		PRINTF("%d, %d server connect\n", msg.server_num1, msg.server_num2);
+		chatServer->ConnectServer(msg.server_num1, msg.server_num2, false);
 		break;
 	}
 	default:

@@ -37,15 +37,14 @@ void Acceptor::Init(TcpListenSocket* tcplistensocket, Proactor* proactor)
 	proactor_ = proactor;
 }
 
-void Acceptor::Register(TcpSocket& acceptsocket)
+void Acceptor::Register(TcpSocket& acceptsocket, int size)
 {
 	DWORD byte_transferred;
 
 	BOOL ret = AcceptEx(
 		tcpListenSocket_->socket_,
 		acceptsocket.socket_,
-		acceptsocket.acceptBuf_,
-		0,
+		acceptsocket.acceptBuf_, size,
 		sizeof(SOCKADDR_IN)+16,
 		sizeof(SOCKADDR_IN)+16,
 		&byte_transferred,

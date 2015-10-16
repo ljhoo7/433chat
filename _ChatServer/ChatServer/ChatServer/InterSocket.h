@@ -28,11 +28,13 @@ public:
 	void packetHandling(CPacket *packet);
 
 	void Bind(bool reuse);
-	void Connect(unsigned int ip, WORD port);
+	void Connect(unsigned int ip, WORD port, int serverNum);
 
 	void SendPlayerInfo();
 	void SendRoomInfo();
 	void MakeSync();
+
+	CPlayer* FindPlayerBySocket(SOCKET socket);
 
 private:
 	struct mswsock_s {

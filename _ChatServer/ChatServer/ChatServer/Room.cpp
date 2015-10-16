@@ -65,6 +65,6 @@ void CRoom::BroadcastMsg(char* msg, int size)
 	//PRINTF("CRoom %d : %d persons are connecting...\n", roomNumber, players.size());
 	for (iter = players.begin(); iter != players.end(); iter++)
 	{
-		if ((*iter)->isMine) (*iter)->Send(msg, size);
+		if ((*iter)->serverNum != chatServer->serverNum) (*iter)->Send(msg, size);
 	}
 }

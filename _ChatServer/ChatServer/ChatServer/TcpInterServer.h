@@ -6,6 +6,7 @@ public:
 	TcpInterServer();
 	TcpInterServer(WORD Port, int ThreadPoolSize, int socketPoolSize);
 	void Start();
+	void ConnectSocketCreate();
 
 public:
 	Proactor*		proactor_;
