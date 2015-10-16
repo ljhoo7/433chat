@@ -1,13 +1,11 @@
 #pragma once
 
-#include "stdafx.h"
-
 class TcpInterServer : public WinSockBase
 {
 public:
 	TcpInterServer();
-	TcpInterServer(WORD Port, int ThreadPoolSize);
-	void Start(bool connect);
+	TcpInterServer(WORD Port, int ThreadPoolSize, int socketPoolSize);
+	void Start();
 
 public:
 	Proactor*		proactor_;
@@ -20,35 +18,20 @@ public:
 	TcpListenSocket	listenSocket_;
 
 public:
-	TcpSocket* socket;
+	std::vector<InterSocket *> sockets; // 0: connection
 
-	void RecvProcess(bool isError, Act* act, DWORD bytes_transferred);
-	void SendProcess(bool isError, Act* act, DWORD bytes_transferred);
-	void AcceptProcess(bool isError, Act* act, DWORD bytes_transferred);
-	void DisconnProcess(bool isError, Act* act, DWORD bytes_transferred);
-	void ConnProcess(bool isError, Act* act, DWORD bytes_transferred);
-	void packetHandling(CPacket *packet);
+	void Connect(int num);
+	void Disconnect(int num);
+	void SendAll(char* buf, int size);
+	void SendWithoutOne(int serverNum, char* buf, int size);
+	InterSocket* GetSocketWithNum(int serverNum);
 
-	void Connect(char* ip, WORD port);
-
-	bool beatCheck;
-	int position;
-	int remainBytes;
-	bool isVar;
-	bool isConnect;
-	bool isUse;
-	MemPooler<msg_buffer> *poolManager;
-	MemPooler<CPacket> *packetPoolManager;
-
-public:
+/*public:
 	std::thread heartThread;
-	void heartbeatCheck();
+	void heartbeatCheck();*/
 
 private:
 	WORD			port_;
 	int				threadPoolSize_;
-
-	void SendPlayerInfo();
-	void SendRoomInfo();
-	void MakeSync();
+	int				socketPoolSize_;
 };

@@ -2,16 +2,14 @@
 
 CPacket::CPacket()
 {
-	type = 0;
 	owner = NULL;
 	msg = NULL;
 }
 
-CPacket::CPacket(TcpSocket* owner, char* msg, int type)
+CPacket::CPacket(TcpSocket* owner, char* msg)
 {
 	this->owner = owner;
 	this->msg = msg;
-	this->type = type;
 }
 
 CPacket::~CPacket()

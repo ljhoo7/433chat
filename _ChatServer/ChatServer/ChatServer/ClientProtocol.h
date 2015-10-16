@@ -2,8 +2,6 @@
 
 #define NICK_SIZE		20
 
-#include "Def.h"
-
 enum pkt_type
 {
 	pt_create,

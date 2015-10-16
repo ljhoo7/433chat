@@ -38,5 +38,6 @@ public:
 	void DisconnProcess(bool isError, Act* act, DWORD bytes_transferred);
 	void ConnProcess(bool isError, Act* act, DWORD bytes_transferred);
 
+	void RemovePlayer();
 };
 

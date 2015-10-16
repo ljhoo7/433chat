@@ -67,10 +67,10 @@
     <ClInclude Include="Acceptor.h" />
     <ClInclude Include="Act.h" />
     <ClInclude Include="Actor.h" />
+    <ClInclude Include="ChatServer.h" />
     <ClInclude Include="Def.h" />
     <ClInclude Include="ClientProtocol.h" />
     <ClInclude Include="Connector.h" />
-    <ClInclude Include="InterConnectSocket.h" />
     <ClInclude Include="InterSocket.h" />
     <ClInclude Include="LogAct.h" />
     <ClInclude Include="LogicHandle.h" />
@@ -96,8 +96,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Acceptor.cpp" />
+    <ClCompile Include="ChatServer.cpp" />
     <ClCompile Include="Connector.cpp" />
-    <ClCompile Include="InterConnectSocket.cpp" />
     <ClCompile Include="InterSocket.cpp" />
     <ClCompile Include="LogicHandle.cpp" />
     <ClCompile Include="LogWriter.cpp" />

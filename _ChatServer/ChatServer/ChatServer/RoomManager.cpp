@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-extern CRoomManager roomManager;
+extern ChatServer* chatServer;
 
 CRoomManager::CRoomManager()
 {
@@ -12,11 +12,11 @@ CRoomManager::~CRoomManager()
 
 void CRoomManager::PrintInfo(){
 	std::list<CRoom*>::iterator iter;
-	PRINTF(L"< Current Room List >\n");
+	PRINTF("< Current Room List >\n");
 	for (iter = rooms.begin(); iter != rooms.end(); iter++){
-		PRINTF(L"Room %d : %d persons are connecting...\n", (*iter)->roomNumber, (*iter)->players.size());
+		PRINTF("Room %d : %d persons are connecting...\n", (*iter)->roomNumber, (*iter)->players.size());
 	}
-	PRINTF(L"\n");
+	PRINTF("\n");
 }
 
 int CRoomManager::CreateRoom(int roomNumber){
@@ -69,8 +69,8 @@ int CRoomManager::EnterRoom(CPlayer* p, int roomNumber){
 		return fail_signal::fs_overflow;
 
 	// nickname check
-	std::list<CRoom*>::iterator iter = roomManager.rooms.begin();
-	for (; iter != roomManager.rooms.end(); ++iter)
+	std::list<CRoom*>::iterator iter = chatServer->roomManager.rooms.begin();
+	for (; iter != chatServer->roomManager.rooms.end(); ++iter)
 	{
 		std::list<CPlayer*>::iterator iter2 = (*iter)->players.begin();
 		for (; iter2 != (*iter)->players.end(); ++iter2)
@@ -119,7 +119,7 @@ bool CRoomManager::LeaveRoom(CPlayer* p, int roomNumber)
 {
 	CRoom* room = FindRoom(roomNumber);
 	if (room == NULL){
-		PRINTF(L"No ROOM!\n");
+		PRINTF("No ROOM!\n");
 		return false;
 	}
 	room->PlayerQuit(p, true);

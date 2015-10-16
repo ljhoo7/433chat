@@ -43,7 +43,6 @@ class WinSockBase;
 class TcpClientServer;
 
 class InterSocket;
-class InterConnectSocket;
 class TcpInterServer;
 
 #include "ClientProtocol.h"
@@ -70,5 +69,4 @@ class TcpInterServer;
 #include "LogicHandle.h"
 
 #include "InterSocket.h"
-#include "InterConnectSocket.h"
 #include "TcpInterServer.h"

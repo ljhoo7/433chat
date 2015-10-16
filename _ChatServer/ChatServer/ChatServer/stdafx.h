@@ -22,9 +22,11 @@ class TcpAct;
 #include <wchar.h>
 
 class CLogWriter;
+struct ServerInfo;
+class ChatServer;
 
-extern CLogWriter* logWriter;
-#define PRINTF logWriter->myWPRINTF
+extern ChatServer* chatServer;
+#define PRINTF printf
 
 #include "LogAct.h"
 #include "LogWriter.h"
@@ -34,6 +36,6 @@ extern CLogWriter* logWriter;
 #include "Actor.h"
 
 #include "Def.h"
-
+#include "ChatServer.h"
 
 
