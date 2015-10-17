@@ -18,11 +18,7 @@ enum pkt_type {
 	pt_chat_alarm,
 	pt_join_alarm,
 	pt_leave_alarm,
-	pt_kick,
-	pt_user_out,
-	pt_escape_server,
-	pt_escape_success,
-	pt_escape_fail
+	pt_kick
 };
 
 enum fail_signal
@@ -63,7 +59,7 @@ typedef struct{
 typedef struct{
 	unsigned short type;
 	unsigned short room_num;
-	char nickname[NICK_SIZE];
+	TCHAR nickname[NICK_SIZE];
 }t_join;
 
 typedef struct{
@@ -81,42 +77,22 @@ typedef struct{
 	unsigned short type;
 	unsigned short room_num;
 	unsigned int token;
-	char nickname[NICK_SIZE];
+	TCHAR nickname[NICK_SIZE];
 }t_leave;
 
 typedef struct{
 	unsigned short type;
 }t_leave_success;
 
-typedef struct{
-	unsigned short type;
-	unsigned short trashValue;
-	int client_socket;
-}t_user_out;
-
-typedef struct{
-	unsigned short type;
-	unsigned short trashValue;
-	unsigned long dest_ip;
-	unsigned short port;
-	unsigned short trashValue2;
-}t_escape_server;
-
-typedef struct{
-	unsigned short type;
-}t_escape_success;
-
-typedef struct{
-	unsigned short type;
-}t_escape_fail;
 
 typedef struct{
 	unsigned short type;
 	unsigned short length;
+	//unsigned short trash_value;
 	unsigned short room_num;
 	unsigned int token;
 	char nickname[NICK_SIZE];
-	std::string message;
+	std::wstring message;
 }t_chat;
 
 typedef struct{
@@ -126,19 +102,19 @@ typedef struct{
 	unsigned short room_num;
 	unsigned int token;
 	char nickname[NICK_SIZE];
-	std::string message;
+	std::wstring message;
 }t_chat_alarm;
 
 typedef struct{
 	unsigned short type;
 	unsigned short room_num;
-	char nickname[NICK_SIZE];
+	TCHAR nickname[NICK_SIZE];
 }t_join_alarm;
 
 typedef struct{
 	unsigned short type;
 	unsigned short room_num;
-	char nickname[NICK_SIZE];
+	TCHAR nickname[NICK_SIZE];
 }t_leave_alarm;
 
 typedef struct{

@@ -20,3 +20,4 @@
 #include "..\Protocol.h"
 #include "ClientStates.h"
 #include "Client.h"
+#include "Connection.h"

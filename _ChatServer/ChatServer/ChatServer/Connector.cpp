@@ -10,7 +10,7 @@ void Connector::ProcEvent(Act* act, DWORD bytes_transferred)
 
 	assert(proactor_);
 
-	//PRINTF(L"...Acceptor s(%d)\n", tcpsocket.GetSocket());
+	PRINTF(L"...Acceptor s(%d)\n", tcpsocket.socket_);
 
 	proactor_->Register((HANDLE)(tcpsocket.socket_));
 

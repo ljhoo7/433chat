@@ -93,8 +93,7 @@ void CBot::ChattingThread()
 	long long time;
 	int retval = 0;
 	std::string tmpStr;
-	int size = 0, sum = 0, remain = 0, fixedRemain, strSize;
-	unsigned short len;
+	int size = 0, sum = 0, remain = 0;
 
 	WaitForSingleObject(hEvent, INFINITE);
 

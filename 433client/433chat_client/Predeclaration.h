@@ -1,6 +1,8 @@
 #pragma once
 
-class CClient;
+struct CClient;
+struct CConnection;
+
 class CLobby;
 class CRoom;
 class CCreate_Response_Wait;

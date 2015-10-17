@@ -3,6 +3,7 @@
 #pragma comment(lib, "ws2_32")
 #pragma comment(lib,"mswsock.lib")  
 
+#define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define BUFSIZE 8192
 

@@ -11,23 +11,23 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B9C69203-A1DB-4E1A-AC57-366BA80E1063}</ProjectGuid>
+    <ProjectGuid>{26DC41F2-F928-48DD-92F2-7D04EFE7CF21}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>My433chat_client</RootNamespace>
+    <RootNamespace>My433_IOCP_Client</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -47,11 +47,11 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -61,12 +61,12 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -76,25 +76,39 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Utilities.cpp" />
-    <ClCompile Include="ClientStates.cpp" />
-    <ClCompile Include="Client_main.cpp" />
-    <ClCompile Include="Client.cpp" />
-    <ClCompile Include="Connection.cpp" />
+    <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Protocol.h" />
-    <ClInclude Include="..\State.h" />
-    <ClInclude Include="..\StateMachine.h" />
-    <ClInclude Include="..\Utilities.h" />
-    <ClInclude Include="ClientStates.h" />
-    <ClInclude Include="Connection.h" />
-    <ClInclude Include="Headers.h" />
+    <ClInclude Include="Act.h" />
+    <ClInclude Include="Actor.h" />
     <ClInclude Include="Client.h" />
-    <ClInclude Include="Predeclaration.h" />
+    <ClInclude Include="Connector.h" />
+    <ClInclude Include="Disconnector.h" />
+    <ClInclude Include="LogAct.h" />
+    <ClInclude Include="LogWriter.h" />
+    <ClInclude Include="Proactor.h" />
+    <ClInclude Include="Protocol.h" />
+    <ClInclude Include="Receiver.h" />
+    <ClInclude Include="Sender.h" />
+    <ClInclude Include="SockInfo.h" />
+    <ClInclude Include="State.h" />
+    <ClInclude Include="StateMachine.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="Utilities.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ClassDiagram.cd" />
+    <ClCompile Include="Client.cpp" />
+    <ClCompile Include="Connector.cpp" />
+    <ClCompile Include="Disconnector.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Actor.cpp" />
+    <ClCompile Include="LogWriter.cpp" />
+    <ClCompile Include="Proactor.cpp" />
+    <ClCompile Include="Receiver.cpp" />
+    <ClCompile Include="Sender.cpp" />
+    <ClCompile Include="SockInfo.cpp" />
+    <ClCompile Include="Utilities.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
