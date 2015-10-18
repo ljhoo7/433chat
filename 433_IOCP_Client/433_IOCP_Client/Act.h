@@ -1,9 +1,14 @@
 #pragma once
 
-struct CAct : public OVERLAPPED
+class CAct : public OVERLAPPED
 {
-	CSockInfo m_cSock;
-	CActor	  *m_pActor;
+public:
+	pkt_type		m_eType;
+
+	CSockInfo		*m_pSock;
+	CActor			*m_pActor;
+
+	CAct() : m_eType(pkt_type::pt_default){}
 
 	CAct(CActor *p_pActor)
 		:m_pActor(p_pActor)
@@ -17,8 +22,10 @@ struct CAct : public OVERLAPPED
 
 	CAct(CProactor *p_pProactor, CConnector *p_pConnector, CDisconnector *p_pDisconnector, CReceiver *p_pReceiver
 		, CSender *p_pSender)
-	: m_cSock(p_pProactor, p_pConnector, p_pDisconnector, p_pReceiver, p_pSender)
+		: m_eType(pkt_type::pt_default)
 	{
+		m_pSock = new CSockInfo(p_pProactor, p_pConnector, p_pDisconnector, p_pReceiver, p_pSender);
+
 		m_pActor = NULL;
 		hEvent = NULL;
 		Internal = 0;
@@ -35,5 +42,11 @@ struct CAct : public OVERLAPPED
 	void Error(DWORD p_dwError)
 	{
 		m_pActor->ProcError(this, p_dwError);
+	}
+
+	void Init(CActor *p_pActor, CSockInfo *p_pSockInfo)
+	{
+		m_pActor = p_pActor;
+		m_pSock = p_pSockInfo;
 	}
 };

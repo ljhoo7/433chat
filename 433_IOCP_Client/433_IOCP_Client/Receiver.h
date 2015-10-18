@@ -2,6 +2,9 @@
 class CReceiver : public CActor
 {
 public:
+
+	bool(*CReceiver::PacketHandlingFunc[pkt_type::pt_default])(PVOID p_pParam);
+
 	CReceiver(CProactor *p_pProactor);
 	~CReceiver();
 

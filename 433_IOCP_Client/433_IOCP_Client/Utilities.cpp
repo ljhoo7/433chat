@@ -1,28 +1,6 @@
 #include "stdafx.h"
 
-// The Customized Printf For Making A Service By This Server Program
-bool MyPrintf(PTCH str)
-{
-#ifdef _DEBUG
-	wprintf_s(_T("%s\n"), str);
-#else
-	
-#endif
-	return true;
-}
-
-// Print Socket Error
-void Err_display(PTCH msg)
-{
-	LPVOID lpMsgBuf;
-	FormatMessage(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-		NULL, WSAGetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(LPTSTR)&lpMsgBuf, 0, NULL);
-	//printf("[%s] %s", msg, lpMsgBuf);
-	LocalFree(lpMsgBuf);
-}
+extern CLogWriter *g_pLog;
 
 // Decoding the fail signal and Print
 void PrintFailSignal(const fail_signal fail)
@@ -30,16 +8,16 @@ void PrintFailSignal(const fail_signal fail)
 	switch (fail)
 	{
 	case fail_signal::fs_alreadyexist:
-		//std::cout << "Fail : Already exist" << std::endl;
+		g_pLog->myWprintf(L"Fail : Already exist");
 		break;
 	case fail_signal::fs_no_exist:
-		//std::cout << "Fail : No exist" << std::endl;
+		g_pLog->myWprintf(L"Fail : No exist");
 		break;
 	case fail_signal::fs_overflow:
-		//std::cout << "Fail : Overflow" << std::endl;
+		g_pLog->myWprintf(L"Fail : Overflow");
 		break;
 	default:
-		//std::cout << "Unreadable fail signal." << std::endl;
+		g_pLog->myWprintf(L"Unreadable fail signal.");
 		break;
 	}
 }

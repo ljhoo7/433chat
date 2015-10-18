@@ -82,6 +82,7 @@
     <ClInclude Include="Act.h" />
     <ClInclude Include="Actor.h" />
     <ClInclude Include="Client.h" />
+    <ClInclude Include="ClientStates.h" />
     <ClInclude Include="Connector.h" />
     <ClInclude Include="Disconnector.h" />
     <ClInclude Include="LogAct.h" />
@@ -99,11 +100,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp" />
+    <ClCompile Include="ClientStates.cpp" />
     <ClCompile Include="Connector.cpp" />
     <ClCompile Include="Disconnector.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="LogWriter.cpp" />
+    <ClCompile Include="MessageSendFunctions.cpp" />
     <ClCompile Include="Proactor.cpp" />
     <ClCompile Include="Receiver.cpp" />
     <ClCompile Include="Sender.cpp" />

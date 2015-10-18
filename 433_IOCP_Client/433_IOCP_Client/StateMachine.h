@@ -30,7 +30,7 @@ public:
 
   void ChangeState(State<entity_type>* pNewState)
   {
-    assert(pNewState && "<StateMachine::ChangeState>:trying to assign null state to current");
+    //assert(pNewState && "<StateMachine::ChangeState>:trying to assign null state to current");
     m_pPreviousState = m_pCurrentState;
     m_pCurrentState->Exit(m_pOwner);
     m_pCurrentState = pNewState;

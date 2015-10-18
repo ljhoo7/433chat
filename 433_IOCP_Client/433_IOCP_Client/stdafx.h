@@ -1,6 +1,9 @@
 #pragma once
 
 #pragma comment (lib, "ws2_32")
+#pragma comment (lib, "Mswsock")
+
+#define _CRT_SECURE_NO_WARNINGS
 
 #include "targetver.h"
 
@@ -20,9 +23,9 @@ struct CProactor;
 class CActor;
 
 struct CSockInfo;
-struct CAct;
+class CAct;
 
-class CClient;
+struct CClient;
 
 class CConnector;
 class CDisconnector;
@@ -31,7 +34,15 @@ class CSender;
 
 class CLogWriter;
 
-#define BUFSIZE		1024
+template <class entity_type>
+class StateMachine;
+
+template <class entity_type>
+class State;
+
+#define HEADER_SIZE			2
+#define BUFSIZE				8192
+#define ELAPSED_DEST		1500
 
 #ifdef _DEBUG
 #define MYDEF
@@ -41,6 +52,9 @@ class CLogWriter;
 typedef struct mswsock_s {
 	LPFN_CONNECTEX ConnectEx;
 }mswsock_s;
+
+#include "State.h"
+#include "StateMachine.h"
 
 #include "Protocol.h"
 #include "Utilities.h"
@@ -55,6 +69,7 @@ typedef struct mswsock_s {
 #include "LogWriter.h"
 
 #include "Client.h"
+#include "ClientStates.h"
 
 #include "Connector.h"
 #include "Disconnector.h"

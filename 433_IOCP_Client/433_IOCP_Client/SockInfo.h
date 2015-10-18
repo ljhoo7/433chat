@@ -4,9 +4,14 @@ struct CSockInfo
 {
 	SOCKET			m_hSock;
 
-	TCHAR			m_szReciveBuf[BUFSIZE];
-	TCHAR			m_szSendBuf[BUFSIZE];
-	TCHAR			m_szConnectBuf[BUFSIZE];
+	bool			m_bIsVar;
+
+	int				m_nRecvPosition;
+	int				m_nRecvRemain;
+
+	char			m_szReceiveBuf[BUFSIZE];
+	char			m_szSendBuf[BUFSIZE];
+	char			m_szConnectBuf[BUFSIZE];
 
 	WSABUF			m_wsaRecvBuf;
 	WSABUF			m_wsaSendBuf;
@@ -29,10 +34,26 @@ struct CSockInfo
 		ACT_TYPE_CNT
 	};
 
-	std::vector<CAct*>		m_vpAct;
+	CAct			*m_vAct[ACT_TYPE_CNT];
 
-	CSockInfo() {}
+	CSockInfo() : m_nRecvPosition(0), m_bIsVar(false)
+	{
+		m_vAct[0] = NULL;
+		m_vAct[1] = NULL;
+		m_vAct[2] = NULL;
+		m_vAct[3] = NULL;
+	}
 
 	CSockInfo(CProactor *p_pProactor, CConnector *p_pConnector, CDisconnector *p_pDisconnector, CReceiver *p_pReceiver, CSender *p_pSender);
 	~CSockInfo();
+
+	bool Recv(char *p_pBuf, int p_nBufSize);
+	bool Send(char *p_pBuf, int p_nBufLen);
+	bool Connect(DWORD ip, int port);
+	bool Disconnect();
+
+	/*bool ReceiveProcess(CAct *act, DWORD bytes_transferred);
+	bool SendProcess(CAct *act, DWORD bytes_transferred);
+	bool AcceptProcess(CAct *act, DWORD bytes_transferred);
+	bool DisconnectProcess(CAct *act, DWORD bytes_transferred);*/
 };

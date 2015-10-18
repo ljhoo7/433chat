@@ -40,6 +40,15 @@
     <Filter Include="헤더 파일\ProactorPattern">
       <UniqueIdentifier>{e67f6b0b-1e3e-4e13-bd5b-b1bc1fcda298}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\ClientAssociations">
+      <UniqueIdentifier>{40a81702-ec0a-4a3e-baeb-5fbf993e4837}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\ClientAssociations">
+      <UniqueIdentifier>{7da38c38-be02-483b-8273-7eff9cbc4d1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Protocol">
+      <UniqueIdentifier>{baf36919-5aa9-4d66-8525-c5c59ba09f50}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -94,7 +103,10 @@
       <Filter>헤더 파일\ProactorPattern</Filter>
     </ClInclude>
     <ClInclude Include="Client.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>헤더 파일\ClientAssociations</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientStates.h">
+      <Filter>헤더 파일\ClientAssociations</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -129,7 +141,13 @@
       <Filter>소스 파일\ProactorPattern</Filter>
     </ClCompile>
     <ClCompile Include="Client.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>소스 파일\ClientAssociations</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientStates.cpp">
+      <Filter>소스 파일\ClientAssociations</Filter>
+    </ClCompile>
+    <ClCompile Include="MessageSendFunctions.cpp">
+      <Filter>소스 파일\ClientAssociations</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

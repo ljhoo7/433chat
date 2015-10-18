@@ -427,16 +427,6 @@ void CConnection::ReceivingThread()
 
 					GetStateMachine()->ChangeState(CLobby::Instance());
 					break;
-				case pkt_type::pt_leave_alarm:
-
-					retval = recvn(sock, (char*)&tmpLeaveAlarm.room_num, sizeof(t_leave_alarm)-sizeof(unsigned short), 0);
-					if (retval == SOCKET_ERROR)
-						err_quit("ReceivingThread() error on the receiving the left of the t_leave_alarm.");
-					sum += retval;
-
-					std::cout << "'" << tmpLeaveAlarm.nickname << "'has been leaved from your room." << std::endl;
-
-					break;
 				default:
 					std::cout << "You have received a wrong message which you can't read in the 'Leave Response' State." << std::endl;
 					break;

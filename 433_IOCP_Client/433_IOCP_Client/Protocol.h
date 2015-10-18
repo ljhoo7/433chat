@@ -18,7 +18,12 @@ enum pkt_type {
 	pt_chat_alarm,
 	pt_join_alarm,
 	pt_leave_alarm,
-	pt_kick
+	pt_kick,
+	pt_user_out,
+	pt_escape_server,
+	pt_escape_success,
+	pt_escape_failure,
+	pt_default
 };
 
 enum fail_signal
@@ -84,6 +89,27 @@ typedef struct{
 	unsigned short type;
 }t_leave_success;
 
+typedef struct{
+	unsigned short type;
+	unsigned short trashValue;
+	int client_socket;
+}t_user_out;
+
+typedef struct{
+	unsigned short type;
+	unsigned short trashValue;
+	unsigned long dest_ip;
+	unsigned short port;
+	unsigned short trashValue2;
+}t_escape_server;
+
+typedef struct{
+	unsigned short type;
+}t_escape_success;
+
+typedef struct{
+	unsigned short type;
+}t_escape_failure;
 
 typedef struct{
 	unsigned short type;
