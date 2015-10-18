@@ -64,7 +64,7 @@ typedef struct{
 typedef struct{
 	unsigned short type;
 	unsigned short room_num;
-	TCHAR nickname[NICK_SIZE];
+	char nickname[NICK_SIZE];
 }t_join;
 
 typedef struct{
@@ -82,7 +82,7 @@ typedef struct{
 	unsigned short type;
 	unsigned short room_num;
 	unsigned int token;
-	TCHAR nickname[NICK_SIZE];
+	char nickname[NICK_SIZE];
 }t_leave;
 
 typedef struct{
@@ -118,7 +118,6 @@ typedef struct{
 	unsigned short room_num;
 	unsigned int token;
 	char nickname[NICK_SIZE];
-	std::wstring message;
 }t_chat;
 
 typedef struct{
@@ -128,19 +127,18 @@ typedef struct{
 	unsigned short room_num;
 	unsigned int token;
 	char nickname[NICK_SIZE];
-	std::wstring message;
 }t_chat_alarm;
 
 typedef struct{
 	unsigned short type;
 	unsigned short room_num;
-	TCHAR nickname[NICK_SIZE];
+	char nickname[NICK_SIZE];
 }t_join_alarm;
 
 typedef struct{
 	unsigned short type;
 	unsigned short room_num;
-	TCHAR nickname[NICK_SIZE];
+	char nickname[NICK_SIZE];
 }t_leave_alarm;
 
 typedef struct{

@@ -86,7 +86,7 @@ void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 							break;
 						case pkt_type::pt_chat:
 							isVar = true;
-							remainBytes = sizeof(short);
+							remainBytes = sizeof(unsigned short);
 							break;
 						default:
 							Disconnect();
@@ -99,7 +99,7 @@ void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 					{
 						int typePlusLength = HEADER_SIZE << 1;
 						if (position == typePlusLength){
-							memcpy(&remainBytes, buf + HEADER_SIZE, sizeof(short));
+							memcpy(&remainBytes, buf + HEADER_SIZE, sizeof(unsigned short));
 							remainBytes -= typePlusLength;
 						}
 						isVar = false;
@@ -345,7 +345,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 	case pkt_type::pt_join:
 		tmpJoin = (t_join*)packet->msg;		//memcpy(&tmpJoin, packet->msg, sizeof(t_join));
 		this->nickname = tmpJoin->nickname;
-		result = roomManager.EnterRoom(this, tmpJoin->room_num);
+ 		result = roomManager.EnterRoom(this, tmpJoin->room_num);
 		if (result == -1)
 		{
 			ss_join msg;
@@ -425,7 +425,6 @@ void CPlayer::PacketHandling(CPacket *packet){
 		memcpy(packet->msg, &type, sizeof(unsigned short));
 
 		roomManager.FindRoom(this->roomNum)->BroadcastMsg(packet->msg, size);
-
 
 		type = ssType::pkt_chat;
 		memcpy(packet->msg, &type, sizeof(unsigned short));

@@ -89,6 +89,7 @@ void TcpSocket::Recv(char* buf, int buflen)
 			Disconnect();
 		}
 	}
+	PRINTF(L"%d bytes were received !\n", recvbytes);
 }
 
 void TcpSocket::Send(char* buf, int buflen)
@@ -110,6 +111,8 @@ void TcpSocket::Send(char* buf, int buflen)
 			//Disconnect();
 		}
 	}
+
+	PRINTF(L"%d bytes were sent !\n", sentbytes);
 }
 
 void TcpSocket::Reuse()

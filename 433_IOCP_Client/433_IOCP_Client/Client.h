@@ -45,4 +45,12 @@ struct CClient
 		strcpy_s(m_szNickname, param);
 		return true;
 	}
+
+	bool SetTmpNickName(char *param)
+	{
+		if (strlen(param) > 19)
+			return false;
+		strcpy_s(m_szTmpNickname, param);
+		return true;
+	}
 };

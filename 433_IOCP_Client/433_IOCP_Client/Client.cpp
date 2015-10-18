@@ -6,7 +6,11 @@ extern int t_nPort;
 
 CClient::CClient(int p_nThreadPoolSize, int p_nSocketPoolSize)
 :m_nThreadPoolSize(p_nThreadPoolSize), m_nSocketPoolSize(p_nSocketPoolSize)
+, m_nRoom_num(-1), m_nTmpRoom_num(-1)
 {
+	strcpy(m_szNickname, "");
+	strcpy(m_szTmpNickname, "");
+
 	m_pProactor = new CProactor(p_nThreadPoolSize);
 
 	m_pConnector = new CConnector(m_pProactor);

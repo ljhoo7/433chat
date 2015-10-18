@@ -123,7 +123,6 @@ typedef struct{
 typedef struct{
 	unsigned short type;
 	unsigned short length;
-	//unsigned short trash_value;
 	unsigned short room_num;
 	unsigned int token;
 	char nickname[NICK_SIZE];

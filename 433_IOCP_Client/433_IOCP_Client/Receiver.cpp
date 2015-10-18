@@ -7,12 +7,23 @@ bool CreateSuccessFunc(PVOID p_pParam)
 {
 	CSockInfo *t_pSock = (CSockInfo*)p_pParam;
 
+	g_pClient->GetStateMachine()->ChangeState(CLobby::Instance());
+
+	g_pLog->myWprintf(L"Room Creation Successeded !\n");
+
 	return true;
 }
 
 bool CreateFailureFunc(PVOID p_pParam)
 {
 	CSockInfo *t_pSock = (CSockInfo*)p_pParam;
+
+	t_create_failure *t_sCreateFail = (t_create_failure*)t_pSock->m_szReceiveBuf;
+
+	g_pClient->GetStateMachine()->ChangeState(CLobby::Instance());
+
+	g_pLog->myWprintf(L"[error] Room Creation Failed !\n");
+	PrintFailSignal((fail_signal)t_sCreateFail->fail_signal);
 
 	return true;
 }
@@ -21,12 +32,23 @@ bool DestroySuccessFunc(PVOID p_pParam)
 {
 	CSockInfo *t_pSock = (CSockInfo*)p_pParam;
 
+	g_pClient->GetStateMachine()->ChangeState(CLobby::Instance());
+
+	g_pLog->myWprintf(L"Room Destroy Successeded !\n");
+
 	return true;
 }
 
 bool DestroyFailureFunc(PVOID p_pParam)
 {
 	CSockInfo *t_pSock = (CSockInfo*)p_pParam;
+
+	t_destroy_failure *t_sDestroyFail = (t_destroy_failure*)t_pSock->m_szReceiveBuf;
+
+	g_pClient->GetStateMachine()->ChangeState(CLobby::Instance());
+
+	g_pLog->myWprintf(L"[error] Room Destroy Failed !\n");
+	PrintFailSignal((fail_signal)t_sDestroyFail->fail_signal);
 
 	return true;
 }
@@ -35,12 +57,30 @@ bool JoinSuccessFunc(PVOID p_pParam)
 {
 	CSockInfo *t_pSock = (CSockInfo*)p_pParam;
 
+	t_join_success *t_sJoinSuccess = (t_join_success*)t_pSock->m_szReceiveBuf;
+
+	g_pClient->m_nToken = t_sJoinSuccess->token;
+
+	g_pClient->SetNickName(g_pClient->m_szTmpNickname);
+	g_pClient->m_nRoom_num = g_pClient->m_nTmpRoom_num;
+
+	g_pClient->GetStateMachine()->ChangeState(CRoom::Instance());
+
+	g_pLog->myWprintf(L"Join Successeded !\n");
+
 	return true;
 }
 
 bool JoinFailureFunc(PVOID p_pParam)
 {
 	CSockInfo *t_pSock = (CSockInfo*)p_pParam;
+
+	t_join_failure *t_sJoinFail = (t_join_failure*)t_pSock->m_szReceiveBuf;
+
+	g_pClient->GetStateMachine()->ChangeState(CLobby::Instance());
+
+	g_pLog->myWprintf(L"[error] Join Failed !\n");
+	PrintFailSignal((fail_signal)t_sJoinFail->fail_signal);
 
 	return true;
 }
@@ -49,12 +89,47 @@ bool LeaveSuccessFunc(PVOID p_pParam)
 {
 	CSockInfo *t_pSock = (CSockInfo*)p_pParam;
 
+	g_pClient->m_nRoom_num = -1;
+	g_pClient->m_nTmpRoom_num = -1;
+
+	strcpy(g_pClient->m_szNickname, "");
+	strcpy(g_pClient->m_szTmpNickname, "");
+
+	g_pClient->GetStateMachine()->ChangeState(CLobby::Instance());
+
+	g_pLog->myWprintf(L"Leave Successeded !\n");
+
 	return true;
 }
 
 bool ChatAlarmFunc(PVOID p_pParam)
 {
+	const int t_nTrashSize = 2;
+	const int t_nHeaderAndLeng = HEADER_SIZE << 1;
+
 	CSockInfo *t_pSock = (CSockInfo*)p_pParam;
+
+	int t_nRemain = t_pSock->m_nRecvRemain - sizeof(unsigned short) - sizeof(unsigned short);;
+	int t_nFixedRemain = NICK_SIZE + sizeof(int) + sizeof(unsigned short);
+	int t_nStrSize = t_nRemain - t_nFixedRemain - t_nTrashSize;
+
+	t_chat_alarm t_pChatAlarm;
+
+	memcpy(&t_pChatAlarm.room_num, &t_pSock->m_szReceiveBuf[t_nHeaderAndLeng], t_nFixedRemain);
+
+	char *t_szStr = new char[t_nStrSize];
+	memcpy(t_szStr, &t_pSock->m_szReceiveBuf[t_nFixedRemain + t_nTrashSize + t_nHeaderAndLeng], t_nStrSize);
+
+	std::string message = t_szStr;
+
+	if (t_pChatAlarm.room_num == g_pClient->m_nRoom_num)
+	{
+		printf(" < %s >'s message : %s\n", t_pChatAlarm.nickname, message.c_str());
+	}
+	else
+	{
+		g_pLog->myWprintf(L"[Server's error] A chat alarm message of unassociated room has been received.\n");
+	}
 
 	return true;
 }
@@ -63,12 +138,34 @@ bool JoinAlarmFunc(PVOID p_pParam)
 {
 	CSockInfo *t_pSock = (CSockInfo*)p_pParam;
 
+	t_join_alarm *t_sJoinAlarm = (t_join_alarm*)t_pSock->m_szReceiveBuf;
+
+	if (t_sJoinAlarm->room_num == g_pClient->m_nRoom_num)
+	{
+		g_pLog->myWprintf(L"< %s > has entered to your room.\n", t_sJoinAlarm->nickname);
+	}
+	else
+	{
+		g_pLog->myWprintf(L"[Server's error] A join alarm message of unassociated room has been received.\n");
+	}
+
 	return true;
 }
 
 bool LeaveAlarmFunc(PVOID p_pParam)
 {
 	CSockInfo *t_pSock = (CSockInfo*)p_pParam;
+
+	t_leave_alarm *t_sLeaveAlarm = (t_leave_alarm*)t_pSock->m_szReceiveBuf;
+
+	if (t_sLeaveAlarm->room_num == g_pClient->m_nRoom_num)
+	{
+		g_pLog->myWprintf(L"< %s > has leaved from your room.\n", t_sLeaveAlarm->nickname);
+	}
+	else
+	{
+		g_pLog->myWprintf(L"[Server's error] A leave alarm message of unassociated room has been received.\n");
+	}
 
 	return true;
 }
@@ -77,8 +174,18 @@ bool KickFunc(PVOID p_pParam)
 {
 	CSockInfo *t_pSock = (CSockInfo*)p_pParam;
 
+	t_kick *t_sKick = (t_kick*)t_pSock->m_szReceiveBuf;
+
+	g_pClient->m_nRoom_num = -1;
+	g_pClient->m_nTmpRoom_num = -1;
+
+	g_pLog->myWprintf(L"You are kicked to the Lobby because your room was erased !\n");
+
+	g_pClient->GetStateMachine()->ChangeState(CLobby::Instance());
 	return true;
 }
+
+//--------------------------------------------------------
 
 bool UserOutFunc(PVOID p_pParam)
 {
@@ -105,69 +212,65 @@ CReceiver::CReceiver(CProactor *p_pProactor)
 {
 	m_pProactor = p_pProactor;
 
-	int k = 0;
-
 	// create
-	PacketHandlingFunc[k++] = NULL;
+	PacketHandlingFunc[0] = NULL;
 
 	// create_success
-	PacketHandlingFunc[k++] = CreateSuccessFunc;
+	PacketHandlingFunc[1] = CreateSuccessFunc;
 
 	// create_failure
-	PacketHandlingFunc[k++] = CreateFailureFunc;
+	PacketHandlingFunc[2] = CreateFailureFunc;
 
 	// destroy
-	PacketHandlingFunc[k++] = NULL;
+	PacketHandlingFunc[3] = NULL;
 
 	// destroy success
-	PacketHandlingFunc[k++] = DestroySuccessFunc;
+	PacketHandlingFunc[4] = DestroySuccessFunc;
 
 	// destroy failure
-	PacketHandlingFunc[k++] = DestroyFailureFunc;
+	PacketHandlingFunc[5] = DestroyFailureFunc;
 
 	// join
-	PacketHandlingFunc[k++] = NULL;
+	PacketHandlingFunc[6] = NULL;
 
 	// join success
-	PacketHandlingFunc[k++] = JoinSuccessFunc;
+	PacketHandlingFunc[7] = JoinSuccessFunc;
 
 	// join failure
-	PacketHandlingFunc[k++] = JoinFailureFunc;
+	PacketHandlingFunc[8] = JoinFailureFunc;
 
 	// leave
-	PacketHandlingFunc[k++] = NULL;
+	PacketHandlingFunc[9] = NULL;
 
 	// leave success
-	PacketHandlingFunc[k++] = LeaveSuccessFunc;
+	PacketHandlingFunc[10] = LeaveSuccessFunc;
 
 	// chat
-	PacketHandlingFunc[k++] = NULL;
+	PacketHandlingFunc[11] = NULL;
 
 	// chat alarm
-	PacketHandlingFunc[k++] = ChatAlarmFunc;
+	PacketHandlingFunc[12] = ChatAlarmFunc;
 
 	// join alarm
-	PacketHandlingFunc[k++] = JoinAlarmFunc;
+	PacketHandlingFunc[13] = JoinAlarmFunc;
 
 	// leave alarm
-	PacketHandlingFunc[k++] = LeaveAlarmFunc;
+	PacketHandlingFunc[14] = LeaveAlarmFunc;
 
 	// kick
-	PacketHandlingFunc[k++] = KickFunc;
+	PacketHandlingFunc[15] = KickFunc;
 
 	// user out
-	PacketHandlingFunc[k++] = UserOutFunc;
+	PacketHandlingFunc[16] = UserOutFunc;
+
+	// escape server
+	PacketHandlingFunc[17] = NULL;
 
 	// escape success
-	PacketHandlingFunc[k++] = EscapeSuccessFunc;
+	PacketHandlingFunc[18] = EscapeSuccessFunc;
 
 	// escape failure
-	PacketHandlingFunc[k++] = EscapeFailureFunc;
-
-	if (k != pkt_type::pt_default)
-	{
-		g_pLog->myWprintf(L"[error] The number of packet handling functions is not matched with the number of packet.\n");
-	}
+	PacketHandlingFunc[19] = EscapeFailureFunc;
 }
 
 
@@ -296,12 +399,7 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 					p_pAct->m_eType = pkt_type::pt_kick;
 					break;
 //---------------------------------------------------------------------------------
-				case pkt_type::pt_chat:
-					g_pLog->myWprintf(L"pt_chat\n");
-					t_hSock.m_bIsVar = true;
-					t_nRemain = sizeof(unsigned short);
-					p_pAct->m_eType = pkt_type::pt_chat;
-					break;
+				// * notice : the character of ASCII whitch number is 12 can't be inputed by keyboard on console !
 				case pkt_type::pt_chat_alarm:
 					g_pLog->myWprintf(L"pt_chat_alarm\n");
 					t_hSock.m_bIsVar = true;
@@ -350,19 +448,30 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 			{
 				int typePlusLength = HEADER_SIZE << 1;
 				if (t_nPos == typePlusLength){
-					memcpy(&t_nRemain, buf + HEADER_SIZE, sizeof(short));
+					memcpy(&t_nRemain, buf + HEADER_SIZE, sizeof(unsigned short));
 					t_nRemain -= typePlusLength;
 				}
 				t_hSock.m_bIsVar = false;
 			}
 			else
 			{
-				t_nPos = 0;
+				if (p_pAct->m_eType != pkt_type::pt_chat_alarm)
+				{
+					t_nRemain = HEADER_SIZE;
+					t_nPos = 0;
+				}
+				else
+				{
+					t_nRemain = t_nPos;
+				}
 				
 				// decoding the packet !!
 				if (NULL != PacketHandlingFunc[p_pAct->m_eType])
 				{
 					PacketHandlingFunc[p_pAct->m_eType]((PVOID)&t_hSock);
+
+					t_hSock.m_nRecvRemain = HEADER_SIZE;
+					t_hSock.m_nRecvPosition = 0;
 				}
 				else
 				{

@@ -195,21 +195,19 @@ int _tmain(int argc, _TCHAR* argv[])
 				}
 				else
 				{
-					g_pLog->myWprintf(L"You must try to chat when you are in a room !\n");
+					if ("exit" == tmpStr)
+					{
+						g_bExitSignal = true;
+					}
+					else
+						g_pLog->myWprintf(L"You must try to chat when you are in a room !\n");
 				}
 			}
 		}
 		else
 		{
-			if ("exit" == tmpStr)
-			{
-				g_bExitSignal = true;
-			}
-			else
-			{
-				// chat
-				g_pClient->SendChatMessage(tmpStr);
-			}
+			// chat
+			g_pClient->SendChatMessage(tmpStr);
 		}
 	}
 

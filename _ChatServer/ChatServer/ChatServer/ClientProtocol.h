@@ -25,7 +25,8 @@ enum pkt_type
 	pt_user_out,
 	pt_escape_server,
 	pt_escape_success,
-	pt_escape_fail
+	pt_escape_failure,
+	pt_default
 };
 
 enum fail_signal
@@ -122,7 +123,6 @@ typedef struct
 	unsigned short room_num;
 	unsigned int token;
 	char nickname[NICK_SIZE];
-	std::string message;
 }t_chat;
 
 typedef struct
@@ -133,7 +133,6 @@ typedef struct
 	unsigned short room_num;
 	unsigned int token;
 	char nickname[NICK_SIZE];
-	std::string message;
 }t_chat_alarm;
 
 typedef struct

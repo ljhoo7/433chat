@@ -125,6 +125,10 @@ bool CSockInfo::Recv(char *p_pBuf, int p_nBufSize)
 		}
 	}
 
+	g_pLog->myWprintf(L"%d bytes were received !\n", recvbytes);
+
+	//ZeroMemory(m_szReceiveBuf, BUFSIZE);
+
 	return true;
 }
 
@@ -140,6 +144,8 @@ bool CSockInfo::Send(char *p_pBuf, int p_nBufLen)
 	m_wsaSendBuf.buf = p_pBuf;
 	m_wsaSendBuf.len = p_nBufLen;
 
+	unsigned short t_buf = *(unsigned short*)p_pBuf;
+
 	INT ret = WSASend(m_hSock, &m_wsaSendBuf, 1, &sentbytes, 0, static_cast<OVERLAPPED*>(m_vAct[ACT_SEND]), NULL);
 
 	if (ret != 0)
@@ -153,6 +159,10 @@ bool CSockInfo::Send(char *p_pBuf, int p_nBufLen)
 			return false;
 		}
 	}
+
+	g_pLog->myWprintf(L"%d bytes were sent !\n", sentbytes);
+
+	//ZeroMemory(m_szSendBuf, BUFSIZE);
 
 	return true;
 }
