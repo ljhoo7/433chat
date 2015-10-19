@@ -124,32 +124,28 @@ bool CClient::SendChatMessage(const std::string& str)
 	return true;
 }
 
-bool CClient::SendEscapeMessage(DWORD destIp, int port)
+bool CClient::SendEscapeSuccessMessage()
 {
+	t_escape_success tmp_packet;
+
+	tmp_packet.type = pkt_type::pt_escape_success;
+
+	m_pSock->Send((char*)&tmp_packet, sizeof(t_escape_success));
+
 	int retval;
 
-	// ¡Ú : Must change to async !!!
+	return true;
+}
 
-	SOCKET	&sock = m_pSock->m_hSock;
+bool CClient::SendEscapeFailureMessage()
+{
+	t_escape_failure tmp_packet;
 
-	// socket()
-	sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock == INVALID_SOCKET)
-	{
-		g_pLog->myWprintf(L"socket() in escaping !\n");
-	}
+	tmp_packet.type = pkt_type::pt_escape_failure;
 
-	// connect()
-	SOCKADDR_IN serveraddr;
-	ZeroMemory(&serveraddr, sizeof(serveraddr));
-	serveraddr.sin_family = AF_INET;
-	serveraddr.sin_addr.s_addr = destIp;
-	serveraddr.sin_port = htons(port);
-	retval = connect(sock, (SOCKADDR *)&serveraddr, sizeof(serveraddr));
-	if (retval == SOCKET_ERROR)
-	{
-		g_pLog->myWprintf(L"connect() in escaping !\n");
-	}
+	m_pSock->Send((char*)&tmp_packet, sizeof(t_escape_failure));
+
+	int retval;
 
 	return true;
 }

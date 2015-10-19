@@ -160,7 +160,7 @@ bool LeaveAlarmFunc(PVOID p_pParam)
 
 	if (t_sLeaveAlarm->room_num == g_pClient->m_nRoom_num)
 	{
-		g_pLog->myWprintf(L"< %s > has leaved from your room.\n", t_sLeaveAlarm->nickname);
+		printf("< %s > has leaved from your room.\n", t_sLeaveAlarm->nickname);
 	}
 	else
 	{
@@ -182,6 +182,7 @@ bool KickFunc(PVOID p_pParam)
 	g_pLog->myWprintf(L"You are kicked to the Lobby because your room was erased !\n");
 
 	g_pClient->GetStateMachine()->ChangeState(CLobby::Instance());
+
 	return true;
 }
 
@@ -191,19 +192,28 @@ bool UserOutFunc(PVOID p_pParam)
 {
 	CSockInfo *t_pSock = (CSockInfo*)p_pParam;
 
+	g_pLog->myWprintf(L"An UserOut Message is received...\n");
+
+	t_pSock->Disconnect();
+
+	exit(1);
+
 	return true;
 }
 
-bool EscapeSuccessFunc(PVOID p_pParam)
+bool EscapeServerFunc(PVOID p_pParam)
 {
-	CSockInfo *t_pSock = (CSockInfo*)p_pParam;
+	CAct *t_pAct = (CAct*)p_pParam;
 
-	return true;
-}
+	CSockInfo &t_sMysock = *t_pAct->m_pSock;
 
-bool EscapeFailureFunc(PVOID p_pParam)
-{
-	CSockInfo *t_pSock = (CSockInfo*)p_pParam;
+	g_pClient->GetStateMachine()->ChangeState(CEscaping::Instance());
+
+	t_escape_server *t_sEscapingServer = (t_escape_server*)t_pAct->m_pSock->m_szReceiveBuf;
+
+	t_sMysock.Connect(t_sEscapingServer->dest_ip, t_sEscapingServer->port);
+
+	g_pClient->GetStateMachine()->ChangeState(g_pClient->GetStateMachine()->PreviousState());
 
 	return true;
 }
@@ -264,13 +274,13 @@ CReceiver::CReceiver(CProactor *p_pProactor)
 	PacketHandlingFunc[16] = UserOutFunc;
 
 	// escape server
-	PacketHandlingFunc[17] = NULL;
+	PacketHandlingFunc[17] = EscapeServerFunc;
 
 	// escape success
-	PacketHandlingFunc[18] = EscapeSuccessFunc;
+	PacketHandlingFunc[18] = NULL;
 
 	// escape failure
-	PacketHandlingFunc[19] = EscapeFailureFunc;
+	PacketHandlingFunc[19] = NULL;
 }
 
 
@@ -423,16 +433,8 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 			{
 				switch (t_eType)
 				{
-				case pkt_type::pt_escape_success:
-					g_pLog->myWprintf(L"pt_escape_server_success\n");
-					t_nRemain = sizeof(t_escape_success) - HEADER_SIZE;
-					p_pAct->m_eType = pkt_type::pt_escape_success;
-					break;
-				case pkt_type::pt_escape_failure:
-					g_pLog->myWprintf(L"pt_escape_server_failure\n");
-					t_nRemain = sizeof(t_escape_failure) - HEADER_SIZE;
-					p_pAct->m_eType = pkt_type::pt_escape_failure;
-					break;
+				default:
+					g_pLog->myWprintf(L"[Escaping]error : The packet type is default in the ProcEvent of Receiver !");
 				}
 			}
 			else
@@ -468,7 +470,14 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 				// decoding the packet !!
 				if (NULL != PacketHandlingFunc[p_pAct->m_eType])
 				{
-					PacketHandlingFunc[p_pAct->m_eType]((PVOID)&t_hSock);
+					if (pkt_type::pt_escape_server == p_pAct->m_eType)
+					{
+						PacketHandlingFunc[p_pAct->m_eType]((PVOID)p_pAct);
+					}
+					else
+					{
+						PacketHandlingFunc[p_pAct->m_eType]((PVOID)&t_hSock);
+					}
 
 					t_hSock.m_nRecvRemain = HEADER_SIZE;
 					t_hSock.m_nRecvPosition = 0;

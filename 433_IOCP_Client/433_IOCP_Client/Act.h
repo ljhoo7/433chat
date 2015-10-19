@@ -5,13 +5,14 @@ class CAct : public OVERLAPPED
 public:
 	pkt_type		m_eType;
 
-	CSockInfo		*m_pSock;
+	CSockInfo		*m_pSock, *m_pPrevSock;
+
 	CActor			*m_pActor;
 
-	CAct() : m_eType(pkt_type::pt_default){}
+	CAct() : m_eType(pkt_type::pt_default) {}
 
 	CAct(CActor *p_pActor)
-		:m_pActor(p_pActor)
+		:m_pActor(p_pActor), m_pPrevSock(NULL)
 	{
 		hEvent = NULL;
 		Internal = 0;
@@ -22,7 +23,7 @@ public:
 
 	CAct(CProactor *p_pProactor, CConnector *p_pConnector, CDisconnector *p_pDisconnector, CReceiver *p_pReceiver
 		, CSender *p_pSender)
-		: m_eType(pkt_type::pt_default)
+		: m_eType(pkt_type::pt_default), m_pPrevSock(NULL)
 	{
 		m_pSock = new CSockInfo(p_pProactor, p_pConnector, p_pDisconnector, p_pReceiver, p_pSender);
 

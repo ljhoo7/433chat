@@ -11,6 +11,10 @@ CClient::CClient(int p_nThreadPoolSize, int p_nSocketPoolSize)
 	strcpy(m_szNickname, "");
 	strcpy(m_szTmpNickname, "");
 
+	// Initialize The State Machine
+	m_pStateMachine = new StateMachine<CClient>(this);
+	GetStateMachine()->SetCurrentState(CLobby::Instance());
+
 	m_pProactor = new CProactor(p_nThreadPoolSize);
 
 	m_pConnector = new CConnector(m_pProactor);
@@ -21,10 +25,6 @@ CClient::CClient(int p_nThreadPoolSize, int p_nSocketPoolSize)
 	m_pSock = new CSockInfo(m_pProactor, m_pConnector, m_pDisconnector, m_pReceiver, m_pSender);
 
 	m_pSock->Connect(g_dwIp, t_nPort);
-
-	// Initialize The State Machine
-	m_pStateMachine = new StateMachine<CClient>(this);
-	GetStateMachine()->SetCurrentState(CLobby::Instance());
 }
 
 CClient::~CClient()

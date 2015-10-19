@@ -12,7 +12,7 @@ CSender::~CSender()
 
 void CSender::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 {
-
+	printf("\n");
 }
 
 void CSender::ProcError(CAct *p_pAct, DWORD p_dwError)

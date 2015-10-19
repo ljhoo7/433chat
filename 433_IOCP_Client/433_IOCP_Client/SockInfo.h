@@ -2,9 +2,10 @@
 
 struct CSockInfo
 {
-	SOCKET			m_hSock;
+	SOCKET			m_hSock, m_hOtherSock;
 
 	bool			m_bIsVar;
+	bool			m_bWhich;
 
 	int				m_nRecvPosition;
 	int				m_nRecvRemain;
@@ -36,7 +37,7 @@ struct CSockInfo
 
 	CAct			*m_vAct[ACT_TYPE_CNT];
 
-	CSockInfo() : m_nRecvPosition(0), m_bIsVar(false)
+	CSockInfo() : m_nRecvPosition(0), m_bIsVar(false), m_bWhich(true)
 	{
 		m_vAct[0] = NULL;
 		m_vAct[1] = NULL;
@@ -51,6 +52,8 @@ struct CSockInfo
 	bool Send(char *p_pBuf, int p_nBufLen);
 	bool Connect(DWORD ip, int port);
 	bool Disconnect();
+
+	void BindBeforeConnectEx();
 
 	/*bool ReceiveProcess(CAct *act, DWORD bytes_transferred);
 	bool SendProcess(CAct *act, DWORD bytes_transferred);

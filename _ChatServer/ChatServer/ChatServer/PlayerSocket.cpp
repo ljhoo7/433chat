@@ -72,6 +72,12 @@ void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 					pkt_type _type = (pkt_type)((unsigned short)(*buf));
 					switch (_type)
 					{
+						case pkt_type::pt_escape_success:
+							remainBytes = sizeof(t_escape_success)-2;
+							break;
+						case pkt_type::pt_escape_failure:
+							remainBytes = sizeof(t_escape_fail)-2;
+							break;
 						case pkt_type::pt_create:
 							remainBytes = sizeof(t_create)-2;
 							break;
@@ -271,6 +277,8 @@ void CPlayer::PacketHandling(CPacket *packet){
 	t_join_success		tmpJoinSuccess;
 	t_join_failure		tmpJoinFailure;
 	t_leave_success		tmpLeaveSuccess;
+	t_escape_success	*tmpEscapeSuccess;
+	t_escape_fail		*tmpEscapeFailure;
 
 	unsigned short		size, type;
 
@@ -280,6 +288,14 @@ void CPlayer::PacketHandling(CPacket *packet){
 
 	switch (_type)
 	{
+	case pkt_type::pt_escape_success:
+		tmpEscapeSuccess = (t_escape_success*)packet->msg;
+		printf("pt_escape_success\n");
+		break;
+	case pkt_type::pt_escape_failure:
+		tmpEscapeFailure = (t_escape_fail*)packet->msg;
+		printf("pt_escape_failure\n");
+		break;
 	case pkt_type::pt_create:
 		tmpCreate = (t_create*)packet->msg;		//memcpy(&tmpCreate, packet->msg, sizeof(t_create));
 		result = roomManager.CreateRoom(tmpCreate->room_num);

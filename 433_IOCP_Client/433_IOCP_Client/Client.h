@@ -36,7 +36,8 @@ struct CClient
 	bool SendJoinMessage(int num, char *nick);
 	bool SendLeaveMessage();
 	bool SendChatMessage(const std::string& str);
-	bool SendEscapeMessage(DWORD ip, int port);
+	bool SendEscapeSuccessMessage();
+	bool SendEscapeFailureMessage();
 
 	bool SetNickName(char *param)
 	{
