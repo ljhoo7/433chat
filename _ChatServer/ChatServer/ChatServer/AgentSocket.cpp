@@ -106,6 +106,7 @@ void AgentSocket::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 void AgentSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
+		this->Reuse(sizeof(int));
 		/* disconn complete */
 	}
 	else{
@@ -205,9 +206,11 @@ void AgentSocket::InterServerInfoSend(){
 	int i = 0;
 	for (unsigned int i = 0; i < msg.serverCnt; i++){
 		InterSocket *p = chatServer->interServer->sockets[i];
-		msg.serverNumList[i] = p->serverNum;
-		i++;
-		size += sizeof(msg.serverNumList[i]);
+		if (p->serverNum != -1){
+			msg.serverNumList[i] = p->serverNum;
+			i++;
+			size += sizeof(msg.serverNumList[i]);
+		}
 	}
 
 	Send((char *)&msg, size);
