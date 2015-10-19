@@ -142,7 +142,7 @@ bool JoinAlarmFunc(PVOID p_pParam)
 
 	if (t_sJoinAlarm->room_num == g_pClient->m_nRoom_num)
 	{
-		g_pLog->myWprintf(L"< %s > has entered to your room.\n", t_sJoinAlarm->nickname);
+		printf("< %s > has entered to your room.\n", t_sJoinAlarm->nickname);
 	}
 	else
 	{
@@ -385,8 +385,8 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 				{
 				case pkt_type::pt_join_alarm:
 					g_pLog->myWprintf(L"pt_join_alarm\n");
-					t_nRemain = sizeof(t_chat_alarm) - HEADER_SIZE;
-					p_pAct->m_eType = pkt_type::pt_chat_alarm;
+					t_nRemain = sizeof(t_join_alarm) - HEADER_SIZE;
+					p_pAct->m_eType = pkt_type::pt_join_alarm;
 					break;
 				case pkt_type::pt_leave_alarm:
 					g_pLog->myWprintf(L"pt_leave_alarm\n");
