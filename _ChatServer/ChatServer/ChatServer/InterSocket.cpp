@@ -478,6 +478,7 @@ void InterSocket::packetHandling(CPacket *packet){
 
 			ss_player_info_success msg;
 			msg.type = ssType::pkt_player_info_success;
+			PRINTF("player info success msg send!!\n");
 			this->Send((char *)&msg, sizeof(msg));
 
 			if (!poolManager->Free((msg_buffer *)buf)) PRINTF("free error!\n");;
@@ -518,6 +519,7 @@ void InterSocket::packetHandling(CPacket *packet){
 			{
 				ss_room_info_success msg;
 				msg.type = ssType::pkt_room_info_success;
+				PRINTF("room info success msg send!!\n");
 				this->Send((char *)&msg, sizeof(msg));
 			}
 			else

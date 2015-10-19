@@ -61,10 +61,11 @@ void CRoom::PlayerQuit(CPlayer* player, bool msg)
 
 void CRoom::BroadcastMsg(char* msg, int size)
 {
+	if (players.size() == 0) return;
 	std::list<CPlayer*>::iterator iter;
 	//PRINTF("CRoom %d : %d persons are connecting...\n", roomNumber, players.size());
 	for (iter = players.begin(); iter != players.end(); iter++)
 	{
-		if ((*iter)->serverNum != chatServer->serverNum) (*iter)->Send(msg, size);
+		if ((*iter)->serverNum == chatServer->serverNum) (*iter)->Send(msg, size);
 	}
 }
