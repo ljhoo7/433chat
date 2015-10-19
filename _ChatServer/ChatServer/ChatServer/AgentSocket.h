@@ -15,9 +15,10 @@ public:
 	int remainBytes;
 	bool isVar;
 
+	bool isConnected;
+
 	MemPooler<msg_buffer> *poolManager;
 	MemPooler<CPacket> *packetPoolManager;
-
 
 public:
 	bool ValidPacket(CPacket *packet);
@@ -32,7 +33,7 @@ public:
 	void RemoveAgent();
 
 	void MakeSync();
-	void UserInfoSend();
-	void RoomInfoSend();
-	void InterServerInfoSend();
+	void UserInfoSend(bool isTotal, CPlayer* player, bool connect);
+	void RoomInfoSend(bool isTotal, int roomNum, bool create);
+	void InterServerInfoSend(bool isTotal, int serverNum, bool connect);
 };

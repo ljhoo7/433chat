@@ -17,16 +17,18 @@ AgentSocket::AgentSocket(int serverNum){
 	this->remainBytes = HEADER_SIZE;
 	this->isVar = false;
 
+	isConnected = false;
+
 	poolManager = new MemPooler<msg_buffer>(10);
 	if (!poolManager){
-		PRINTF("CPlayer : MemPooler<msg_buffer> error\n");
+		PRINTF("AgentSocket : MemPooler<msg_buffer> error\n");
 		/* error handling */
 		return;
 	}
 
 	packetPoolManager = new MemPooler<CPacket>(10);
 	if (!packetPoolManager){
-		PRINTF("CPlayer : MemPooler<CPacket> error\n");
+		PRINTF("AgentSocket : MemPooler<CPacket> error\n");
 		/* error handling */
 		return;
 	}
@@ -44,7 +46,7 @@ void AgentSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 		char* buf = this->recvBuf_;
 
 		if (this->socket_ == NULL){
-			PRINTF("CPlayer RecvProcess : recv buf socket is not available\n");
+			PRINTF("AgentSocket RecvProcess : recv buf socket is not available\n");
 			/* error handling */
 			return;
 		}
@@ -97,6 +99,7 @@ void AgentSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 void AgentSocket::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
+
 		/* send complete */
 	}
 	else{
@@ -107,6 +110,7 @@ void AgentSocket::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 void AgentSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		this->Reuse(sizeof(int));
+		isConnected = false;
 		/* disconn complete */
 	}
 	else{
@@ -120,9 +124,9 @@ void AgentSocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 void AgentSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
+		isConnected = true;
 		PRINTF("agent connect success, %d\n", this->socket_);
-		/* inter connection message send */
-		
+		/* inter connection message send */		
 		MakeSync();
 	
 		Recv(this->recvBuf_, HEADER_SIZE);
@@ -144,76 +148,111 @@ void AgentSocket::MakeSync(){
 	msg.type = sag_pkt_type::pt_tell_agent_number;
 	Send((char *)&msg, sizeof(msg));
 
-	UserInfoSend();
-	RoomInfoSend();
-	InterServerInfoSend();
+	UserInfoSend(true, NULL, false);
+	RoomInfoSend(true, NULL, false);
+	InterServerInfoSend(true, -1, false);
 }
 
-void AgentSocket::UserInfoSend(){
-	sag_total_user_info msg;
-	msg.type = sag_pkt_type::pt_total_user_info;
-	EnterCriticalSection(&chatServer->userLock);
-	msg.userCnt = chatServer->users.size();
+void AgentSocket::UserInfoSend(bool isTotal, CPlayer* player, bool connect){
+	if (isTotal){
+		sag_total_user_info msg;
+		msg.type = sag_pkt_type::pt_total_user_info;
+		EnterCriticalSection(&chatServer->userLock);
+		msg.userCnt = chatServer->users.size();
 
-	int size = sizeof(msg.type) + sizeof(msg.userCnt);
-	int i = 0;
-	std::list<CPlayer*>::iterator iter;
-	for (iter = chatServer->users.begin(); iter != chatServer->users.end(); iter++)
-	{
-		CPlayer *p = (*iter);
-		
-		msg.userInfoList[i].roomNum = p->roomNum;
-		memcpy(msg.userInfoList[i].userName, p->nickname.c_str(), sizeof(p->nickname));
-		msg.userInfoList[i].userSocket = (int)p->socket_;
+		int size = sizeof(msg.type) + sizeof(msg.userCnt);
+		int i = 0;
+		std::list<CPlayer*>::iterator iter;
+		for (iter = chatServer->users.begin(); iter != chatServer->users.end(); iter++)
+		{
+			CPlayer *p = (*iter);
 
-		i++;
+			msg.userInfoList[i].roomNum = p->roomNum;
+			memcpy(msg.userInfoList[i].userName, p->nickname.c_str(), sizeof(p->nickname));
+			msg.userInfoList[i].userSocket = (int)p->socket_;
 
-		size += sizeof(SAGUserInfo);
-	}
-
-	LeaveCriticalSection(&chatServer->userLock);
-
-	Send((char*)&msg, size);
-}
-
-void AgentSocket::RoomInfoSend(){
-	sag_total_room_info msg;
-	msg.type = sag_pkt_type::pt_total_room_info;
-	
-	msg.roomCnt = chatServer->roomManager.rooms.size();
-	
-	int i = 0;
-	int size = sizeof(msg.type) + sizeof(msg.roomCnt);
-	std::list<CRoom*>::iterator iter;
-	for (iter = chatServer->roomManager.rooms.begin(); iter != chatServer->roomManager.rooms.end(); iter++)
-	{
-		CRoom *p = (*iter);
-		msg.roomInfoList[i].roomNum = p->roomNumber;
-		i++;
-
-		size += sizeof(SAGRoomInfo);
-	}
-
-	Send((char*)&msg, size);
-}
-
-void AgentSocket::InterServerInfoSend(){
-	sag_total_interserver_info msg;
-	msg.type = sag_pkt_type::pt_total_interserver_info;
-	msg.serverCnt = chatServer->interServer->sockets.size();
-
-	int size = sizeof(msg.type) + sizeof(msg.serverCnt);
-	int i = 0;
-	for (unsigned int i = 0; i < msg.serverCnt; i++){
-		InterSocket *p = chatServer->interServer->sockets[i];
-		if (p->serverNum != -1){
-			msg.serverNumList[i] = p->serverNum;
 			i++;
-			size += sizeof(msg.serverNumList[i]);
-		}
-	}
 
-	Send((char *)&msg, size);
+			size += sizeof(SAGUserInfo);
+		}
+
+		LeaveCriticalSection(&chatServer->userLock);
+
+		Send((char*)&msg, size);
+	}
+	else{
+		sag_user_info_changed msg;
+		msg.clientSocket = (int)player->socket_;
+		msg.isConnected = connect;
+		msg.roomNum = player->roomNum;
+		msg.type = sag_pkt_type::pt_user_info_changed;
+		memcpy(msg.userName, player->nickname.c_str(), sizeof(msg.userName));
+
+		Send((char *)&msg, sizeof(msg));
+	}
+	
+}
+
+void AgentSocket::RoomInfoSend(bool isTotal, int roomNum, bool create){
+	if (isTotal){
+		sag_total_room_info msg;
+		msg.type = sag_pkt_type::pt_total_room_info;
+
+		msg.roomCnt = chatServer->roomManager.rooms.size();
+
+		int i = 0;
+		int size = sizeof(msg.type) + sizeof(msg.roomCnt);
+		std::list<CRoom*>::iterator iter;
+		for (iter = chatServer->roomManager.rooms.begin(); iter != chatServer->roomManager.rooms.end(); iter++)
+		{
+			CRoom *p = (*iter);
+			msg.roomInfoList[i].roomNum = p->roomNumber;
+			i++;
+
+			size += sizeof(SAGRoomInfo);
+		}
+
+		Send((char*)&msg, size);
+	}
+	else{
+		sag_room_info_changed msg;
+		msg.isState = create;
+		msg.roomNum = roomNum;
+		msg.type = sag_pkt_type::pt_room_info_changed;
+
+		Send((char *)&msg, sizeof(msg));
+	}
+	
+}
+
+void AgentSocket::InterServerInfoSend(bool isTotal, int serverNum, bool connect){
+	if (isTotal){
+		sag_total_interserver_info msg;
+		msg.type = sag_pkt_type::pt_total_interserver_info;
+		msg.serverCnt = chatServer->interServer->sockets.size();
+
+		int size = sizeof(msg.type) + sizeof(msg.serverCnt);
+		int i = 0;
+		for (unsigned int i = 0; i < msg.serverCnt; i++){
+			InterSocket *p = chatServer->interServer->sockets[i];
+			if (p->serverNum != -1){
+				msg.serverNumList[i] = p->serverNum;
+				i++;
+				size += sizeof(msg.serverNumList[i]);
+			}
+		}
+
+		Send((char *)&msg, size);
+	}
+	else{
+		sag_interserver_connected msg;
+		msg.serverNum = serverNum;
+		msg.isConnected = connect;
+		msg.type = sag_pkt_type::pt_interserver_connect;
+
+		Send((char *)&msg, sizeof(msg));
+	}
+	
 }
 
 void AgentSocket::PacketHandling(CPacket *packet){

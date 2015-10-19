@@ -146,6 +146,9 @@ void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 		PlayerSync((char *)&tmpConnect, sizeof(ss_connect));
 
+		if (chatServer->agentServer->socket->isConnected)
+			chatServer->agentServer->socket->UserInfoSend(false, this, true);
+
 		Recv(this->recvBuf_, HEADER_SIZE);
 	}
 	else{
@@ -191,6 +194,9 @@ void CPlayer::RemovePlayer(){
 		tmpDisconnect.server_num = chatServer->serverNum;
 
 		PlayerSync((char *)&tmpDisconnect, sizeof(ss_disconnect));
+
+		if (chatServer->agentServer->socket->isConnected)
+			chatServer->agentServer->socket->UserInfoSend(false, this, false);
 	}
 	/* remove in list */
 	chatServer->DeleteUser(this);
@@ -298,6 +304,11 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpCreateSuccess.type = pkt_type::pt_create_success;
 			Send((char *)&tmpCreateSuccess, sizeof(t_create_success));
 			PRINTF("create message has been sent.\n");
+
+			if (chatServer->agentServer->socket->isConnected)
+				chatServer->agentServer->socket->RoomInfoSend(false, tmpCreate->room_num, true);
+			
+			
 		}
 		else if (result == fail_signal::fs_overflow)
 		{
@@ -332,6 +343,9 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpDestroySuccess.type = pkt_type::pt_destroy_success;
 			Send((char *)&tmpDestroySuccess, sizeof(t_destroy_success));
 			PRINTF("destroy success message has been sent.\n");
+
+			if (chatServer->agentServer->socket->isConnected)
+				chatServer->agentServer->socket->RoomInfoSend(false, tmpDestroy->room_num, false);
 		}
 		else if (result == fail_signal::fs_no_exist)
 		{
@@ -365,6 +379,9 @@ void CPlayer::PacketHandling(CPacket *packet){
 
 			Send((char *)&tmpJoinSuccess, sizeof(t_join_success));
 			PRINTF("join success message has been sent.\n");
+
+			if (chatServer->agentServer->socket->isConnected)
+				chatServer->agentServer->socket->UserInfoSend(false, this, true);
 		}
 		else if (result == fail_signal::fs_overflow)
 		{
@@ -412,6 +429,10 @@ void CPlayer::PacketHandling(CPacket *packet){
 			Send((char *)&tmpLeaveSuccess, sizeof(t_leave_success));
 
 			PRINTF("leave success message has been sent.\n");
+
+
+			if (chatServer->agentServer->socket->isConnected)
+				chatServer->agentServer->socket->UserInfoSend(false, this, true);
 		}
 		else
 		{

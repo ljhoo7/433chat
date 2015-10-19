@@ -189,6 +189,10 @@ void InterSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred)
 		
 		isUse = true;
 		PRINTF("connect with %d server\n", serverNum);
+
+		if (chatServer->agentServer->socket->isConnected)
+			chatServer->agentServer->socket->InterServerInfoSend(false, serverNum, true);
+
 		MakeSync();
 		Recv(recvBuf_, HEADER_SIZE);
 
@@ -210,6 +214,9 @@ void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 		msg.server_num1 = serverNum;
 		msg.server_num2 = chatServer->serverNum;
 		interServer_->SendWithoutOne(serverNum, (char *)&msg, sizeof(ss_server_disconnect));
+
+		if (chatServer->agentServer->socket->isConnected)
+			chatServer->agentServer->socket->InterServerInfoSend(false, serverNum, false);
 
 		serverNum = -1;
 		
@@ -233,6 +240,8 @@ void InterSocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
 			return;
 		}
 
+		if (chatServer->agentServer->socket->isConnected)
+			chatServer->agentServer->socket->InterServerInfoSend(false, serverNum, true);
 
 		isUse = true;
 		PRINTF("connect with %d server\n", serverNum);

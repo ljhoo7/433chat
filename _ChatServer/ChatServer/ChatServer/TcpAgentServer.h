@@ -4,7 +4,7 @@ class TcpAgentServer : public WinSockBase
 {
 public:
 	TcpAgentServer();
-	TcpAgentServer(WORD Port, int ThreadPoolSize, int socketPoolSize);
+	TcpAgentServer(WORD Port, int ThreadPoolSize);
 	void Start();
 
 public:
@@ -16,9 +16,10 @@ public:
 
 	TcpListenSocket	listenSocket_;
 
+	AgentSocket* socket;
+
 private:
 	WORD			port_;
 	int				threadPoolSize_;
-	int				socketPoolSize_;
 
 };

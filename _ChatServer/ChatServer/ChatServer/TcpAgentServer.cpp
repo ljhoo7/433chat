@@ -10,15 +10,14 @@ TcpAgentServer::TcpAgentServer()
 
 	port_ = 0;
 	threadPoolSize_ = 0;
-	socketPoolSize_ = 0;
 }
 
-TcpAgentServer::TcpAgentServer(WORD Port, int ThreadPoolSize, int SocketPoolSize)
+TcpAgentServer::TcpAgentServer(WORD Port, int ThreadPoolSize)
 {
 	TcpAgentServer();
 	port_ = Port;
 	threadPoolSize_ = ThreadPoolSize;
-	socketPoolSize_ = SocketPoolSize;
+	
 }
 
 void TcpAgentServer::Start()
@@ -45,12 +44,9 @@ void TcpAgentServer::Start()
 	sender_->Init(proactor_);
 
 	// Create Socket pool 
-	for (int i = 0; i<socketPoolSize_; i++)
-	{
-		AgentSocket* socket = new AgentSocket(chatServer->serverNum);
-		socket->Init();
-		socket->InitAct(proactor_, acceptor_, disconnector_, NULL, sender_, receiver_);
+	socket = new AgentSocket(chatServer->serverNum);
+	socket->Init();
+	socket->InitAct(proactor_, acceptor_, disconnector_, NULL, sender_, receiver_);
 
-		acceptor_->Register(*socket, 0);
-	}
+	acceptor_->Register(*socket, 0);
 }
