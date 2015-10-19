@@ -67,6 +67,8 @@
     <ClInclude Include="Acceptor.h" />
     <ClInclude Include="Act.h" />
     <ClInclude Include="Actor.h" />
+    <ClInclude Include="AgentProtocol.h" />
+    <ClInclude Include="AgentSocket.h" />
     <ClInclude Include="ChatServer.h" />
     <ClInclude Include="Def.h" />
     <ClInclude Include="ClientProtocol.h" />
@@ -88,6 +90,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TcpAct.h" />
+    <ClInclude Include="TcpAgentServer.h" />
     <ClInclude Include="TcpInterServer.h" />
     <ClInclude Include="TcpListenSocket.h" />
     <ClInclude Include="TcpClientServer.h" />
@@ -96,6 +99,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Acceptor.cpp" />
+    <ClCompile Include="AgentSocket.cpp" />
     <ClCompile Include="ChatServer.cpp" />
     <ClCompile Include="Connector.cpp" />
     <ClCompile Include="InterSocket.cpp" />
@@ -110,6 +114,7 @@
     <ClCompile Include="Room.cpp" />
     <ClCompile Include="RoomManager.cpp" />
     <ClCompile Include="Sender.cpp" />
+    <ClCompile Include="TcpAgentServer.cpp" />
     <ClCompile Include="TcpInterServer.cpp" />
     <ClCompile Include="TcpListenSocket.cpp" />
     <ClCompile Include="TcpClientServer.cpp" />

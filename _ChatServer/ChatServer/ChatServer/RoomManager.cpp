@@ -4,10 +4,12 @@ extern ChatServer* chatServer;
 
 CRoomManager::CRoomManager()
 {
+	InitializeCriticalSectionAndSpinCount(&roomLock, 4000);
 }
 
 CRoomManager::~CRoomManager()
 {
+	DeleteCriticalSection(&roomLock);
 }
 
 void CRoomManager::PrintInfo(){

@@ -1,7 +1,5 @@
 #pragma once
 
-#define NICK_SIZE		20
-
 enum pkt_type
 {
 	pt_create,

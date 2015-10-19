@@ -37,6 +37,15 @@
     <Filter Include="InterServer\Sources">
       <UniqueIdentifier>{8ff8260e-67a0-4ff6-b3c7-8ebefee5b9a1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="AgentServer">
+      <UniqueIdentifier>{ff636264-9159-440c-ba02-f4d7bbb8532b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AgentServer\Headers">
+      <UniqueIdentifier>{e7437566-62e7-4472-9f87-6ae3e520b8ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AgentServer\Sources">
+      <UniqueIdentifier>{f7a796fd-e242-4f14-978c-3f0a6b6393c0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Act.h">
@@ -124,6 +133,15 @@
     <ClInclude Include="ChatServer.h">
       <Filter>Server\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="AgentProtocol.h">
+      <Filter>AgentServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TcpAgentServer.h">
+      <Filter>AgentServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="AgentSocket.h">
+      <Filter>AgentServer\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -180,6 +198,12 @@
     </ClCompile>
     <ClCompile Include="ChatServer.cpp">
       <Filter>Server\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TcpAgentServer.cpp">
+      <Filter>AgentServer\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="AgentSocket.cpp">
+      <Filter>AgentServer\Sources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

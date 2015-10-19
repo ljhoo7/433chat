@@ -7,6 +7,7 @@ public:
 	~CRoomManager();
 
 	std::list<CRoom*> rooms;
+	CRITICAL_SECTION roomLock;
 
 	int CreateRoom(int roomNumber);
 	int DestroyRoom(int roomNumber);

@@ -16,10 +16,13 @@
 
 #define ROOM_MAX 100
 #define TOTAL_PLAYER 1000
+#define MAX_CONNECTED_SERVER 5
 
 // one room
 #define PLAYER_MAX 10
 #define HEADER_SIZE 2
+
+#define NICK_SIZE		20
 
 class CPlayer;
 
@@ -44,6 +47,9 @@ class TcpClientServer;
 
 class InterSocket;
 class TcpInterServer;
+
+class AgentSocket;
+class TcpAgentServer;
 
 #include "ClientProtocol.h"
 #include "InterProtocol.h"
@@ -70,3 +76,8 @@ class TcpInterServer;
 
 #include "InterSocket.h"
 #include "TcpInterServer.h"
+
+#include "AgentProtocol.h"
+
+#include "AgentSocket.h"
+#include "TcpAgentServer.h"
