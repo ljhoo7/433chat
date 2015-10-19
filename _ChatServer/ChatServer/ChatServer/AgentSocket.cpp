@@ -106,11 +106,15 @@ void AgentSocket::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 void AgentSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-		/* send complete */
+		/* disconn complete */
 	}
 	else{
 		PRINTF("AgentSocket DisconnProcess : Error : %d\n", WSAGetLastError());
 	}
+}
+
+void AgentSocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
+
 }
 
 void AgentSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){

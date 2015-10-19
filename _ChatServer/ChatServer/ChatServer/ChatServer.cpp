@@ -59,6 +59,7 @@ void ChatServer::Init(){
 
 	interServer = new TcpInterServer(serverInfo[serverNum].inter_port, 10, 10);
 	clientServer = new TcpClientServer(serverInfo[serverNum].client_port, 10, 3000);
+	agentServer = new TcpAgentServer(serverInfo[serverNum].inter_port + 1, 10, 10);
 
 	for (int i = 0; i < MAXSERVER; i++){
 		for (int j = 0; j < MAXSERVER; j++){
@@ -71,6 +72,7 @@ void ChatServer::Start(){
 	std::thread logic_thread(&CLogicHandle::Process, &logicHandle);
 	clientServer->Start();
 	interServer->Start();
+	agentServer->Start();
 
 	while (true)
 	{

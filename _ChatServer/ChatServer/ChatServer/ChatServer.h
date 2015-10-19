@@ -18,6 +18,7 @@ public:
 
 	TcpClientServer* clientServer;
 	TcpInterServer* interServer;
+	TcpAgentServer* agentServer;
 	
 	CLogWriter *logWriter;
 	int serverNum;

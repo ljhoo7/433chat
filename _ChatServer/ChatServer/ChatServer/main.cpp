@@ -1,22 +1,5 @@
 #include "stdafx.h"
 
-int identifier_seed;
-// user presence
-std::list<CPlayer*> players;
-
-CRoomManager roomManager;
-CLogicHandle logicHandle;
-
-TcpClientServer* clientServer;
-TcpInterServer* listenServer;
-TcpInterServer* connectServer;
-
-CLogWriter *logWriter;
-
-
-
-std::vector<struct ServerInfo> serverInfo;
-
 ChatServer* chatServer;
 
 int _tmain(int argc, _TCHAR* argv[])

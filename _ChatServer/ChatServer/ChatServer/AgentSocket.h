@@ -27,6 +27,7 @@ public:
 	void SendProcess(bool isError, Act* act, DWORD bytes_transferred);
 	void AcceptProcess(bool isError, Act* act, DWORD bytes_transferred);
 	void DisconnProcess(bool isError, Act* act, DWORD bytes_transferred);
+	void ConnProcess(bool isError, Act* act, DWORD bytes_transferred);
 
 	void RemoveAgent();
 
