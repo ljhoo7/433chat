@@ -263,11 +263,23 @@ void AgentSocket::PacketHandling(CPacket *packet){
 	ags_room_destroy msg;
 	ags_interserver_connect msg2;
 	ags_interserver_disconnect msg3;
+	ags_user_out msg4;
 	InterSocket* socket;
 
 	switch (_type){
 	case sag_pkt_type::pt_user_out:
-		/* ±¸Çö ÇØ¾ß µÊ */
+		msg4 = *((ags_user_out *)(packet->msg));
+		for (std::list<CPlayer*>::iterator iter = chatServer->users.begin();
+			iter != chatServer->users.end(); ++iter)
+		{
+			if ((*iter)->socket_ == msg4.userSocket)
+			{
+				t_user_out tmpUserOut;
+				tmpUserOut.type = pkt_type::pt_user_out_client;
+				tmpUserOut.client_socket = msg4.userSocket;
+				(*iter)->Send((char*)&tmpUserOut, sizeof(t_user_out));
+			}
+		}
 		break;
 	case sag_pkt_type::pt_room_destroy:
 		msg = *((ags_room_destroy *)(packet->msg));

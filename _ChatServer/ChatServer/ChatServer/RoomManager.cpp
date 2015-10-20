@@ -74,6 +74,7 @@ int CRoomManager::EnterRoom(CPlayer* p, int roomNumber){
 	std::list<CRoom*>::iterator iter = chatServer->roomManager.rooms.begin();
 	for (; iter != chatServer->roomManager.rooms.end(); ++iter)
 	{
+		
 		std::list<CPlayer*>::iterator iter2 = (*iter)->players.begin();
 		for (; iter2 != (*iter)->players.end(); ++iter2)
 		{

@@ -126,6 +126,33 @@ void ChatServer::Start(){
 		}
 	}
 
+	PRINTF("END?\n");
+	// escaping all user to another server
+
+	for (std::list<CPlayer*>::iterator iter = chatServer->users.begin();
+		iter != chatServer->users.end(); ++iter)
+	{
+		t_escape_server tmpEscape;
+		tmpEscape.type = pkt_type::pt_escape_server;
+
+		int sernum = chatServer->serverNum;
+
+		if ((*iter)->serverNum == chatServer->serverNum){
+			for (unsigned int k = 0; k < chatServer->serverInfo.size(); ++k)
+			{
+				if (chatServer->connG[sernum][k])
+				{
+					tmpEscape.dest_ip = chatServer->serverInfo[k].ip;
+					tmpEscape.port = chatServer->serverInfo[k].client_port;
+
+					(*iter)->Send((char*)&tmpEscape, sizeof(t_escape_server));
+
+					break;
+				}
+			}
+		}
+	}
+
 	logic_thread.join();
 }
 

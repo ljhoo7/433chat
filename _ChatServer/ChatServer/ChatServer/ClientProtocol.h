@@ -19,7 +19,7 @@ enum pkt_type {
 	pt_join_alarm,
 	pt_leave_alarm,
 	pt_kick,
-	pt_user_out,
+	pt_user_out_client,
 	pt_escape_server,
 	pt_escape_success,
 	pt_escape_failure,

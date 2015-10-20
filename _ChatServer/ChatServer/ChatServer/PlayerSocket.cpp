@@ -77,6 +77,12 @@ void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 						case pkt_type::pt_leave:
 							remainBytes = sizeof(t_leave)-2;
 							break;
+						case pkt_type::pt_escape_success:
+							remainBytes = sizeof(t_destroy_success)-2;
+							break;
+						case pkt_type::pt_escape_failure:
+							remainBytes = sizeof(t_destroy_success)-2;
+							break;
 						case pkt_type::pt_chat:
 							isVar = true;
 							remainBytes = sizeof(short);
@@ -278,6 +284,8 @@ void CPlayer::PacketHandling(CPacket *packet){
 	t_join_success		tmpJoinSuccess;
 	t_join_failure		tmpJoinFailure;
 	t_leave_success		tmpLeaveSuccess;
+	t_escape_success	*tmpEscapeSuccess;
+	t_escape_failure	*tmpEscapeFailure;
 
 	unsigned short		size, type;
 
@@ -287,6 +295,12 @@ void CPlayer::PacketHandling(CPacket *packet){
 
 	switch (_type)
 	{
+	case pkt_type::pt_escape_success:
+		tmpEscapeSuccess = (t_escape_success*)packet->msg;
+		break;
+	case pkt_type::pt_escape_failure:
+		tmpEscapeFailure = (t_escape_failure*)packet->msg;
+		break;
 	case pkt_type::pt_create:
 		tmpCreate = (t_create*)packet->msg;		//memcpy(&tmpCreate, packet->msg, sizeof(t_create));
 		result = chatServer->roomManager.CreateRoom(tmpCreate->room_num);
