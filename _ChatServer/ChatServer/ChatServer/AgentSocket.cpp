@@ -233,7 +233,7 @@ void AgentSocket::InterServerInfoSend(bool isTotal, int serverNum, bool connect)
 
 		int size = sizeof(msg.type) + sizeof(msg.serverCnt);
 		int i = 0;
-		for (unsigned int i = 0; i < msg.serverCnt; i++){
+		for (unsigned int i = 0; i <chatServer->interServer->sockets.size(); i++){
 			InterSocket *p = chatServer->interServer->sockets[i];
 			if (p->serverNum != -1){
 				msg.serverNumList[i] = p->serverNum;
