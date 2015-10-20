@@ -56,8 +56,14 @@ void CLogicHandle::Process()
 
 			if (packet != nullptr)
 			{
-				CPlayer *tPlayer = static_cast<CPlayer *>(packet->owner);
-				tPlayer->PacketHandling(packet);
+				if (packet->isAgent){
+					AgentSocket *socket = static_cast<AgentSocket *>(packet->owner);
+					socket->PacketHandling(packet);
+				}
+				else{
+					CPlayer *tPlayer = static_cast<CPlayer *>(packet->owner);
+					tPlayer->PacketHandling(packet);
+				}
 			}
 			continue;
 			/* wait! */

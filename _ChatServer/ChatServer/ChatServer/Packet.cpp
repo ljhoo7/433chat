@@ -4,6 +4,7 @@ CPacket::CPacket()
 {
 	owner = NULL;
 	msg = NULL;
+	isAgent = false;
 }
 
 CPacket::CPacket(TcpSocket* owner, char* msg)

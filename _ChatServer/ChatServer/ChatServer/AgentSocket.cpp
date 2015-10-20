@@ -61,16 +61,20 @@ void AgentSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 				switch (_type){
 				case sag_pkt_type::pt_user_out:
-					remainBytes = sizeof(ags_user_out);
+					PRINTF("userout!\n");
+					remainBytes = sizeof(ags_user_out)-2;
 					break;
 				case sag_pkt_type::pt_room_destroy:
-					remainBytes = sizeof(ags_room_destroy);
+					PRINTF("room destroy!\n");
+					remainBytes = sizeof(ags_room_destroy)-2;
 					break;
 				case sag_pkt_type::pt_interserver_connect:
-					remainBytes = sizeof(ags_interserver_connect);
+					PRINTF("interserver connect!\n");
+					remainBytes = sizeof(ags_interserver_connect)-2;
 					break;
 				case sag_pkt_type::pt_interserver_disconnect:
-					remainBytes = sizeof(ags_interserver_disconnect);
+					PRINTF("interserver disconnect!\n");
+					remainBytes = sizeof(ags_interserver_disconnect)-2;
 					break;
 				default:
 					Disconnect();
@@ -81,6 +85,7 @@ void AgentSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 				CPacket* msg = packetPoolManager->Alloc();
 				msg->owner = this;
 				msg->msg = poolManager->Alloc()->buf;
+				msg->isAgent = true;
 				memcpy(msg->msg, buf, position);
 				chatServer->logicHandle.EnqueueOper(msg, false);
 
@@ -88,6 +93,7 @@ void AgentSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 				position = 0;
 				remainBytes = HEADER_SIZE;
 			}
+			this->Recv(buf + position, remainBytes);
 		}
 	}
 	else{
@@ -268,6 +274,8 @@ void AgentSocket::PacketHandling(CPacket *packet){
 
 	switch (_type){
 	case sag_pkt_type::pt_user_out:
+		PRINTF("user out msg was sent!\n");
+
 		msg4 = *((ags_user_out *)(packet->msg));
 		for (std::list<CPlayer*>::iterator iter = chatServer->users.begin();
 			iter != chatServer->users.end(); ++iter)
@@ -282,8 +290,12 @@ void AgentSocket::PacketHandling(CPacket *packet){
 		}
 		break;
 	case sag_pkt_type::pt_room_destroy:
+		PRINTF("room destroy msg was sent!\n");
+
 		msg = *((ags_room_destroy *)(packet->msg));
 		if (chatServer->roomManager.DestroyRoom(msg.roomNum) == -1){
+			PRINTF("success delete\n");
+
 			ss_destroy msg_;
 			msg_.type = ssType::pkt_destroy;
 			msg_.client_socket = socket_;
@@ -293,12 +305,19 @@ void AgentSocket::PacketHandling(CPacket *packet){
 			if (chatServer->agentServer->socket->isConnected)
 				chatServer->agentServer->socket->RoomInfoSend(false, msg.roomNum, false);
 		}
+		else{
+			PRINTF("fail delete\n");
+		}
 		break;
 	case sag_pkt_type::pt_interserver_connect:
+		PRINTF("interserver connect msg was sent!\n");
+
 		msg2 = *((ags_interserver_connect *)(packet->msg));
 		chatServer->interServer->Connect(msg2.serverNum);
 		break;
 	case sag_pkt_type::pt_interserver_disconnect:
+		PRINTF("interserver disconnect msg was sent!\n");
+
 		msg3 = *((ags_interserver_disconnect *)(packet->msg));
 		socket = chatServer->interServer->GetSocketWithNum(msg3.serverNum);
 		socket->Disconnect();
