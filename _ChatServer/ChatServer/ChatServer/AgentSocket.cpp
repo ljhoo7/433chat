@@ -148,12 +148,12 @@ void AgentSocket::MakeSync(){
 	msg.type = sag_pkt_type::pt_tell_agent_number;
 	Send((char *)&msg, sizeof(msg));
 
-	UserInfoSend(true, NULL, false);
+	UserInfoSend(true, NULL, 0);
 	RoomInfoSend(true, NULL, false);
 	InterServerInfoSend(true, -1, false);
 }
 
-void AgentSocket::UserInfoSend(bool isTotal, CPlayer* player, bool connect){
+void AgentSocket::UserInfoSend(bool isTotal, CPlayer* player, char connect){
 	if (isTotal){
 		sag_total_user_info msg;
 		msg.type = sag_pkt_type::pt_total_user_info;
@@ -229,11 +229,11 @@ void AgentSocket::InterServerInfoSend(bool isTotal, int serverNum, bool connect)
 	if (isTotal){
 		sag_total_interserver_info msg;
 		msg.type = sag_pkt_type::pt_total_interserver_info;
-		msg.serverCnt = chatServer->interServer->sockets.size();
+		
 
 		int size = sizeof(msg.type) + sizeof(msg.serverCnt);
 		int i = 0;
-		for (unsigned int i = 0; i < msg.serverCnt; i++){
+		for (unsigned int i = 0; i <chatServer->interServer->sockets.size(); i++){
 			InterSocket *p = chatServer->interServer->sockets[i];
 			if (p->serverNum != -1){
 				msg.serverNumList[i] = p->serverNum;
@@ -241,7 +241,7 @@ void AgentSocket::InterServerInfoSend(bool isTotal, int serverNum, bool connect)
 				size += sizeof(msg.serverNumList[i]);
 			}
 		}
-
+		msg.serverCnt = i;
 		Send((char *)&msg, size);
 	}
 	else{

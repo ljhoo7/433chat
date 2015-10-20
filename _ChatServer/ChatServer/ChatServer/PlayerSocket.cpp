@@ -147,7 +147,7 @@ void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 		PlayerSync((char *)&tmpConnect, sizeof(ss_connect));
 
 		if (chatServer->agentServer->socket->isConnected)
-			chatServer->agentServer->socket->UserInfoSend(false, this, true);
+			chatServer->agentServer->socket->UserInfoSend(false, this, 1);
 
 		Recv(this->recvBuf_, HEADER_SIZE);
 	}
@@ -196,7 +196,7 @@ void CPlayer::RemovePlayer(){
 		PlayerSync((char *)&tmpDisconnect, sizeof(ss_disconnect));
 
 		if (chatServer->agentServer->socket->isConnected)
-			chatServer->agentServer->socket->UserInfoSend(false, this, false);
+			chatServer->agentServer->socket->UserInfoSend(false, this, 0);
 	}
 	/* remove in list */
 	chatServer->DeleteUser(this);
@@ -381,7 +381,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			PRINTF("join success message has been sent.\n");
 
 			if (chatServer->agentServer->socket->isConnected)
-				chatServer->agentServer->socket->UserInfoSend(false, this, true);
+				chatServer->agentServer->socket->UserInfoSend(false, this, 2);
 		}
 		else if (result == fail_signal::fs_overflow)
 		{
@@ -432,7 +432,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 
 
 			if (chatServer->agentServer->socket->isConnected)
-				chatServer->agentServer->socket->UserInfoSend(false, this, true);
+				chatServer->agentServer->socket->UserInfoSend(false, this, 3);
 		}
 		else
 		{

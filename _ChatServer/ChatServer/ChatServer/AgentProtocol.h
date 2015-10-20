@@ -37,7 +37,7 @@ typedef struct{
 	int clientSocket;
 	unsigned short roomNum;
 	char userName[NICK_SIZE];
-	bool isConnected;
+	char isConnected;
 }sag_user_info_changed;
 
 typedef struct{
