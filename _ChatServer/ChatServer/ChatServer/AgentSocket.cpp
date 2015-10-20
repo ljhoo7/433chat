@@ -229,7 +229,7 @@ void AgentSocket::InterServerInfoSend(bool isTotal, int serverNum, bool connect)
 	if (isTotal){
 		sag_total_interserver_info msg;
 		msg.type = sag_pkt_type::pt_total_interserver_info;
-		msg.serverCnt = chatServer->interServer->sockets.size();
+		
 
 		int size = sizeof(msg.type) + sizeof(msg.serverCnt);
 		int i = 0;
@@ -241,7 +241,7 @@ void AgentSocket::InterServerInfoSend(bool isTotal, int serverNum, bool connect)
 				size += sizeof(msg.serverNumList[i]);
 			}
 		}
-
+		msg.serverCnt = i;
 		Send((char *)&msg, size);
 	}
 	else{
