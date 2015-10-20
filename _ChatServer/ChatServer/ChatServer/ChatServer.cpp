@@ -153,6 +153,12 @@ void ChatServer::Start(){
 		}
 	}
 
+	for (unsigned int k = 0; k < chatServer->interServer->sockets.size(); ++k)
+	{
+		InterSocket* socket = chatServer->interServer->sockets[k];
+		if (socket->isConnect) socket->Disconnect();
+	}
+
 	logic_thread.join();
 }
 
