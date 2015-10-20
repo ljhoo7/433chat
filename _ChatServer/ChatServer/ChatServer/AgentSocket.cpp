@@ -283,7 +283,16 @@ void AgentSocket::PacketHandling(CPacket *packet){
 		break;
 	case sag_pkt_type::pt_room_destroy:
 		msg = *((ags_room_destroy *)(packet->msg));
-		chatServer->roomManager.DestroyRoom(msg.roomNum);
+		if (chatServer->roomManager.DestroyRoom(msg.roomNum) == -1){
+			ss_destroy msg_;
+			msg_.type = ssType::pkt_destroy;
+			msg_.client_socket = socket_;
+			msg_.room_num = msg.roomNum;
+			chatServer->interServer->SendAll((char *)&msg_, sizeof(msg_));
+
+			if (chatServer->agentServer->socket->isConnected)
+				chatServer->agentServer->socket->RoomInfoSend(false, msg.roomNum, false);
+		}
 		break;
 	case sag_pkt_type::pt_interserver_connect:
 		msg2 = *((ags_interserver_connect *)(packet->msg));
@@ -298,4 +307,7 @@ void AgentSocket::PacketHandling(CPacket *packet){
 		this->Disconnect();
 		break;
 	}
+
+	if (!poolManager->Free((msg_buffer *)packet->msg)) PRINTF("free error!\n");
+	if (!packetPoolManager->Free(packet)) PRINTF("free error!\n");
 }
