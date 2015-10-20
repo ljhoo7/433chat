@@ -148,12 +148,12 @@ void AgentSocket::MakeSync(){
 	msg.type = sag_pkt_type::pt_tell_agent_number;
 	Send((char *)&msg, sizeof(msg));
 
-	UserInfoSend(true, NULL, false);
+	UserInfoSend(true, NULL, 0);
 	RoomInfoSend(true, NULL, false);
 	InterServerInfoSend(true, -1, false);
 }
 
-void AgentSocket::UserInfoSend(bool isTotal, CPlayer* player, bool connect){
+void AgentSocket::UserInfoSend(bool isTotal, CPlayer* player, char connect){
 	if (isTotal){
 		sag_total_user_info msg;
 		msg.type = sag_pkt_type::pt_total_user_info;
