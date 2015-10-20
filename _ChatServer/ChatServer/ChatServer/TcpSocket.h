@@ -18,7 +18,7 @@ public:
 	void Recv();
 	void Recv(char* buf, int buflen);
 	void Send(char* buf, int buflen);
-	void Reuse();
+	void Reuse(int size);
 	void Disconnect();
 	void Connect();
 

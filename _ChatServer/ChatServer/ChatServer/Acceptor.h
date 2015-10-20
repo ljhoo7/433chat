@@ -13,7 +13,7 @@ public:
 
 	void Init(TcpListenSocket* tcplistensocket, Proactor* proactor);
 
-	void Register(TcpSocket& acceptsocket);
+	void Register(TcpSocket& acceptsocket, int size);
 
 public:
 	TcpListenSocket*	tcpListenSocket_;

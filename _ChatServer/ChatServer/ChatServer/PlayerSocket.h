@@ -8,12 +8,12 @@ class CPlayer : public TcpSocket
 {
 public:
 	CPlayer();
-	CPlayer(bool isMine);
+	CPlayer(int serverNum);
 
 	~CPlayer();
 
 public:
-	bool isMine;
+	int serverNum;
 	std::string nickname;
 	int roomNum;
 	// token ( it has the other meaning )
@@ -38,5 +38,6 @@ public:
 	void DisconnProcess(bool isError, Act* act, DWORD bytes_transferred);
 	void ConnProcess(bool isError, Act* act, DWORD bytes_transferred);
 
+	void RemovePlayer();
 };
 
