@@ -1,6 +1,8 @@
 #include "stdafx.h"
 
-extern CLogWriter *g_pLog;
+extern CLogWriter	*g_pLog;
+
+extern CClient		*g_pClient;
 
 bool CClient::SendCreateMessage(int num)
 {
@@ -129,6 +131,7 @@ bool CClient::SendEscapeSuccessMessage()
 	t_escape_success tmp_packet;
 
 	tmp_packet.type = pkt_type::pt_escape_success;
+	tmp_packet.client_sock = g_pClient->m_pSock->m_hSock;
 
 	m_pSock->Send((char*)&tmp_packet, sizeof(t_escape_success));
 

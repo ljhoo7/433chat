@@ -105,6 +105,7 @@ typedef struct{
 
 typedef struct{
 	unsigned short type;
+	int client_sock;
 }t_escape_success;
 
 typedef struct{

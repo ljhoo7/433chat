@@ -82,6 +82,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	g_pClient = new CClient(t_nCPUs * 2);
 
+	g_pClient->Init();
+
 	std::string tmpStr, subStr;
 	int t_nTmpRoomNum, t_nRetVal;
 	char t_szTmpNick[NICK_SIZE];

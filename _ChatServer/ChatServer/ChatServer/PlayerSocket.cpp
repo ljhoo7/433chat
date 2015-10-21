@@ -286,6 +286,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 	t_leave_success		tmpLeaveSuccess;
 	t_escape_success	*tmpEscapeSuccess;
 	t_escape_failure	*tmpEscapeFailure;
+	t_user_out			*tmpUserOut;
 
 	unsigned short		size, type;
 
@@ -296,8 +297,27 @@ void CPlayer::PacketHandling(CPacket *packet){
 	switch (_type)
 	{
 	case pkt_type::pt_escape_success:
+	{
 		tmpEscapeSuccess = (t_escape_success*)packet->msg;
+
+		ags_user_out msg4 = *((ags_user_out *)(packet->msg));
+		for (std::list<CPlayer*>::iterator iter = chatServer->users.begin();
+			iter != chatServer->users.end(); ++iter)
+		{
+			if ((*iter)->serverNum == chatServer->serverNum)
+			{
+				if ((*iter)->socket_ == msg4.userSocket)
+				{
+					t_user_out tmpUserOut;
+					tmpUserOut.type = pkt_type::pt_user_out_client;
+					tmpUserOut.client_socket = msg4.userSocket;
+					(*iter)->Send((char*)&tmpUserOut, sizeof(t_user_out));
+				}
+			}
+		}
+
 		break;
+	}
 	case pkt_type::pt_escape_failure:
 		tmpEscapeFailure = (t_escape_failure*)packet->msg;
 		break;

@@ -196,7 +196,7 @@ bool UserOutFunc(PVOID p_pParam)
 
 	t_pSock->Disconnect();
 
-	exit(1);
+	//exit(1);
 
 	return true;
 }
@@ -207,13 +207,13 @@ bool EscapeServerFunc(PVOID p_pParam)
 
 	CSockInfo &t_sMysock = *t_pAct->m_pSock;
 
-	g_pClient->GetStateMachine()->ChangeState(CEscaping::Instance());
+	//g_pClient->GetStateMachine()->ChangeState(CEscaping::Instance());
+
+	g_pClient->m_bIsEscaping = true;
 
 	t_escape_server *t_sEscapingServer = (t_escape_server*)t_pAct->m_pSock->m_szReceiveBuf;
 
 	t_sMysock.Connect(t_sEscapingServer->dest_ip, t_sEscapingServer->port);
-
-	g_pClient->GetStateMachine()->ChangeState(CEscaping::Instance());
 
 	return true;
 }
@@ -427,14 +427,6 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 				{
 				default:
 					g_pLog->myWprintf(L"[Lobby]error : The packet type is default in the ProcEvent of Receiver !");
-				}
-			}
-			else if (CEscaping::Instance() == t_pState)
-			{
-				switch (t_eType)
-				{
-				default:
-					g_pLog->myWprintf(L"[Escaping]error : The packet type is default in the ProcEvent of Receiver !");
 				}
 			}
 			else

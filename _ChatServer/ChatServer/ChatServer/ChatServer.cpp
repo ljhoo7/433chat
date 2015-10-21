@@ -137,7 +137,8 @@ void ChatServer::Start(){
 
 		int sernum = chatServer->serverNum;
 
-		if ((*iter)->serverNum == chatServer->serverNum){
+		if ((*iter)->serverNum == chatServer->serverNum)
+		{
 			for (unsigned int k = 0; k < chatServer->serverInfo.size(); ++k)
 			{
 				if (chatServer->connG[sernum][k])

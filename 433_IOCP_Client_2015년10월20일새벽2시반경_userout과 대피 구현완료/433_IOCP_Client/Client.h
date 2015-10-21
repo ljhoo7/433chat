@@ -23,6 +23,8 @@ struct CClient
 	int				m_nRoom_num;
 	unsigned int	m_nToken;
 
+	bool			m_bIsEscaping;
+
 	//------------------------------------------------------------
 
 	CClient(int p_nThreadPoolSize, int p_nSocketPoolSize = 1);
@@ -38,6 +40,8 @@ struct CClient
 	bool SendChatMessage(const std::string& str);
 	bool SendEscapeSuccessMessage();
 	bool SendEscapeFailureMessage();
+
+	bool Init();
 
 	bool SetNickName(char *param)
 	{

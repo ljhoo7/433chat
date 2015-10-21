@@ -280,12 +280,15 @@ void AgentSocket::PacketHandling(CPacket *packet){
 		for (std::list<CPlayer*>::iterator iter = chatServer->users.begin();
 			iter != chatServer->users.end(); ++iter)
 		{
-			if ((*iter)->socket_ == msg4.userSocket)
+			if ((*iter)->serverNum == chatServer->serverNum)
 			{
-				t_user_out tmpUserOut;
-				tmpUserOut.type = pkt_type::pt_user_out_client;
-				tmpUserOut.client_socket = msg4.userSocket;
-				(*iter)->Send((char*)&tmpUserOut, sizeof(t_user_out));
+				if ((*iter)->socket_ == msg4.userSocket)
+				{
+					t_user_out tmpUserOut;
+					tmpUserOut.type = pkt_type::pt_user_out_client;
+					tmpUserOut.client_socket = msg4.userSocket;
+					(*iter)->Send((char*)&tmpUserOut, sizeof(t_user_out));
+				}
 			}
 		}
 		break;
