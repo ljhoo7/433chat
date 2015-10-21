@@ -204,6 +204,7 @@ void AgentSocket::RoomInfoSend(bool isTotal, int roomNum, bool create){
 		sag_total_room_info msg;
 		msg.type = sag_pkt_type::pt_total_room_info;
 
+		EnterCriticalSection(&chatServer->roomManager.roomLock);
 		msg.roomCnt = chatServer->roomManager.rooms.size();
 
 		int i = 0;
@@ -217,6 +218,8 @@ void AgentSocket::RoomInfoSend(bool isTotal, int roomNum, bool create){
 
 			size += sizeof(SAGRoomInfo);
 		}
+
+		LeaveCriticalSection(&chatServer->roomManager.roomLock);
 
 		Send((char*)&msg, size);
 	}

@@ -62,6 +62,7 @@ struct SAGUserInfo
 	int userSocket;
 	char userName[NICK_SIZE];
 };
+
 typedef struct{
 	unsigned short type;
 	unsigned short userCnt;

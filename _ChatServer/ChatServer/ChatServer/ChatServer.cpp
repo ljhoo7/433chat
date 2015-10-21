@@ -60,12 +60,6 @@ void ChatServer::Init(){
 	interServer = new TcpInterServer(serverInfo[serverNum].inter_port, 10, 10);
 	clientServer = new TcpClientServer(serverInfo[serverNum].client_port, 10, 3000);
 	agentServer = new TcpAgentServer(serverInfo[serverNum].inter_port + 1, 10);
-
-	for (int i = 0; i < MAXSERVER; i++){
-		for (int j = 0; j < MAXSERVER; j++){
-			connG[i][j] = 0;
-		}
-	}
 }
 
 void ChatServer::Start(){
@@ -74,13 +68,26 @@ void ChatServer::Start(){
 	interServer->Start();
 	agentServer->Start();
 
+	for (unsigned int i = 0; i < serverInfo.size(); i++){
+		if (i == chatServer->serverNum) continue;
+		interServer->Connect(i);
+	}
+
+	/*if (interServer->sockets.size() != 0){
+		PRINTF("%d server on!", interServer->sockets.size());
+		
+	}
+	else{
+		PRINTF("first server on!\n");
+	}*/
+
 	while (true)
 	{
 		std::string input;
 		//ZeroMemory(temp, sizeof(temp));
 		std::getline(std::cin, input);
 
-		if (input == "connect")
+	/*	if (input == "connect")
 		{
 			printf("Enter server number : ");
 			std::string temp;
@@ -106,10 +113,12 @@ void ChatServer::Start(){
 			}
 
 			interServer->Disconnect(num);
-		}
+		}*/
 
 		if (input == "show")
 		{
+			interServer->ShowConnectServerList();
+
 			std::list<CPlayer*>::iterator iter;
 			PRINTF("\n--------------------------player info----------------------\n");
 			for (iter = users.begin(); iter != users.end(); iter++)
@@ -129,37 +138,36 @@ void ChatServer::Start(){
 	PRINTF("END?\n");
 	// escaping all user to another server
 
+	EscapingAllUsers();
+
+	/* disconnect all server */
+	interServer->DisconnectAllServers();
+	logic_thread.join();
+}
+
+void ChatServer::EscapingAllUsers(){
+	std::vector<int> serverNums;
+	interServer->GetServerNums(serverNums);
+
+	int i = 0;
+	int n = serverNums.size();
 	for (std::list<CPlayer*>::iterator iter = chatServer->users.begin();
 		iter != chatServer->users.end(); ++iter)
 	{
 		t_escape_server tmpEscape;
 		tmpEscape.type = pkt_type::pt_escape_server;
 
-		int sernum = chatServer->serverNum;
-
 		if ((*iter)->serverNum == chatServer->serverNum){
-			for (unsigned int k = 0; k < chatServer->serverInfo.size(); ++k)
-			{
-				if (chatServer->connG[sernum][k])
-				{
-					tmpEscape.dest_ip = chatServer->serverInfo[k].ip;
-					tmpEscape.port = chatServer->serverInfo[k].client_port;
+			PRINTF("%d client escape to server %d\n", (*iter)->socket_, serverNums[i%n]);
 
-					(*iter)->Send((char*)&tmpEscape, sizeof(t_escape_server));
+			tmpEscape.dest_ip = chatServer->serverInfo[serverNums[i%n]].ip;
+			tmpEscape.port = chatServer->serverInfo[i%n].client_port;
+			i++;
+			(*iter)->Send((char*)&tmpEscape, sizeof(t_escape_server));
 
-					break;
-				}
-			}
+			break;
 		}
 	}
-
-	for (unsigned int k = 0; k < chatServer->interServer->sockets.size(); ++k)
-	{
-		InterSocket* socket = chatServer->interServer->sockets[k];
-		if (socket->isConnect) socket->Disconnect();
-	}
-
-	logic_thread.join();
 }
 
 void ChatServer::AddUser(CPlayer* player){
@@ -253,6 +261,7 @@ int ChatServer::GetServerNum(unsigned int ip, unsigned short port){
 	return -1;
 }
 
+/*
 bool ChatServer::isCycle(int i, int parent){
 	isVisit[i] = true;
 
@@ -318,4 +327,4 @@ void ChatServer::DisconnectServer(int serverNum1, int serverNum2){
 		}
 	}
 
-}
+}*/

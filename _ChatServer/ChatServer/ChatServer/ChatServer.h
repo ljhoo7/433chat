@@ -24,8 +24,8 @@ public:
 	int serverNum;
 	std::vector<ServerInfo> serverInfo;	
 
-	int connG[MAXSERVER][MAXSERVER];
-	bool isVisit[MAXSERVER];
+//	int connG[MAXSERVER][MAXSERVER];
+//	bool isVisit[MAXSERVER];
 
 public:
 	ChatServer(int serverNum);
@@ -40,10 +40,9 @@ public:
 	void RemoveOtherServerUsers(int serverNum);
 	bool EnterOtherServerUsers(int serverNum);
 
-	bool ConnectServer(int serverNum1, int serverNum2, bool check);
-	void DisconnectServer(int serverNum1, int serverNum2);
-
 	int GetServerNum(unsigned int ip, unsigned short port);
+
+	void EscapingAllUsers();
 
 private:
 	bool isCycle(int i, int parent);

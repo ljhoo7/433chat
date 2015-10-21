@@ -28,9 +28,6 @@
     <Filter Include="Server\Headers">
       <UniqueIdentifier>{8e917dc8-5466-4431-ab5d-1331066dc84c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Server\Sources">
-      <UniqueIdentifier>{efd5e0b2-ac8d-4cf3-a96c-0d1af1aa3002}</UniqueIdentifier>
-    </Filter>
     <Filter Include="InterServer\Headers">
       <UniqueIdentifier>{f2879c72-4d3c-478d-8799-c6fbf97e4e8f}</UniqueIdentifier>
     </Filter>
@@ -45,6 +42,9 @@
     </Filter>
     <Filter Include="AgentServer\Sources">
       <UniqueIdentifier>{f7a796fd-e242-4f14-978c-3f0a6b6393c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Server\Sources">
+      <UniqueIdentifier>{efd5e0b2-ac8d-4cf3-a96c-0d1af1aa3002}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -82,7 +82,37 @@
     <ClInclude Include="PlayerSocket.h">
       <Filter>CliServer\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="InterSocket.h">
+      <Filter>InterServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TcpInterServer.h">
+      <Filter>InterServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Def.h">
+      <Filter>Lib\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="InterProtocol.h">
+      <Filter>InterServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="LogAct.h">
+      <Filter>Lib\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="LogWriter.h">
+      <Filter>Lib\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="AgentProtocol.h">
+      <Filter>AgentServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TcpAgentServer.h">
+      <Filter>AgentServer\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="AgentSocket.h">
+      <Filter>AgentServer\Headers</Filter>
+    </ClInclude>
     <ClInclude Include="Acceptor.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatServer.h">
       <Filter>Server\Headers</Filter>
     </ClInclude>
     <ClInclude Include="Connector.h">
@@ -97,6 +127,9 @@
     <ClInclude Include="Packet.h">
       <Filter>Server\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Proactor.h">
+      <Filter>Server\Headers</Filter>
+    </ClInclude>
     <ClInclude Include="Receiver.h">
       <Filter>Server\Headers</Filter>
     </ClInclude>
@@ -108,39 +141,6 @@
     </ClInclude>
     <ClInclude Include="TcpSocket.h">
       <Filter>Server\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="InterSocket.h">
-      <Filter>InterServer\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="TcpInterServer.h">
-      <Filter>InterServer\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Def.h">
-      <Filter>Lib\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="InterProtocol.h">
-      <Filter>InterServer\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Proactor.h">
-      <Filter>Server\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="LogAct.h">
-      <Filter>Lib\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="LogWriter.h">
-      <Filter>Lib\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="ChatServer.h">
-      <Filter>Server\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="AgentProtocol.h">
-      <Filter>AgentServer\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="TcpAgentServer.h">
-      <Filter>AgentServer\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="AgentSocket.h">
-      <Filter>AgentServer\Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

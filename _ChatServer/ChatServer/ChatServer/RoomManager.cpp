@@ -15,15 +15,22 @@ CRoomManager::~CRoomManager()
 void CRoomManager::PrintInfo(){
 	std::list<CRoom*>::iterator iter;
 	PRINTF("< Current Room List >\n");
+
+	EnterCriticalSection(&roomLock);
 	for (iter = rooms.begin(); iter != rooms.end(); iter++){
 		PRINTF("Room %d : %d persons are connecting...\n", (*iter)->roomNumber, (*iter)->players.size());
 	}
+	LeaveCriticalSection(&roomLock);
+
 	PRINTF("\n");
 }
 
 int CRoomManager::CreateRoom(int roomNumber){
+
+	EnterCriticalSection(&roomLock);
 	if (rooms.size() > ROOM_MAX)
 	{
+		LeaveCriticalSection(&roomLock);
 		return fail_signal::fs_overflow;
 	}
 	else
@@ -43,6 +50,7 @@ int CRoomManager::CreateRoom(int roomNumber){
 		CRoom* room = new CRoom(roomNumber);
 		//enterRoom(p, roomNumber);
 		rooms.insert(iter, room);
+		LeaveCriticalSection(&roomLock);
 
 		PrintInfo();
 
@@ -54,12 +62,14 @@ CRoom* CRoomManager::FindRoom(int roomNumber){
 	if (roomNumber == -1) return NULL;
 
 	std::list<CRoom*>::iterator iter;
+	EnterCriticalSection(&roomLock);
 	for (iter = rooms.begin(); iter != rooms.end(); iter++){
 		if ((*iter)->roomNumber == roomNumber){
+			LeaveCriticalSection(&roomLock);
 			return (*iter);
 		}
 	}
-
+	LeaveCriticalSection(&roomLock);
 	return NULL;
 }
 
@@ -71,6 +81,8 @@ int CRoomManager::EnterRoom(CPlayer* p, int roomNumber){
 		return fail_signal::fs_overflow;
 
 	// nickname check
+
+	EnterCriticalSection(&roomLock);
 	std::list<CRoom*>::iterator iter = chatServer->roomManager.rooms.begin();
 	for (; iter != chatServer->roomManager.rooms.end(); ++iter)
 	{
@@ -80,12 +92,15 @@ int CRoomManager::EnterRoom(CPlayer* p, int roomNumber){
 		{
 			if (!strcmp((*iter2)->nickname.c_str(), p->nickname.c_str()))
 			{
+				LeaveCriticalSection(&roomLock);
 				return fail_signal::fs_alreadyexist;
 			}
 		}
 	}
+	LeaveCriticalSection(&roomLock);
 
 	room->PlayerEnter(p);
+	
 
 	PrintInfo();
 
@@ -105,6 +120,7 @@ int CRoomManager::DestroyRoom(int roomNumber)
 
 	room->BroadcastMsg((char*)&tmpKick, sizeof(t_kick));
 
+	EnterCriticalSection(&roomLock);
 	for (std::list<CPlayer*>::iterator iter = room->players.begin();
 		iter != room->players.end(); ++iter)
 	{
@@ -112,6 +128,7 @@ int CRoomManager::DestroyRoom(int roomNumber)
 	}
 
 	rooms.remove(room);
+	LeaveCriticalSection(&roomLock);
 
 	PrintInfo();
 
@@ -121,6 +138,7 @@ int CRoomManager::DestroyRoom(int roomNumber)
 bool CRoomManager::LeaveRoom(CPlayer* p, int roomNumber)
 {
 	CRoom* room = FindRoom(roomNumber);
+
 	if (room == NULL){
 		PRINTF("No ROOM!\n");
 		return false;

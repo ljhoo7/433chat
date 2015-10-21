@@ -118,11 +118,8 @@ void InterSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 				case ssType::pkt_player_info_failure:
 					remainBytes = sizeof(ss_player_info_failure)-2;
 					break;
-				case ssType::pkt_server_disconnect:
-					remainBytes = sizeof(ss_server_disconnect)-2;
-					break;
-				case ssType::pkt_server_connect:
-					remainBytes = sizeof(ss_server_connect)-2;
+				case ssType::pkt_sync_req:
+					remainBytes = sizeof(ss_sync_req)-2;
 					break;
 
 				case ssType::pkt_chat:
@@ -132,7 +129,7 @@ void InterSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 					remainBytes = sizeof(short);
 					break;
 				default:
-					this->Disconnect();
+					interServer_->Disconnect(serverNum);
 					break;
 				}
 			}
@@ -152,7 +149,6 @@ void InterSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 					msg->owner = this;
 					msg->msg = poolManager->Alloc()->buf;
 					memcpy(msg->msg, buf, position);
-					interServer_->SendWithoutOne(serverNum, buf, position);
 					chatServer->logicHandle.EnqueueOper(msg, true);
 
 					memset(buf, 0, sizeof(buf));
@@ -182,18 +178,18 @@ void InterSocket::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 void InterSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		memcpy(&serverNum, acceptBuf_, sizeof(serverNum));
-		if (!chatServer->ConnectServer(chatServer->serverNum, serverNum, true)){
+		/*if (!chatServer->ConnectServer(chatServer->serverNum, serverNum, true)){
 			Disconnect();
 			return;
-		}
+		}*/
 		
 		isUse = true;
+		interServer_->AddSocket(this);
+
 		PRINTF("connect with %d server\n", serverNum);
 
-		if (chatServer->agentServer->socket->isConnected)
-			chatServer->agentServer->socket->InterServerInfoSend(false, serverNum, true);
-
-		MakeSync();
+		//MakeSync();
+		
 		Recv(recvBuf_, HEADER_SIZE);
 
 		//	heartThread = std::thread(&TcpInterServer::heartbeatCheck, this);
@@ -207,13 +203,8 @@ void InterSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred)
 void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		isUse = false;
-		chatServer->DisconnectServer(chatServer->serverNum, serverNum);
 
-		ss_server_disconnect msg;
-		msg.type = ssType::pkt_server_disconnect;
-		msg.server_num1 = serverNum;
-		msg.server_num2 = chatServer->serverNum;
-		interServer_->SendWithoutOne(serverNum, (char *)&msg, sizeof(ss_server_disconnect));
+		chatServer->RemoveOtherServerUsers(serverNum);
 
 		if (chatServer->agentServer->socket->isConnected)
 			chatServer->agentServer->socket->InterServerInfoSend(false, serverNum, false);
@@ -223,9 +214,12 @@ void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 		PRINTF("closed the other server.\n");
 
 		//if (heartThread.joinable()) heartThread.join();
-		if (!isConnect) this->Reuse(sizeof(int));
+		if (!isConnect){
+			interServer_->DeleteSocket(this);
+			this->Reuse(sizeof(int));
+		}
 		else{
-			interServer_->ConnectSocketCreate();
+			interServer_->DeleteConnectSocket(this);
 		}
 	}
 	else{
@@ -235,18 +229,21 @@ void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 
 void InterSocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-		if (!chatServer->ConnectServer(chatServer->serverNum, serverNum, true)){
-			Disconnect();
-			return;
-		}
-
 		if (chatServer->agentServer->socket->isConnected)
 			chatServer->agentServer->socket->InterServerInfoSend(false, serverNum, true);
 
 		isUse = true;
+		interServer_->AddConnectSocket(this);
 		PRINTF("connect with %d server\n", serverNum);
 
-		MakeSync();
+
+		if (interServer_->ServerCnt() == 1){
+			ss_sync_req msg;
+			msg.type = ssType::pkt_sync_req;
+
+			Send((char *)&msg, sizeof(msg));
+		}
+		//MakeSync();
 		Recv(recvBuf_, HEADER_SIZE);
 
 		//	heartThread = std::thread(&TcpInterServer::heartbeatCheck, this);
@@ -314,12 +311,6 @@ void InterSocket::Connect(unsigned int ip, WORD port, int serverNum){
 
 void InterSocket::MakeSync()
 {
-	ss_server_connect msg;
-	msg.type = ssType::pkt_server_connect;
-	msg.server_num1 = serverNum;
-	msg.server_num2 = chatServer->serverNum;
-	interServer_->SendWithoutOne(serverNum, (char *)&msg, sizeof(msg));
-
 	SendPlayerInfo();
 	SendRoomInfo();
 
@@ -381,6 +372,7 @@ void InterSocket::SendRoomInfo()
 	ss_room_info_send msg;
 	msg.type = ssType::pkt_room_info_send;
 
+	EnterCriticalSection(&chatServer->roomManager.roomLock);
 	std::list<CRoom*>::iterator iter;
 	for (iter = chatServer->roomManager.rooms.begin(); iter != chatServer->roomManager.rooms.end(); iter++)
 	{
@@ -393,6 +385,9 @@ void InterSocket::SendRoomInfo()
 		position += sizeof(info);
 	}
 	msg.room_cnt = chatServer->roomManager.rooms.size();
+	LeaveCriticalSection(&chatServer->roomManager.roomLock);
+
+
 	msg.length = position + 2;
 
 	memcpy(msgBuf + msgPosition, &msg, sizeof(msg));
@@ -505,7 +500,12 @@ void InterSocket::packetHandling(CPacket *packet){
 	{
 		PRINTF("room_info_send recieve!\n");
 		ss_room_info_send msg = *((ss_room_info_send *)packet->msg);
-		if (msg.room_cnt + chatServer->roomManager.rooms.size() <= ROOM_MAX)
+
+		EnterCriticalSection(&chatServer->roomManager.roomLock);
+		int size = chatServer->roomManager.rooms.size();
+		LeaveCriticalSection(&chatServer->roomManager.roomLock);
+
+		if (msg.room_cnt + size <= ROOM_MAX)
 		{
 			char* buf = poolManager->Alloc()->buf;
 			int position = 0;
@@ -561,7 +561,7 @@ void InterSocket::packetHandling(CPacket *packet){
 	case ssType::pkt_room_info_failure:
 	case ssType::pkt_player_info_failure:
 		PRINTF("recieve fail msg!\n");
-		this->Disconnect();
+		//this->Disconnect();
 		break;
 
 	case ssType::pkt_create:
@@ -627,22 +627,13 @@ void InterSocket::packetHandling(CPacket *packet){
 		chatServer->roomManager.FindRoom(msg.room_num)->BroadcastMsg(packet->msg, msg.length);
 		break;
 	}
-	case ssType::pkt_server_disconnect:
+	case ssType::pkt_sync_req:
 	{
-		ss_server_disconnect msg = *((ss_server_disconnect *)packet->msg);
-		PRINTF("%d, %d server disconnect\n", msg.server_num1, msg.server_num2);
-		chatServer->DisconnectServer(msg.server_num1, msg.server_num2);
-		break;
-	}
-	case ssType::pkt_server_connect:
-	{
-		ss_server_connect msg = *((ss_server_connect *)packet->msg);
-		PRINTF("%d, %d server connect\n", msg.server_num1, msg.server_num2);
-		chatServer->ConnectServer(msg.server_num1, msg.server_num2, false);
+		MakeSync();
 		break;
 	}
 	default:
-		this->Disconnect();
+	//	this->Disconnect();
 		break;
 	}
 
