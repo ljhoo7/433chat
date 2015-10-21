@@ -140,6 +140,7 @@ void ChatServer::Start(){
 
 	EscapingAllUsers();
 
+	Sleep(10000);
 	/* disconnect all server */
 	interServer->DisconnectAllServers();
 	logic_thread.join();
