@@ -78,15 +78,15 @@ public:
 	virtual void Execute(CClient *client, long long);
 };
 
-class CEscaping : public State<CClient>
-{
-private:
-	CEscaping(){}
-	CEscaping(const CEscaping&);
-	CEscaping& operator=(const CEscaping&);
-public:
-	static CEscaping* Instance();
-	virtual void Enter(CClient *client);
-	virtual void Exit(CClient *client);
-	virtual void Execute(CClient *client, long long);
-};
+//class CEscaping : public State<CClient>
+//{
+//private:
+//	CEscaping(){}
+//	CEscaping(const CEscaping&);
+//	CEscaping& operator=(const CEscaping&);
+//public:
+//	static CEscaping* Instance();
+//	virtual void Enter(CClient *client);
+//	virtual void Exit(CClient *client);
+//	virtual void Execute(CClient *client, long long);
+//};

@@ -157,7 +157,8 @@ void ChatServer::EscapingAllUsers(){
 		t_escape_server tmpEscape;
 		tmpEscape.type = pkt_type::pt_escape_server;
 
-		if ((*iter)->serverNum == chatServer->serverNum){
+		if ((*iter)->serverNum == chatServer->serverNum)
+		{
 			PRINTF("%d client escape to server %d\n", (*iter)->socket_, serverNums[i%n]);
 
 			tmpEscape.dest_ip = chatServer->serverInfo[serverNums[i%n]].ip;

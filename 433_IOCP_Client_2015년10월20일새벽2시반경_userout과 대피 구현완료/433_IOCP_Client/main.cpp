@@ -82,6 +82,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	g_pClient = new CClient(t_nCPUs * 2);
 
+	g_pClient->Init();
+
 	std::string tmpStr, subStr;
 	int t_nTmpRoomNum, t_nRetVal;
 	char t_szTmpNick[NICK_SIZE];
@@ -127,8 +129,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				}
 				else
 				{
-					// chat
-					g_pClient->SendChatMessage(tmpStr);
+					g_pLog->myWprintf(L"You must try to create when you are in a lobby !\n");
 				}
 			}
 			else if ("dest" == subStr)
@@ -147,8 +148,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				}
 				else
 				{
-					// chat
-					g_pClient->SendChatMessage(tmpStr);
+					g_pLog->myWprintf(L"You must try to destroy when you are in a lobby !\n");
 				}
 			}
 			else if ("join" == subStr)
@@ -156,7 +156,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				if (t_bIsLobby)
 				{
 					t_nRetVal = sscanf(tmpStr.c_str(), "join %d %s\n", &t_nTmpRoomNum, t_szTmpNick);
-					if (0 >= t_nRetVal)
+					if (2 != t_nRetVal)
 					{
 						g_pLog->myWprintf(L"You must try to chat when you are in a room !\n");
 					}
@@ -168,7 +168,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				else
 				{
 					// chat
-					g_pClient->SendChatMessage(tmpStr);
+					g_pLog->myWprintf(L"You must try to chat when you are in a room !\n");
 				}
 			}
 			else if ("leav" == subStr)
