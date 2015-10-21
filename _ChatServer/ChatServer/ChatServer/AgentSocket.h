@@ -38,7 +38,7 @@ public:
 	void MakeSync();
 	void UserInfoSend(bool isTotal, CPlayer* player, char connect);
 	void RoomInfoSend(bool isTotal, int roomNum, bool create);
-	void InterServerInfoSend(bool isTotal, int serverNum, bool connect);
+	//void InterServerInfoSend(bool isTotal, int serverNum, bool connect);
 
 
 private:

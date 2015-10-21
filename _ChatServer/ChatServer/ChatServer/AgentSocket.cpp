@@ -238,7 +238,7 @@ void AgentSocket::MakeSync(){
 	}
 	UserInfoSend(true, NULL, 0);
 	RoomInfoSend(true, NULL, false);
-	InterServerInfoSend(true, -1, false);
+//	InterServerInfoSend(true, -1, false);
 }
 
 void AgentSocket::UserInfoSend(bool isTotal, CPlayer* player, char connect){
@@ -317,35 +317,40 @@ void AgentSocket::RoomInfoSend(bool isTotal, int roomNum, bool create){
 	
 }
 
-void AgentSocket::InterServerInfoSend(bool isTotal, int serverNum, bool connect){
-	if (isTotal){
-		sag_total_interserver_info msg;
-		msg.type = sag_pkt_type::pt_total_interserver_info;
-		
-
-		int size = sizeof(msg.type) + sizeof(msg.serverCnt);
-		int i = 0;
-		for (unsigned int i = 0; i <chatServer->interServer->sockets.size(); i++){
-			InterSocket *p = chatServer->interServer->sockets[i];
-			if (p->serverNum != -1){
-				msg.serverNumList[i] = p->serverNum;
-				i++;
-				size += sizeof(msg.serverNumList[i]);
-			}
-		}
-		msg.serverCnt = i;
-		Send((char *)&msg, size);
-	}
-	else{
-		sag_server_info_changed msg;
-		msg.serverNum = serverNum;
-		msg.isConnected = connect;
-		msg.type = sag_pkt_type::pt_server_info_changed;
-
-		Send((char *)&msg, sizeof(msg));
-	}
-	
-}
+//void AgentSocket::InterServerInfoSend(bool isTotal, int serverNum, bool connect){
+//	if (isTotal){
+//		sag_total_interserver_info msg;
+//		msg.type = sag_pkt_type::pt_total_interserver_info;
+//		
+//
+//		int size = sizeof(msg.type) + sizeof(msg.serverCnt);
+//		int i = 0;
+//
+//		msg.serverNumList[i] = chatServer->serverNum;
+//		i++;
+//		size += sizeof(msg.serverNumList[i]);
+//
+//		for (unsigned int i = 0; i <chatServer->interServer->sockets.size(); i++){
+//			InterSocket *p = chatServer->interServer->sockets[i];
+//			if (p->serverNum != -1){
+//				msg.serverNumList[i] = p->serverNum;
+//				i++;
+//				size += sizeof(msg.serverNumList[i]);
+//			}
+//		}
+//		msg.serverCnt = i;
+//		Send((char *)&msg, size);
+//	}
+//	else{
+//		sag_server_info_changed msg;
+//		msg.serverNum = serverNum;
+//		msg.isConnected = connect;
+//		msg.type = sag_pkt_type::pt_server_info_changed;
+//
+//		Send((char *)&msg, sizeof(msg));
+//	}
+//	
+//}
 
 void AgentSocket::PacketHandling(CPacket *packet){
 	if (socket_ == NULL) return;

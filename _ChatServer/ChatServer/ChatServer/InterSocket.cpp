@@ -182,6 +182,9 @@ void InterSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred)
 			Disconnect();
 			return;
 		}*/
+
+	/*	if (chatServer->agentServer->socket->isConnected)
+			chatServer->agentServer->socket->InterServerInfoSend(false, serverNum, true);*/
 		
 		isUse = true;
 		interServer_->AddSocket(this);
@@ -206,8 +209,8 @@ void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 
 		chatServer->RemoveOtherServerUsers(serverNum);
 
-		if (chatServer->agentServer->socket->isConnected)
-			chatServer->agentServer->socket->InterServerInfoSend(false, serverNum, false);
+		/*if (chatServer->agentServer->socket->isConnected)
+			chatServer->agentServer->socket->InterServerInfoSend(false, serverNum, false);*/
 
 		serverNum = -1;
 		
@@ -229,8 +232,8 @@ void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 
 void InterSocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-		if (chatServer->agentServer->socket->isConnected)
-			chatServer->agentServer->socket->InterServerInfoSend(false, serverNum, true);
+		/*if (chatServer->agentServer->socket->isConnected)
+			chatServer->agentServer->socket->InterServerInfoSend(false, serverNum, true);*/
 
 		isUse = true;
 		interServer_->AddConnectSocket(this);
