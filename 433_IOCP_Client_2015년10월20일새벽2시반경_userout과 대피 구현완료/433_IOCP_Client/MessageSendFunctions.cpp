@@ -131,7 +131,6 @@ bool CClient::SendEscapeSuccessMessage()
 	t_escape_success tmp_packet;
 
 	tmp_packet.type = pkt_type::pt_escape_success;
-	tmp_packet.client_sock = g_pClient->m_pSock->m_hSock;
 
 	m_pSock->Send((char*)&tmp_packet, sizeof(t_escape_success));
 

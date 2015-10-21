@@ -37,6 +37,8 @@ void CConnector::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 
 		g_pClient->m_bIsEscaping = false;
 
+		g_pClient->GetStateMachine()->ChangeState(CLobby::Instance());
+
 		//t_sMysock.Disconnect();
 	}
 }
