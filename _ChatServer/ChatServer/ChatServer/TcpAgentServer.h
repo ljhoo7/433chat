@@ -6,15 +6,15 @@ public:
 	TcpAgentServer();
 	TcpAgentServer(WORD Port, int ThreadPoolSize);
 	void Start();
+	void CreateConnectSocket();
+	void Connect(char* ip, WORD port);
 
 public:
 	Proactor*		proactor_;
-	Acceptor*		acceptor_;
 	Receiver*		receiver_;
 	Sender*			sender_;
 	Disconnector*	disconnector_;
-
-	TcpListenSocket	listenSocket_;
+	Connector*		connector_;
 
 	AgentSocket* socket;
 

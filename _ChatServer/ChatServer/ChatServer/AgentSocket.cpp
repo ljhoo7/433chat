@@ -32,7 +32,89 @@ AgentSocket::AgentSocket(int serverNum){
 		/* error handling */
 		return;
 	}
+
+	if (!LoadMswsock()) {
+		PRINTF("Error loading mswsock functions: %d\n", WSAGetLastError());
+		return;
+	}
 }
+
+BOOL AgentSocket::LoadMswsock(void){
+	SOCKET sock;
+	DWORD dwBytes;
+	int rc;
+
+	/* Dummy socket needed for WSAIoctl */
+	sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock == INVALID_SOCKET)
+		return FALSE;
+
+	{
+		GUID guid = WSAID_CONNECTEX;
+		rc = WSAIoctl(sock, SIO_GET_EXTENSION_FUNCTION_POINTER,
+			&guid, sizeof(guid),
+			&mswsock.ConnectEx, sizeof(mswsock.ConnectEx),
+			&dwBytes, NULL, NULL);
+		if (rc != 0)
+			return FALSE;
+	}
+
+	rc = closesocket(sock);
+	if (rc != 0)
+		return FALSE;
+
+	return TRUE;
+}
+
+
+void AgentSocket::Connect(unsigned int ip, WORD port){
+	sockaddr_in addr;
+	ZeroMemory(&addr, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = ip; // google.com
+	addr.sin_port = htons(port);
+
+	int ok = mswsock.ConnectEx(socket_, (SOCKADDR*)&addr, sizeof(addr), &chatServer->serverNum, sizeof(serverNum), NULL,
+		static_cast<OVERLAPPED*>(&act_[TcpSocket::ACT_CONNECT]));
+	if (ok) {
+		isConnected = true;
+		PRINTF("ConnectEx succeeded immediately\n");
+		ConnProcess(false, NULL, 0);
+	}
+
+	int error = WSAGetLastError();
+	if (ok == FALSE && WSAGetLastError() != ERROR_IO_PENDING) {
+		PRINTF("ConnectEx Error!!! s(%d), err(%d)\n", socket_, error);
+	}
+	PRINTF("Connect Request..\n");
+}
+
+
+void AgentSocket::Bind(bool reuse){
+	if (!reuse){
+		socket_ = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+
+		if (socket_ == INVALID_SOCKET)
+		{
+			PRINTF("WSASocket() Error!!! err(%d)\n", WSAGetLastError());
+		}
+
+	}
+	int rc;
+	struct sockaddr_in addr;
+	ZeroMemory(&addr, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = INADDR_ANY;
+	addr.sin_port = 0;
+	rc = bind(socket_, (SOCKADDR*)&addr, sizeof(addr));
+	if (rc != 0) {
+		PRINTF("bind failed: %d\n", WSAGetLastError());
+		return;
+	}
+}
+
+
+
 
 void AgentSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
@@ -68,13 +150,13 @@ void AgentSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 					PRINTF("room destroy!\n");
 					remainBytes = sizeof(ags_room_destroy)-2;
 					break;
-				case sag_pkt_type::pt_interserver_connect:
+				case sag_pkt_type::pt_kill_server:
 					PRINTF("interserver connect!\n");
-					remainBytes = sizeof(ags_interserver_connect)-2;
+					remainBytes = sizeof(ags_kill_server)-2;
 					break;
-				case sag_pkt_type::pt_interserver_disconnect:
+				case sag_pkt_type::pt_health_check:
 					PRINTF("interserver disconnect!\n");
-					remainBytes = sizeof(ags_interserver_disconnect)-2;
+					remainBytes = sizeof(ags_health_check)-2;
 					break;
 				default:
 					Disconnect();
@@ -115,7 +197,7 @@ void AgentSocket::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 void AgentSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-		this->Reuse(sizeof(int));
+		chatServer->agentServer->CreateConnectSocket();
 		isConnected = false;
 		/* disconn complete */
 	}
@@ -125,17 +207,23 @@ void AgentSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 }
 
 void AgentSocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
+	if (!isError){
+		isConnected = true;
+		PRINTF("agent connect success, %d\n", this->socket_);
+		/* inter connection message send */
+		MakeSync();
 
+		Recv(this->recvBuf_, HEADER_SIZE);
+	}
+	else{
+		/* error handling */
+		PRINTF("AgentSocket ConnProcess : Error : %d\n", WSAGetLastError());
+	}
 }
 
 void AgentSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-		isConnected = true;
-		PRINTF("agent connect success, %d\n", this->socket_);
-		/* inter connection message send */		
-		MakeSync();
-	
-		Recv(this->recvBuf_, HEADER_SIZE);
+		
 	}
 	else{
 		/* error handling */
@@ -148,12 +236,6 @@ void AgentSocket::MakeSync(){
 		PRINTF("agent socket NULL!\n");
 		return;
 	}
-	
-	sag_tell_agent_number msg;
-	msg.agentNum = chatServer->serverNum;
-	msg.type = sag_pkt_type::pt_tell_agent_number;
-	Send((char *)&msg, sizeof(msg));
-
 	UserInfoSend(true, NULL, 0);
 	RoomInfoSend(true, NULL, false);
 	InterServerInfoSend(true, -1, false);
@@ -164,15 +246,16 @@ void AgentSocket::UserInfoSend(bool isTotal, CPlayer* player, char connect){
 		sag_total_user_info msg;
 		msg.type = sag_pkt_type::pt_total_user_info;
 		EnterCriticalSection(&chatServer->userLock);
-		msg.userCnt = chatServer->users.size();
+		
 
 		int size = sizeof(msg.type) + sizeof(msg.userCnt);
 		int i = 0;
 		std::list<CPlayer*>::iterator iter;
 		for (iter = chatServer->users.begin(); iter != chatServer->users.end(); iter++)
 		{
+			
 			CPlayer *p = (*iter);
-
+			if (chatServer->serverNum != p->serverNum) continue;
 			msg.userInfoList[i].roomNum = p->roomNum;
 			memcpy(msg.userInfoList[i].userName, p->nickname.c_str(), sizeof(p->nickname));
 			msg.userInfoList[i].userSocket = (int)p->socket_;
@@ -181,7 +264,7 @@ void AgentSocket::UserInfoSend(bool isTotal, CPlayer* player, char connect){
 
 			size += sizeof(SAGUserInfo);
 		}
-
+		msg.userCnt = i;
 		LeaveCriticalSection(&chatServer->userLock);
 
 		Send((char*)&msg, size);
@@ -254,10 +337,10 @@ void AgentSocket::InterServerInfoSend(bool isTotal, int serverNum, bool connect)
 		Send((char *)&msg, size);
 	}
 	else{
-		sag_interserver_connected msg;
+		sag_server_info_changed msg;
 		msg.serverNum = serverNum;
 		msg.isConnected = connect;
-		msg.type = sag_pkt_type::pt_interserver_connect;
+		msg.type = sag_pkt_type::pt_server_info_changed;
 
 		Send((char *)&msg, sizeof(msg));
 	}
@@ -270,10 +353,8 @@ void AgentSocket::PacketHandling(CPacket *packet){
 	sag_pkt_type _type = (sag_pkt_type)(*packet->msg);
 
 	ags_room_destroy msg;
-	ags_interserver_connect msg2;
-	ags_interserver_disconnect msg3;
 	ags_user_out msg4;
-	InterSocket* socket;
+
 
 	switch (_type){
 	case sag_pkt_type::pt_user_out:
@@ -315,18 +396,11 @@ void AgentSocket::PacketHandling(CPacket *packet){
 			PRINTF("fail delete\n");
 		}
 		break;
-	case sag_pkt_type::pt_interserver_connect:
-		PRINTF("interserver connect msg was sent!\n");
-
-		msg2 = *((ags_interserver_connect *)(packet->msg));
-		chatServer->interServer->Connect(msg2.serverNum);
+	case sag_pkt_type::pt_kill_server:
+		PRINTF("kill_server msg was sent!\n");
 		break;
-	case sag_pkt_type::pt_interserver_disconnect:
-		PRINTF("interserver disconnect msg was sent!\n");
-
-		msg3 = *((ags_interserver_disconnect *)(packet->msg));
-		socket = chatServer->interServer->GetSocketWithNum(msg3.serverNum);
-		socket->Disconnect();
+	case sag_pkt_type::pt_health_check:
+		PRINTF("health check msg was sent!\n");
 		break;
 	default:
 		this->Disconnect();

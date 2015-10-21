@@ -2,8 +2,9 @@
 #include <fstream>
 #include <iostream>
 
-ChatServer::ChatServer(int serverNum){
+ChatServer::ChatServer(int serverNum, WORD port){
 	this->serverNum = serverNum;
+	this->agentPort = port;
 	Init();
 }
 
@@ -67,6 +68,9 @@ void ChatServer::Start(){
 	clientServer->Start();
 	interServer->Start();
 	agentServer->Start();
+
+	agentServer->Connect("127.0.0.1", agentPort);
+	Sleep(1000);
 
 	for (unsigned int i = 0; i < serverInfo.size(); i++){
 		if (i == chatServer->serverNum) continue;
@@ -143,6 +147,7 @@ void ChatServer::Start(){
 	Sleep(10000);
 	/* disconnect all server */
 	interServer->DisconnectAllServers();
+	agentServer->socket->Disconnect();
 	logic_thread.join();
 }
 

@@ -32,8 +32,19 @@ public:
 
 	void RemoveAgent();
 
+	void Bind(bool reuse);
+	void Connect(unsigned int ip, WORD port);
+
 	void MakeSync();
 	void UserInfoSend(bool isTotal, CPlayer* player, char connect);
 	void RoomInfoSend(bool isTotal, int roomNum, bool create);
 	void InterServerInfoSend(bool isTotal, int serverNum, bool connect);
+
+
+private:
+	struct mswsock_s {
+		LPFN_CONNECTEX ConnectEx;
+	} mswsock;
+
+	BOOL LoadMswsock(void);
 };

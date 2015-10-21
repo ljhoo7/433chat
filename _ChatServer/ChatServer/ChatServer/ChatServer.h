@@ -9,6 +9,8 @@ struct ServerInfo{
 class ChatServer{
 
 public:
+	WORD agentPort;
+
 	int identifierSeed;
 	std::list<CPlayer*> users;
 	CRITICAL_SECTION userLock;
@@ -28,7 +30,7 @@ public:
 //	bool isVisit[MAXSERVER];
 
 public:
-	ChatServer(int serverNum);
+	ChatServer(int serverNum, WORD port);
 	void Init();
 	void Start();
 	~ChatServer();
