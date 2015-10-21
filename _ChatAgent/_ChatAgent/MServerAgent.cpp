@@ -1,48 +1,40 @@
 #include "stdafx.h"
 #include "MServerAgent.h"
 
-
-#include "stdafx.h"
-#include "ServerAgent.h"
-
-
-MServerAgent::MServerAgent(TotalInfo* totalInfoData, int p_nThreadPoolSize, int p_nSocketPoolSize)
-:m_nThreadPoolSize(p_nThreadPoolSize),
+MServerAgent::MServerAgent(int p_nThreadPoolSize, int p_nSocketPoolSize)
+:WinSockBase(),
+ m_nThreadPoolSize(p_nThreadPoolSize),
  m_nSocketPoolSize(p_nSocketPoolSize),
- isServerAgentConnected(false),
  isUse(false),
  isVar(false)
 {
 	InitializeCriticalSectionAndSpinCount(&IOLock, 4000);
 
-	m_pServerAgentSocket = NULL;
-	m_pTotalInfoData = totalInfoData;
 
-	m_pProactor     = new CProactor(p_nThreadPoolSize);
-	m_pConnector    = new CConnector(m_pProactor);
-	m_pDisconnector = new CDisconnector(m_pProactor);
-	m_pReceiver		= new CReceiver(m_pProactor);
-	m_pSender		= new CSender(m_pProactor);
+	mProactor     = new Proactor(p_nThreadPoolSize);
+	mConnector    = new Connector(mProactor);
+	mDisconnector = new Disconnector(mProactor);
+	mReceiver	  = new CReceiver(mProactor);
+	mSender		  = new CSender(mProactor);
 
-	m_pSock			= new MSASocket(this);
+	m_pSock		  = new MSASocket(static_cast<MServerAgent*>(this));
 
 	m_nPosition = 0;
 	m_nRemainBytes = HEADER_SIZE;
 
 	m_pSock->Init();
-	m_pSock->InitAct(m_pProactor,
-		m_pDisconnector,
-		m_pConnector,
-		m_pSender,
-		m_pReceiver);
+	m_pSock->InitAct(mProactor,
+		NULL,
+		mDisconnector,
+		mConnector,
+		mSender,
+		mReceiver);
 
 	static_cast<MSASocket*>(m_pSock)->Bind(true);
 
-	m_pProactor->Register((HANDLE)m_pSock->socket_);
+	mProactor->Register((HANDLE)m_pSock->socket_);
 
 	//isConnect = true;
-
-
 
 	PRINTF("MSASocket start....\n");
 }
@@ -60,9 +52,7 @@ void MServerAgent::PacketHandling(char* buf)
 	// after received AGENT -> SERVER
 	ags_user_out					 userOutPkt;
 	ags_room_destroy				 roomDestroyPkt;
-	ags_interserver_connect			 interServerConnectedPkt;
-	ags_interserver_disconnect		 interServerDisConnectedPkt;
-
+	ags_health_check                 healthCheckPkt;
 	// after received AGENT -> MONITORING SERVER
 	msag_request_total_info			 totalSendInfoPkt;
 
@@ -72,36 +62,36 @@ void MServerAgent::PacketHandling(char* buf)
 		userOutPkt = *((ags_user_out*)(buf));
 		userOutPkt.type = sag_pkt_type::pt_user_out;
 
-		if (m_pServerAgentSocket != nullptr)
-			m_pServerAgentSocket->Send((char*)&userOutPkt, sizeof(ags_user_out));
+		//if (m_pServerAgentSocket != nullptr)
+		//	m_pServerAgentSocket->Send((char*)&userOutPkt, sizeof(ags_user_out));
 
 		break;
 	case msag_pkt_type::pkt_room_destroy:
 		roomDestroyPkt = *((ags_room_destroy*)(buf));
 		roomDestroyPkt.type = sag_pkt_type::pt_room_destroy;
 
-		if (m_pServerAgentSocket != nullptr)
-			m_pServerAgentSocket->Send((char*)&roomDestroyPkt, sizeof(ags_room_destroy));
+		//if (m_pServerAgentSocket != nullptr)
+		//	m_pServerAgentSocket->Send((char*)&roomDestroyPkt, sizeof(ags_room_destroy));
 
 		break;
-	case msag_pkt_type::pkt_interserver_connect:
-		interServerConnectedPkt = *(ags_interserver_connect*)(buf);
-		interServerConnectedPkt.type = sag_pkt_type::pt_interserver_connect;
+	//case msag_pkt_type::pkt_interserver_connect:
+	//	interServerConnectedPkt = *(ags_interserver_connect*)(buf);
+	//	interServerConnectedPkt.type = sag_pkt_type::pt_interserver_connect;
 
-		if (m_pServerAgentSocket != nullptr)
-			m_pServerAgentSocket->Send((char*)&interServerConnectedPkt, sizeof(pkt_interserver_connect));
+	//	//if (m_pServerAgentSocket != nullptr)
+	//	//	m_pServerAgentSocket->Send((char*)&interServerConnectedPkt, sizeof(pkt_interserver_connect));
 
-		break;
-	case msag_pkt_type::pkt_interserver_disconnect:
-		interServerDisConnectedPkt = *(ags_interserver_disconnect*)(buf);
-		interServerDisConnectedPkt.type = sag_pkt_type::pt_interserver_disconnect;
+	//	break;
+	//case msag_pkt_type::pkt_interserver_disconnect:
+	//	interServerDisConnectedPkt = *(ags_interserver_disconnect*)(buf);
+	//	interServerDisConnectedPkt.type = sag_pkt_type::pt_interserver_disconnect;
 
-		if (m_pServerAgentSocket != nullptr)
-			m_pServerAgentSocket->Send((char*)&interServerDisConnectedPkt, sizeof(pkt_interserver_disconnect));
+	//	//if (m_pServerAgentSocket != nullptr)
+	//	//	m_pServerAgentSocket->Send((char*)&interServerDisConnectedPkt, sizeof(pkt_interserver_disconnect));
 
-		break;
-	case msag_pkt_type::pkt_request_total_info:
-		SendTotalData();
+	//	break;
+	//case msag_pkt_type::pkt_request_total_info:
+		//SendTotalData();
 		/// MS가 TOTAL을 요청할때
 		break;
 
@@ -115,30 +105,30 @@ void MServerAgent::SendTotalData()
 }
 void MServerAgent::SendUserInfo()
 {
-	agms_total_user_info pkt;
-	pkt.type = msag_pkt_type::pkt_total_user_info;
-	
-	EnterCriticalSection(&IOLock);
-	
-	pkt.userCnt = m_pTotalInfoData->userCnt;
-
-	int size = 0;
-	size = sizeof(pkt.type) + sizeof(pkt.userCnt);
-
-	if (!m_pTotalInfoData->userInfoList.empty())
-	{
-		int i = 0;
-		for (auto& user : m_pTotalInfoData->userInfoList)
-		{
-			pkt.userInfoList[i] = user;
-			++i;
-
-			size += sizeof(UserInfo);
-		}
-	}
-	LeaveCriticalSection(&IOLock);
-	
-	m_pSock->Send((char*)&pkt, size);
+	//agms_total_user_info pkt;
+	//pkt.type = msag_pkt_type::pkt_total_user_info;
+	//
+	//EnterCriticalSection(&IOLock);
+	//
+	//pkt.userCnt = AgentApp::Instance()->GetTotalInfoData()->userCount;
+	//
+	//int size = 0;
+	//size = sizeof(pkt.type) + sizeof(pkt.userCnt);
+	//
+	//if (!m_pTotalInfoData->userInfoList.empty())
+	//{
+	//	int i = 0;
+	//	for (auto& user : m_pTotalInfoData->userInfoList)
+	//	{
+	//		pkt.userInfoList[i] = user;
+	//		++i;
+	//
+	//		size += sizeof(UserInfo);
+	//	}
+	//}
+	//LeaveCriticalSection(&IOLock);
+	//
+	//m_pSock->Send((char*)&pkt, size);
 
 }
 
@@ -149,15 +139,17 @@ void MServerAgent::SendRoomInfo()
 
 	EnterCriticalSection(&IOLock);
 
-	pkt.roomCnt = m_pTotalInfoData->roomCnt;
+	pkt.roomCnt = AgentApp::Instance()->GetTotalInfoData()->roomCnt;
 
 	int size = 0;
 	size = sizeof(pkt.type) + sizeof(pkt.roomCnt);
 
-	if (!m_pTotalInfoData->roomInfoList.empty())
+	std::list<RoomInfo>& roomList = AgentApp::Instance()->GetTotalInfoData()->roomInfoList;
+
+	if (!roomList.empty())
 	{
 		int i = 0;
-		for (auto& room : m_pTotalInfoData->roomInfoList)
+		for (auto& room : roomList)
 		{
 			pkt.roomInfoList[i] = room;
 			++i;
@@ -178,15 +170,18 @@ void MServerAgent::SendInterServerInfo()
 
 	EnterCriticalSection(&IOLock);
 
-	pkt.serverCnt = m_pTotalInfoData->serverCnt;
+	pkt.serverCnt = AgentApp::Instance()->GetTotalInfoData()->serverCnt;
 
 	int size = 0;
 	size = sizeof(pkt.type) + sizeof(pkt.serverCnt);
 
-	if (!m_pTotalInfoData->serverNumList.empty())
+	std::list<unsigned short>& serverNumList = AgentApp::Instance()->GetTotalInfoData()->serverNumList;
+
+
+	if (!serverNumList.empty())
 	{
 		int i = 0;
-		for (auto& serverNum : m_pTotalInfoData->serverNumList)
+		for (auto& serverNum : serverNumList)
 		{
 			pkt.serverNumList[i] = serverNum;
 			++i;
@@ -200,7 +195,7 @@ void MServerAgent::SendInterServerInfo()
 
 }
 
-void MServerAgent::RecvProcess(bool isError, CAct* act, DWORD bytes_transferred)
+void MServerAgent::RecvProcess(bool isError, Act* act, DWORD bytes_transferred)
 {
 	if (0 == bytes_transferred)
 	{
@@ -269,13 +264,13 @@ void MServerAgent::RecvProcess(bool isError, CAct* act, DWORD bytes_transferred)
 	}
 }
 
-void MServerAgent::SendProcess(bool isError, CAct* act, DWORD bytes_transferred)
+void MServerAgent::SendProcess(bool isError, Act* act, DWORD bytes_transferred)
 {
 
 
 }
 
-void MServerAgent::DisconnProcess(bool isError, CAct* act, DWORD bytes_transferred)
+void MServerAgent::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred)
 {
 	/*if (!isError){
 	isUse = false;
@@ -311,17 +306,10 @@ void MServerAgent::DisconnProcess(bool isError, CAct* act, DWORD bytes_transferr
 	}*/
 }
 
-void MServerAgent::ConnProcess(bool isError, CAct* act, DWORD bytes_transferred)
+void MServerAgent::ConnProcess(bool isError, Act* act, DWORD bytes_transferred)
 {
 	if (!isError)
 	{
-		isUse = true;
-		agms_tell_agent_number pkt;
-		pkt.type = msag_pkt_type::pkt_tell_agent_number;
-		pkt.agentNum = m_pTotalInfoData->agentNum;
-		
-		m_pSock->Send((char*)&pkt, sizeof(agms_tell_agent_number));
-
 		m_pSock->Recv(m_pSock->recvBuf_, HEADER_SIZE);
 	}
 	else{
@@ -329,28 +317,13 @@ void MServerAgent::ConnProcess(bool isError, CAct* act, DWORD bytes_transferred)
 	}
 }
 
-void MServerAgent::Connect(DWORD ip, WORD port){
-
-	if (isServerAgentConnected)
-	{
-		
-		MSASocket* sock = static_cast<MSASocket*>(m_pSock);
-		sock->Connect(ip, port);
-	}
-	else
-	{
-		PRINTF("Server to Agent Not Connected !\n");
-
-	}
+void MServerAgent::Connect(DWORD ip, WORD port)
+{
+	MSASocket* sock = static_cast<MSASocket*>(m_pSock);
+	sock->Connect(ip, port);
 }
 void MServerAgent::IsConnected(ServerAgent* pServerAgent)
 {
-	if (pServerAgent->isConnect)
-	{
-		isServerAgentConnected = true;
-		m_pServerAgentSocket   = pServerAgent->m_pSock;
-	}
-	else
-		isServerAgentConnected = false;
+	
 
 }

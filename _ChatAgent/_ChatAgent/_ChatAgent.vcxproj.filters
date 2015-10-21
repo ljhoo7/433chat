@@ -34,6 +34,9 @@
     <Filter Include="소스 파일\Socket">
       <UniqueIdentifier>{83a21396-30a8-4ed8-be6b-94bc82327026}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\App">
+      <UniqueIdentifier>{ccb41f03-d70d-428e-8e8e-6cee1a91bc30}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -102,6 +105,18 @@
     <ClInclude Include="MServerAgent.h">
       <Filter>소스 파일\Agent</Filter>
     </ClInclude>
+    <ClInclude Include="AgentApp.h">
+      <Filter>소스 파일\App</Filter>
+    </ClInclude>
+    <ClInclude Include="WinSockBase.h">
+      <Filter>소스 파일\Agent</Filter>
+    </ClInclude>
+    <ClInclude Include="TcpListenSocket.h">
+      <Filter>소스 파일\Socket</Filter>
+    </ClInclude>
+    <ClInclude Include="Acceptor.h">
+      <Filter>소스 파일\Lib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -148,6 +163,15 @@
     </ClCompile>
     <ClCompile Include="MServerAgent.cpp">
       <Filter>소스 파일\Agent</Filter>
+    </ClCompile>
+    <ClCompile Include="AgentApp.cpp">
+      <Filter>소스 파일\App</Filter>
+    </ClCompile>
+    <ClCompile Include="TcpListenSocket.cpp">
+      <Filter>소스 파일\Socket</Filter>
+    </ClCompile>
+    <ClCompile Include="Acceptor.cpp">
+      <Filter>소스 파일\Lib</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

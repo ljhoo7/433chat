@@ -1,21 +1,42 @@
 #include "stdafx.h"
 
-CDisconnector::CDisconnector(CProactor *p_pProactor)
+Disconnector::Disconnector(Proactor *p_pProactor)
 {
-	m_pProactor = p_pProactor;
+	mProactor = p_pProactor;
 }
 
 
-CDisconnector::~CDisconnector()
+Disconnector::~Disconnector()
 {
 }
 
-void CDisconnector::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
+void Disconnector::ProcEvent(Act* act, DWORD bytes_transferred)
 {
+	TcpAct& tcpact = *dynamic_cast<TcpAct*>(act);
+
+	assert(tcpact.tcpSocket_);
+	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
+
+	//PRINTF("...Disconnector s(%d)\n", tcpsocket.GetSocket());
+
+	assert(tcpsocket.disconnector_);
+
+	tcpsocket.DisconnProcess(false, act, bytes_transferred);
+	// reuse socket
 
 }
 
-void CDisconnector::ProcError(CAct *p_pAct, DWORD p_dwError)
+void Disconnector::ProcError(Act* act, DWORD error)
 {
+	assert(dynamic_cast<TcpAct*>(act));
 
+	TcpAct& tcpact = *dynamic_cast<TcpAct*>(act);
+
+	assert(tcpact.tcpSocket_);
+
+	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
+
+	PRINTF("...에러처리 Disconnector s(%d) err(%d)\n", tcpsocket.socket_, error);
+
+	tcpsocket.DisconnProcess(true, act, error);
 }

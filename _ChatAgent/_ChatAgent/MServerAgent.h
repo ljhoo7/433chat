@@ -3,17 +3,16 @@
 #include "Common.h"
 
 
-class MServerAgent
+class MServerAgent : public WinSockBase
 {
 public:
-	CProactor						*m_pProactor;
-	CConnector						*m_pConnector;
-	CDisconnector					*m_pDisconnector;
-	CReceiver						*m_pReceiver;
-	CSender							*m_pSender;
+	Proactor*						mProactor;
+	Connector*						mConnector;
+	Disconnector*					mDisconnector;
+	CReceiver*						mReceiver;
+	CSender*						mSender;
 
 	TcpSocket						*m_pSock;
-	TcpSocket						*m_pServerAgentSocket;
 
 	int								m_nThreadPoolSize;
 	int								m_nSocketPoolSize;
@@ -21,25 +20,22 @@ public:
 	int								m_nPosition;
 	int								m_nRemainBytes;
 
-
-	bool							isServerAgentConnected;
 	bool							isUse;
 	bool							isVar;
 
 	long long						m_llAccumTime;
 
-	TotalInfo*						m_pTotalInfoData;
 
 	CRITICAL_SECTION		        IOLock;
 
 public:
-	MServerAgent(TotalInfo* totalInfoData, int p_nThreadPoolSize, int p_nSocketPoolSize = 1);
-	~MServerAgent();
+	MServerAgent(int p_nThreadPoolSize, int p_nSocketPoolSize = 1);
+	virtual ~MServerAgent();
 
-	void RecvProcess(bool isError, CAct* act, DWORD bytes_transferred);
-	void SendProcess(bool isError, CAct* act, DWORD bytes_transferred);
-	void DisconnProcess(bool isError, CAct* act, DWORD bytes_transferred);
-	void ConnProcess(bool isError, CAct* act, DWORD bytes_transferred);
+	void RecvProcess(bool isError, Act* act, DWORD bytes_transferred);
+	void SendProcess(bool isError, Act* act, DWORD bytes_transferred);
+	void DisconnProcess(bool isError, Act* act, DWORD bytes_transferred);
+	void ConnProcess(bool isError, Act* act, DWORD bytes_transferred);
 
 	void PacketHandling(char* buf);
 

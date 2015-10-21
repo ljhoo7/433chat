@@ -1,11 +1,11 @@
 #include "stdafx.h"
 
-CActor::CActor()
+Actor::Actor()
 {
-	m_pProactor = NULL;
+	mProactor = NULL;
 }
 
 
-CActor::~CActor()
+Actor::~Actor()
 {
 }

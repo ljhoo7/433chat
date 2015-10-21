@@ -1,11 +1,12 @@
 #pragma once
-class CConnector : public CActor
+
+class Connector : public Actor
 {
 public:
-	CConnector(CProactor *p_pProactor);
-	~CConnector();
+	Connector(Proactor *p_pProactor);
+	~Connector();
 
-	void ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes);
-	void ProcError(CAct *p_pAct, DWORD p_dwError);
+	void ProcEvent(Act *p_pAct, DWORD p_dwTransferredBytes);
+	void ProcError(Act *p_pAct, DWORD p_dwError);
 };
 

@@ -18,39 +18,35 @@ struct UserInfo
 	int							 userSocket;
 	char						 userName[NICK_SIZE];
 
-	UserInfo()
-		:roomNum(-1),
-		 userSocket(0)
+	UserInfo():roomNum(-1), userSocket(0)
 	{
 		strcpy_s(userName, NICK_SIZE, "");
 	}
-	~UserInfo()
-	{
-	}
+	~UserInfo(){}
+};
+
+struct ServerInfo
+{
+	unsigned int		serverNum;
+	unsigned short		userCount;
+	std::list<UserInfo> userInfoList;
+
+	ServerInfo() :userCount(0){}
+	~ServerInfo(){}
 };
 
 struct TotalInfo
 {
-	unsigned short			     agentNum;
+	unsigned short			      roomCnt;
+	std::list<RoomInfo>			  roomInfoList;
 
+	std::list<ServerInfo>		  serverUserInfoList;
 
-	unsigned short			     roomCnt;
-	std::list<RoomInfo>	     roomInfoList;
+	unsigned short			      serverCnt;
+	std::list<unsigned short>	  serverNumList;
 
-	unsigned short			     userCnt;
-	std::list<UserInfo>	     userInfoList;
-
-	unsigned short			     serverCnt;
-	std::list<unsigned short>  serverNumList;
-
-	TotalInfo()
-		:roomCnt(0),
-		 userCnt(0),
-		 serverCnt(0)
-	{}
-
-	~TotalInfo()
-	{}
+	TotalInfo():roomCnt(0),serverCnt(0){}
+	~TotalInfo(){}
 };
 
 

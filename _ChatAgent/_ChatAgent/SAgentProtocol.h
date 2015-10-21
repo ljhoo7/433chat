@@ -5,19 +5,19 @@
 enum sag_pkt_type
 {
 	// S -> AG
-	pt_tell_agent_number,
 	pt_room_info_changed,
 	pt_user_info_changed,
-	pt_interserver_connected,
+	pt_server_info_changed,
 	pt_total_room_info,
 	pt_total_user_info,
 	pt_total_interserver_info,
+	pt_health_ack,
 
 	// AG -> S
 	pt_user_out,
 	pt_room_destroy,
-	pt_interserver_connect,
-	pt_interserver_disconnect
+	pt_kill_server,
+	pt_health_check
 };
 
 /*
@@ -41,7 +41,7 @@ typedef struct{
 	unsigned short type;
 	unsigned short serverNum;
 	bool isConnected;
-}sag_interserver_connected;
+}sag_server_info_changed;
 
 typedef struct{
 	unsigned short type;
@@ -63,8 +63,7 @@ typedef struct{
 
 typedef struct{
 	unsigned short type;
-	unsigned short agentNum;
-}sag_tell_agent_number;
+}sag_health_ack;
 
 /*
 * Agent -> Server
@@ -82,13 +81,13 @@ typedef struct{
 
 typedef struct{
 	unsigned short type;
-	unsigned short serverNum;
-}ags_interserver_connect;
+}ags_kill_server;
 
 typedef struct{
 	unsigned short type;
-	unsigned short serverNum;
-}ags_interserver_disconnect;
+}ags_health_check;
+
+
 
 
 

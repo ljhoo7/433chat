@@ -7,12 +7,13 @@ class TcpSocket
 
 public:
 	TcpSocket();
+	virtual ~TcpSocket();
 
 public:
 	void Init();
 	void InitBuf();
-	void InitAct(CProactor* proactor, CDisconnector* disconnector,
-		CConnector* connector, CSender* sender, CReceiver* receiver);
+	void InitAct(Proactor* proactor, Acceptor* acceptor, Disconnector* disconnector,
+		Connector* connector, CSender* sender, CReceiver* receiver);
 
 public:
 	void Recv();
@@ -22,10 +23,11 @@ public:
 	void Disconnect();
 	void Connect();
 
-	virtual void RecvProcess(bool isError, CAct* act, DWORD bytes_transferred) = 0;
-	virtual void SendProcess(bool isError, CAct* act, DWORD bytes_transferred) = 0;
-	virtual void DisconnProcess(bool isError, CAct* act, DWORD bytes_transferred) = 0;
-	virtual void ConnProcess(bool isError, CAct* act, DWORD bytes_transferred) = 0;
+	virtual void RecvProcess(bool isError, Act* act, DWORD bytes_transferred) = 0;
+	virtual void SendProcess(bool isError, Act* act, DWORD bytes_transferred) = 0;
+	virtual void AcceptProcess(bool isError, Act* act, DWORD bytes_transferred) = 0;
+	virtual void DisconnProcess(bool isError, Act* act, DWORD bytes_transferred) = 0;
+	virtual void ConnProcess(bool isError, Act* act, DWORD bytes_transferred) = 0;
 
 public:
 	enum ACT_TYPE
@@ -54,10 +56,11 @@ public:
 	WSABUF			wsaSendBuf;
 
 public:
-	CProactor*		proactor_;
-	CDisconnector*	disconnector_;
+	Proactor*		proactor_;
+	Disconnector*	disconnector_;
+	Acceptor*		acceptor_;
 	CSender*		sender_;
 	CReceiver*		receiver_;
-	CConnector*		connector_;
+	Connector*		connector_;
 
 };

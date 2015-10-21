@@ -1,11 +1,11 @@
 #pragma once
-class CReceiver : public CActor
+class CReceiver : public Actor
 {
 public:
-	CReceiver(CProactor *p_pProactor);
+	CReceiver(Proactor *p_pProactor);
 	~CReceiver();
 
-	void ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes);
-	void ProcError(CAct *p_pAct, DWORD p_dwError);
+	void ProcEvent(Act *p_pAct, DWORD p_dwTransferredBytes);
+	void ProcError(Act *p_pAct, DWORD p_dwError);
 };
 

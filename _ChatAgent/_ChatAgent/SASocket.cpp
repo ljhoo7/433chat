@@ -1,98 +1,237 @@
 #include "stdafx.h"
 
-BOOL SASocket::LoadMswsock(void){
-	SOCKET sock;
-	DWORD dwBytes;
-	int rc;
+SASocket::SASocket()
+:mServerNum(0),
+ mPosition(0),
+ mRemainBytes(HEADER_SIZE),
+ mIsVar(false)
+{
+}
 
-	/* Dummy socket needed for WSAIoctl */
-	sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock == INVALID_SOCKET)
-		return FALSE;
+SASocket::~SASocket()
+{
 
+}
+
+void SASocket::PacketHandling(char* buf)
+{
+	sag_pkt_type eType = (sag_pkt_type)((unsigned short)(*buf));
+
+	sag_room_info_changed			 roomInfoChangedPkt;
+	sag_user_info_changed			 userInfoChangedPkt;
+	sag_server_info_changed			 serverInfoChangedPkt;
+	sag_total_room_info*			 totalRoomInfoPkt;
+	sag_total_user_info*			 totalUserInfoPkt;
+	sag_total_interserver_info*		 totalInterServerInfoPkt;
+
+	switch (eType)
 	{
-		GUID guid = WSAID_CONNECTEX;
-		rc = WSAIoctl(sock, SIO_GET_EXTENSION_FUNCTION_POINTER,
-			&guid, sizeof(guid),
-			&mswsock.ConnectEx, sizeof(mswsock.ConnectEx),
-			&dwBytes, NULL, NULL);
-		if (rc != 0)
-			return FALSE;
+	case sag_pkt_type::pt_room_info_changed:
+		PRINTF("sag_pkt_type::pt_room_info_changed \n");
+		roomInfoChangedPkt = *((sag_room_info_changed*)(buf));
+
+		AgentApp::Instance()->SaveDeltaRoomInfo(roomInfoChangedPkt.roomNum, roomInfoChangedPkt.isState);
+
+		break;
+	case sag_pkt_type::pt_user_info_changed:
+		PRINTF("sag_pkt_type::pt_user_info_changed \n");
+
+		userInfoChangedPkt = *((sag_user_info_changed*)(buf));
+
+		AgentApp::Instance()->SaveDeltaUserInfo(mServerNum,
+			userInfoChangedPkt.clientSocket,
+			userInfoChangedPkt.roomNum,
+			userInfoChangedPkt.userName,
+			userInfoChangedPkt.isConnected);
+
+
+		break;
+	case sag_pkt_type::pt_server_info_changed:
+		PRINTF("sag_pkt_type::pt_user_info_changed \n");
+
+		serverInfoChangedPkt = *((sag_server_info_changed*)(buf));
+
+		AgentApp::Instance()->SaveDeltaInterSeverInfo(serverInfoChangedPkt.serverNum, serverInfoChangedPkt.isConnected);
+
+		break;
+	case sag_pkt_type::pt_total_room_info:
+		PRINTF("sag_pkt_type::pt_total_room_info \n");
+
+		totalRoomInfoPkt = (sag_total_room_info*)(buf);
+		AgentApp::Instance()->SaveTotalRoomInfo(totalRoomInfoPkt->roomCnt, totalRoomInfoPkt->roomInfoList);
+
+		break;
+	case sag_pkt_type::pt_total_user_info:
+		PRINTF("sag_pkt_type::pt_total_user_info \n");
+
+		totalUserInfoPkt = (sag_total_user_info*)(buf);
+		AgentApp::Instance()->SaveTotalServerUserInfo(mServerNum,totalUserInfoPkt->userCnt, totalUserInfoPkt->userInfoList);
+		break;
+
+	case sag_pkt_type::pt_total_interserver_info:
+		PRINTF("sag_pkt_type::pt_total_interserver_info \n");
+
+		totalInterServerInfoPkt = (sag_total_interserver_info*)(buf);
+		AgentApp::Instance()->SaveTotalInterServerInfo(totalInterServerInfoPkt->serverCnt, totalInterServerInfoPkt->serverNumList);
+
+		break;
+
 	}
 
-	rc = closesocket(sock);
-	if (rc != 0)
-		return FALSE;
-
-	return TRUE;
 }
-SASocket::SASocket(ServerAgent* _serverAgent){
-	serverAgent = _serverAgent;
+void SASocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred)
+{
+	if (0 == bytes_transferred)
+	{
+		PRINTF("Disconnect in Receiver ProcEvent() \n");
 
-	if (!LoadMswsock()) {
-		PRINTF("Error loading mswsock functions: %d\n", WSAGetLastError());
+		Disconnect();
+
 		return;
 	}
-}
 
-void SASocket::Bind(bool reuse){
-	if (!reuse){
-		socket_ = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+	mPosition += bytes_transferred;
+	mRemainBytes -= bytes_transferred;
 
-		if (socket_ == INVALID_SOCKET)
+	//PRINTF("Server to Agent Packet Received %d bytes! \n",m_nRemainBytes);
+
+	char *buf = this->recvBuf_;
+
+	if (mPosition < HEADER_SIZE)
+	{
+		this->Recv(buf + mPosition, mRemainBytes);
+	}
+	else
+	{
+		if (mPosition == HEADER_SIZE)
 		{
-			PRINTF("WSASocket() Error!!! err(%d)\n", WSAGetLastError());
+			sag_pkt_type eType = (sag_pkt_type)((unsigned short)(*buf));
+
+			switch (eType)
+			{
+			case sag_pkt_type::pt_room_info_changed:
+				PRINTF("pt_room_info_changed\n");
+				mRemainBytes = sizeof(sag_room_info_changed)-HEADER_SIZE;
+
+				break;
+			case sag_pkt_type::pt_user_info_changed:
+				PRINTF("pt_user_info_changed\n");
+				mRemainBytes = sizeof(sag_user_info_changed)-HEADER_SIZE;
+
+				break;
+			case sag_pkt_type::pt_server_info_changed:
+				PRINTF("pt_server_info_changed\n");
+				mRemainBytes = sizeof(sag_server_info_changed)-HEADER_SIZE;
+
+				break;
+			case sag_pkt_type::pt_total_room_info:
+			case sag_pkt_type::pt_total_user_info:
+			case sag_pkt_type::pt_total_interserver_info:
+				mIsVar = true;
+				mRemainBytes = sizeof(short);
+				break;
+			
+			case sag_pkt_type::pt_health_ack:
+				PRINTF("pt_pt_health_ack\n");
+				mRemainBytes = sizeof(sag_health_ack)-HEADER_SIZE;
+
+				break;
+			}
+
 		}
+		if (mRemainBytes <= 0)
+		{
+			if (mIsVar)
+			{
+				unsigned short cnt;
+				memcpy(&cnt, buf + 2, sizeof(short));
+
+				sag_pkt_type eType = (sag_pkt_type)((unsigned short)(*buf));
+
+				switch (eType)
+				{
+				case sag_pkt_type::pt_total_room_info:
+					
+					//PRINTF("m_nRemainBytes %d /sag_pkt_type::pt_total_room_info \n", mRemainBytes);
+					mRemainBytes = cnt*sizeof(RoomInfo);
+					break;
+				case sag_pkt_type::pt_total_user_info:
+					
+					//PRINTF("m_nRemainBytes %d /sag_pkt_type::pt_total_user_info \n", mRemainBytes);
+					mRemainBytes = cnt*sizeof(UserInfo);
+
+					break;
+				case sag_pkt_type::pt_total_interserver_info:
+					
+					//PRINTF("m_nRemainBytes %d /sag_pkt_type::pt_total_interserver_info \n", mRemainBytes);
+					mRemainBytes = cnt * sizeof(unsigned short);
+
+					break;
+				}
+				mIsVar = false;
+
+				if (mRemainBytes == 0)
+				{
+					mPosition = 0;
+					mRemainBytes = HEADER_SIZE;
+					PacketHandling(buf);
+				}
+			}
+			else
+			{
+				mPosition = 0;
+				mRemainBytes = HEADER_SIZE;
+
+				PacketHandling(buf);
+			}
+		}
+		this->Recv(buf + mPosition, mRemainBytes);
 
 	}
-	int rc;
-	struct sockaddr_in addr;
-	ZeroMemory(&addr, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = INADDR_ANY;
-	addr.sin_port = 0;
-	rc = bind(socket_, (SOCKADDR*)&addr, sizeof(addr));
-	if (rc != 0) {
-		PRINTF("bind failed: %d\n", WSAGetLastError());
-		return;
+}
+void SASocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred)
+{
+	
+	if (!isError)
+	{
+		
+		PRINTF("Connect Server Success, %d\n", this->socket_);
+		
+
+		memcpy(&mServerNum, this->acceptBuf_, sizeof(mServerNum));
+		PRINTF("Server Number : %d \n", mServerNum);
+
+		AgentApp::Instance()->AddServer(this);
+		Recv(this->recvBuf_, HEADER_SIZE);
 	}
-}
-
-void SASocket::RecvProcess(bool isError, CAct* act, DWORD bytes_transferred){
-	this->serverAgent->RecvProcess(isError, act, bytes_transferred);
-}
-
-void SASocket::SendProcess(bool isError, CAct* act, DWORD bytes_transferred){
-	this->serverAgent->SendProcess(isError, act, bytes_transferred);
-}
-
-
-void SASocket::DisconnProcess(bool isError, CAct* act, DWORD bytes_transferred){
-	this->serverAgent->DisconnProcess(isError, act, bytes_transferred);
-}
-
-void SASocket::ConnProcess(bool isError, CAct* act, DWORD bytes_transferred){
-	this->serverAgent->ConnProcess(isError, act, bytes_transferred);
-}
-
-void SASocket::Connect(DWORD ip, WORD port){
-	sockaddr_in addr;
-	ZeroMemory(&addr, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = ip; // google.com
-	addr.sin_port = htons(port);
-
-	int ok = mswsock.ConnectEx(socket_, (SOCKADDR*)&addr, sizeof(addr), NULL, 0, NULL,
-		static_cast<OVERLAPPED*>(&act_[TcpSocket::ACT_CONNECT]));
-	if (ok) {
-
-
-		PRINTF("ConnectEx succeeded immediately\n");
+	else
+	{
+		/* error handling */
+		PRINTF("CPlayer AcceptProcess : Error : %d\n", WSAGetLastError());
 	}
 
-	int error = WSAGetLastError();
-	if (ok == FALSE && WSAGetLastError() != ERROR_IO_PENDING) {
-		PRINTF("ConnectEx Error!!! s(%d), err(%d)\n", socket_, error);
-	}
-	PRINTF("Connect Request..\n");
 }
+
+void SASocket::SendProcess(bool isError, Act* act, DWORD bytes_transferred)
+{
+	
+}
+
+void SASocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred)
+{
+	if (!isError)
+	{
+		
+	}
+	else
+	{
+
+	}
+	
+}
+
+void SASocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred)
+{
+	
+}
+

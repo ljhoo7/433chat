@@ -58,20 +58,20 @@ void MSASocket::Bind(bool reuse){
 	}
 }
 
-void MSASocket::RecvProcess(bool isError, CAct* act, DWORD bytes_transferred){
+void MSASocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 	this->serverAgent->RecvProcess(isError, act, bytes_transferred);
 }
 
-void MSASocket::SendProcess(bool isError, CAct* act, DWORD bytes_transferred){
+void MSASocket::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 	this->serverAgent->SendProcess(isError, act, bytes_transferred);
 }
 
 
-void MSASocket::DisconnProcess(bool isError, CAct* act, DWORD bytes_transferred){
+void MSASocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	this->serverAgent->DisconnProcess(isError, act, bytes_transferred);
 }
 
-void MSASocket::ConnProcess(bool isError, CAct* act, DWORD bytes_transferred){
+void MSASocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	this->serverAgent->ConnProcess(isError, act, bytes_transferred);
 }
 

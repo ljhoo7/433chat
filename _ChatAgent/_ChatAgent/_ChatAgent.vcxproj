@@ -79,13 +79,19 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Acceptor.h" />
     <ClInclude Include="Act.h" />
     <ClInclude Include="Actor.h" />
+    <ClInclude Include="AgentApp.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Connector.h" />
     <ClInclude Include="Disconnector.h" />
-    <ClInclude Include="LogAct.h" />
-    <ClInclude Include="LogWriter.h" />
+    <ClInclude Include="LogAct.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="LogWriter.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="MSAgentProtocol.h" />
     <ClInclude Include="MSASocket.h" />
     <ClInclude Include="MServerAgent.h" />
@@ -98,14 +104,20 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TcpAct.h" />
+    <ClInclude Include="TcpListenSocket.h" />
     <ClInclude Include="TcpSocket.h" />
     <ClInclude Include="Utilities.h" />
+    <ClInclude Include="WinSockBase.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Acceptor.cpp" />
     <ClCompile Include="Actor.cpp" />
+    <ClCompile Include="AgentApp.cpp" />
     <ClCompile Include="Connector.cpp" />
     <ClCompile Include="Disconnector.cpp" />
-    <ClCompile Include="LogWriter.cpp" />
+    <ClCompile Include="LogWriter.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="MSASocket.cpp" />
     <ClCompile Include="MServerAgent.cpp" />
     <ClCompile Include="Proactor.cpp" />
@@ -117,6 +129,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TcpListenSocket.cpp" />
     <ClCompile Include="TcpSocket.cpp" />
     <ClCompile Include="Utilities.cpp" />
     <ClCompile Include="_ChatAgent.cpp" />

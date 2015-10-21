@@ -2,7 +2,7 @@
 
 #include "stdafx.h"
 
-class TcpAct : public CAct
+class TcpAct : public Act
 {
 public:
 	TcpAct()
@@ -20,7 +20,7 @@ public:
 		actor_->ProcError(this, error);
 	}
 
-	void Init(CActor* actor, TcpSocket* tcpsocket)
+	void Init(Actor* actor, TcpSocket* tcpsocket)
 	{
 		actor_ = actor;
 		tcpSocket_ = tcpsocket;

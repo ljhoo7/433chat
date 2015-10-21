@@ -8,7 +8,7 @@ enum msag_pkt_type
 	pkt_total_room_info,
 	pkt_total_user_info,
 	pkt_total_interserver_info,
-	pkt_tell_agent_number,
+	pkt_request_total_info,
 	pkt_interserver_success,
 	pkt_interserver_fail,
 	
@@ -17,7 +17,7 @@ enum msag_pkt_type
 	pkt_room_destroy,
 	pkt_interserver_connect,
 	pkt_interserver_disconnect,
-	pkt_request_total_info
+	
 };
 
 /*
@@ -42,10 +42,7 @@ typedef struct{
 	unsigned short serverNumList[MAX_CONNECTED_SERVER];
 }agms_total_interserver_info;
 
-typedef struct{
-	unsigned short type;
-	unsigned short agentNum;
-}agms_tell_agent_number;
+
 
 //typedef struct{
 //	unsigned short type;
