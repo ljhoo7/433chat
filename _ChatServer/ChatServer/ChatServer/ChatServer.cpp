@@ -162,11 +162,9 @@ void ChatServer::EscapingAllUsers(){
 			PRINTF("%d client escape to server %d\n", (*iter)->socket_, serverNums[i%n]);
 
 			tmpEscape.dest_ip = chatServer->serverInfo[serverNums[i%n]].ip;
-			tmpEscape.port = chatServer->serverInfo[i%n].client_port;
+			tmpEscape.port = chatServer->serverInfo[serverNums[i%n]].client_port;
 			i++;
 			(*iter)->Send((char*)&tmpEscape, sizeof(t_escape_server));
-
-			break;
 		}
 	}
 }
