@@ -12,7 +12,7 @@ void Sender::ProcEvent(Act* act, DWORD bytes_transferred)
 	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
 	tcpsocket.SendProcess(false, act, bytes_transferred);
-	//PRINTF(L"...Sender (%d byte) s(%d)\n", bytes_transferred, tcpsocket.GetSocket() );
+	//PRINTF("...Sender (%d byte) s(%d)\n", bytes_transferred, tcpsocket.GetSocket() );
 }
 
 void Sender::ProcError(Act* act, DWORD error)
@@ -25,7 +25,7 @@ void Sender::ProcError(Act* act, DWORD error)
 
 	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
-	PRINTF(L"...俊矾贸府 Sender s(%d) err(%d)\n", tcpsocket.socket_, error);
+	PRINTF("...俊矾贸府 Sender s(%d) err(%d)\n", tcpsocket.socket_, error);
 
 	tcpsocket.SendProcess(true, act, error);
 }

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "stdafx.h"
-
 class TcpAct : public Act
 {
 public:

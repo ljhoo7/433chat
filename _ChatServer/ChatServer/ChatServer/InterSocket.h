@@ -1,15 +1,23 @@
 #pragma once
 
-#include "stdafx.h"
-
 class InterSocket : public TcpSocket
 {
 public:
-	InterSocket(TcpInterServer* InterServer);
+	InterSocket(TcpInterServer* InterServer, bool isConnect);
 	~InterSocket();
 
 public:
 	TcpInterServer* interServer_;
+	int serverNum;
+	bool isConnect;
+
+	int position;
+	int remainBytes;
+	bool isVar;
+	bool isUse;
+
+	MemPooler<msg_buffer> *poolManager;
+	MemPooler<CPacket> *packetPoolManager;
 
 public:
 	void RecvProcess(bool isError, Act* act, DWORD bytes_transferred);
@@ -17,4 +25,21 @@ public:
 	void AcceptProcess(bool isError, Act* act, DWORD bytes_transferred);
 	void DisconnProcess(bool isError, Act* act, DWORD bytes_transferred);
 	void ConnProcess(bool isError, Act* act, DWORD bytes_transferred);
+	void packetHandling(CPacket *packet);
+
+	void Bind(bool reuse);
+	void Connect(unsigned int ip, WORD port, int serverNum);
+
+	void SendPlayerInfo();
+	void SendRoomInfo();
+	void MakeSync();
+
+	CPlayer* FindPlayerBySocket(SOCKET socket);
+
+private:
+	struct mswsock_s {
+		LPFN_CONNECTEX ConnectEx;
+	} mswsock;
+
+	BOOL LoadMswsock(void);
 };

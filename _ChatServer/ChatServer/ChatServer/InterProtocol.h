@@ -21,6 +21,8 @@ enum ssType
 	pkt_room_info_failure,
 	pkt_player_info_success,
 	pkt_player_info_failure,
+	pkt_server_disconnect,
+	pkt_server_connect,
 };
 
 typedef struct
@@ -69,12 +71,14 @@ typedef struct
 {
 	unsigned short type;
 	int client_socket;
+	int server_num;
 } ss_connect;
 
 typedef struct
 {
 	unsigned short type;
 	int client_socket;
+	int server_num;
 } ss_disconnect;
 
 typedef struct
@@ -102,6 +106,7 @@ typedef struct
 typedef struct
 {
 	int client_socket;
+	int server_num;
 	short room_num;
 	char nickname[20];
 	unsigned int token;
@@ -134,3 +139,17 @@ typedef struct
 {
 	unsigned short type;
 } ss_player_info_failure;
+
+typedef struct
+{
+	unsigned short type;
+	int server_num1;
+	int server_num2;
+} ss_server_disconnect;
+
+typedef struct
+{
+	unsigned short type;
+	int server_num1;
+	int server_num2;
+} ss_server_connect;

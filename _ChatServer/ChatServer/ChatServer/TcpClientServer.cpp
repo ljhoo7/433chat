@@ -48,10 +48,10 @@ void TcpClientServer::Start()
 	// Create Socket pool 
 	for (int i = 0; i<socketPoolSize_; i++)
 	{
-		CPlayer* socket = new CPlayer(true);
+		CPlayer* socket = new CPlayer(chatServer->serverNum);
 		socket->Init();
 		socket->InitAct(proactor_, acceptor_, disconnector_, NULL, sender_, receiver_);
 
-		acceptor_->Register(*socket);
+		acceptor_->Register(*socket, 0);
 	}
 }

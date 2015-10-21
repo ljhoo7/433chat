@@ -1,7 +1,6 @@
 #include "stdafx.h"
 
-extern TcpInterServer* listenServer;
-extern TcpInterServer* connectServer;
+extern ChatServer* chatServer;
 
 CLogicHandle::CLogicHandle()
 {
@@ -57,8 +56,11 @@ void CLogicHandle::Process()
 
 			if (packet != nullptr)
 			{
-				if (packet->type == 2)
-				{
+				if (packet->isAgent){
+					AgentSocket *socket = static_cast<AgentSocket *>(packet->owner);
+					socket->PacketHandling(packet);
+				}
+				else{
 					CPlayer *tPlayer = static_cast<CPlayer *>(packet->owner);
 					tPlayer->PacketHandling(packet);
 				}
@@ -79,14 +81,8 @@ void CLogicHandle::Process()
 
 		if (packet != nullptr)
 		{
-			if (packet->type == 0)
-			{
-				connectServer->packetHandling(packet);
-			}
-			else if (packet->type == 1)
-			{
-				listenServer->packetHandling(packet);
-			}
+			InterSocket *socket = static_cast<InterSocket *>(packet->owner);
+			socket->packetHandling(packet);
 		}
 
 	}
