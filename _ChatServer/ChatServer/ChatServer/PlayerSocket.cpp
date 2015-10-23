@@ -167,6 +167,8 @@ void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 void CPlayer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		RemovePlayer();
+
+
 	}
 	else{
 

@@ -17,9 +17,11 @@ bool CClient::SendCreateMessage(int num)
 	tmp_packet.type = pkt_type::pt_create;
 	tmp_packet.room_num = num;
 
-	m_pSock->Send((char*)&tmp_packet, sizeof(t_create));
 
-	GetStateMachine()->ChangeState(CCreate_Response_Wait::Instance());
+	// Very Important !!!!! : The sequence of the sentences which are below must (1)->(2) !!!!
+	GetStateMachine()->ChangeState(CCreate_Response_Wait::Instance()); // ---- (1)
+
+	m_pSock->Send((char*)&tmp_packet, sizeof(t_create));			   // ---- (2)
 
 	return true;
 }
@@ -43,10 +45,10 @@ bool CClient::SendDestroyMessage(int num)
 	tmp_packet.type = pkt_type::pt_destroy;
 	tmp_packet.room_num = num;
 
-	// Sending Destroy Packet
-	m_pSock->Send((char*)&tmp_packet, sizeof(t_destroy));
+	// Very Important !!!!! : The sequence of the sentences which are below must (1)->(2) !!!!
+	GetStateMachine()->ChangeState(CDestroy_Response_Wait::Instance()); // ---- (1)
 
-	GetStateMachine()->ChangeState(CDestroy_Response_Wait::Instance());
+	m_pSock->Send((char*)&tmp_packet, sizeof(t_destroy));			    // ---- (2)
 
 	return true;
 }
@@ -70,10 +72,10 @@ bool CClient::SendJoinMessage(int num, char *nick)
 	tmp_packet.room_num = num;
 	strcpy((char*)tmp_packet.nickname, nick);
 
-	// Sending Join Packet
-	m_pSock->Send((char*)&tmp_packet, sizeof(t_join));
+	// Very Important !!!!! : The sequence of the sentences which are below must (1)->(2) !!!!
+	GetStateMachine()->ChangeState(CJoin_Response_Wait::Instance()); // ---- (1)
 
-	GetStateMachine()->ChangeState(CJoin_Response_Wait::Instance());
+	m_pSock->Send((char*)&tmp_packet, sizeof(t_join)); 			     // ---- (2)
 
 	return true;
 }
@@ -88,12 +90,12 @@ bool CClient::SendLeaveMessage()
 	tmp_packet.token = m_nToken;
 	strcpy((char*)tmp_packet.nickname, m_szNickname);
 
-	// Sending leave packet
-	m_pSock->Send((char*)&tmp_packet, sizeof(t_leave));
+	// Very Important !!!!! : The sequence of the sentences which are below must (1)->(2) !!!!
+	GetStateMachine()->ChangeState(CLeave_Response_Wait::Instance()); // ---- (1)
+
+	m_pSock->Send((char*)&tmp_packet, sizeof(t_leave)); 			  // ---- (2)
 
 	m_nRoom_num = -1;
-
-	GetStateMachine()->ChangeState(CLeave_Response_Wait::Instance());
 
 	return true;
 }
