@@ -39,10 +39,15 @@ public:
 
 	void PacketHandling(char* buf);
 
+	void SendUserOut(int serverNum, int userSocket);
+	void SendRoomDestroy(int roomNum);
+	void SendKillServer(int serverNum);
+
 	void SendTotalData();
-	void SendUserInfo();
+	void SendServerCount();
+	void SendServerInfo();
 	void SendRoomInfo();
-	void SendInterServerInfo();
+	//void SendInterServerInfo();
 
 	void Connect(DWORD ip, WORD port);
 

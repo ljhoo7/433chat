@@ -96,7 +96,7 @@ void TcpSocket::Recv(char* buf, int buflen)
 			Disconnect();
 		}
 	}
-	PRINTF("%d bytes were received !\n", recvbytes);
+	//PRINTF("%d bytes were received !\n", recvbytes);
 }
 
 void TcpSocket::Send(char* buf, int buflen)

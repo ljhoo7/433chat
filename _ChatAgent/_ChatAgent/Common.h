@@ -31,8 +31,14 @@ struct ServerInfo
 	unsigned short		userCount;
 	std::list<UserInfo> userInfoList;
 
-	ServerInfo() :userCount(0){}
-	~ServerInfo(){}
+	ServerInfo() : userCount(0){}
+	~ServerInfo(){ if(!userInfoList.empty()) userInfoList.clear(); }
+
+	bool operator==(const ServerInfo& other)
+	{
+		return (this->serverNum == other.serverNum) && 
+			(this->userCount == other.userCount);
+	}
 };
 
 struct TotalInfo
@@ -45,7 +51,7 @@ struct TotalInfo
 	unsigned short			      serverCnt;
 	std::list<unsigned short>	  serverNumList;
 
-	TotalInfo():roomCnt(0),serverCnt(0){}
+	TotalInfo() : roomCnt(0),serverCnt(0){}
 	~TotalInfo(){}
 };
 

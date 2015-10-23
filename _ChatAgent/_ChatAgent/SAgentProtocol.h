@@ -7,10 +7,10 @@ enum sag_pkt_type
 	// S -> AG
 	pt_room_info_changed,
 	pt_user_info_changed,
-	pt_server_info_changed,
+	//pt_server_info_changed,
 	pt_total_room_info,
 	pt_total_user_info,
-	pt_total_interserver_info,
+	//pt_total_interserver_info,
 	pt_health_ack,
 
 	// AG -> S
@@ -37,11 +37,11 @@ typedef struct{
 	char isConnected;
 }sag_user_info_changed;
 
-typedef struct{
-	unsigned short type;
-	unsigned short serverNum;
-	bool isConnected;
-}sag_server_info_changed;
+//typedef struct{
+//	unsigned short type;
+//	unsigned short serverNum;
+//	bool isConnected;
+//}sag_server_info_changed;
 
 typedef struct{
 	unsigned short type;
@@ -55,11 +55,11 @@ typedef struct{
 	UserInfo userInfoList[MAX_TOTAL_USER];
 }sag_total_user_info;
 
-typedef struct{
-	unsigned short type;
-	unsigned short serverCnt;
-	unsigned short serverNumList[MAX_CONNECTED_SERVER];
-}sag_total_interserver_info;
+//typedef struct{
+//	unsigned short type;
+//	unsigned short serverCnt;
+//	unsigned short serverNumList[MAX_CONNECTED_SERVER];
+//}sag_total_interserver_info;
 
 typedef struct{
 	unsigned short type;

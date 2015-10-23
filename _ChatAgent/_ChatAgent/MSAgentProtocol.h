@@ -6,99 +6,105 @@ enum msag_pkt_type
 {
 	// AG -> MS
 	pkt_total_room_info,
+	pkt_total_server_count,
 	pkt_total_user_info,
-	pkt_total_interserver_info,
-	pkt_request_total_info,
-	pkt_interserver_success,
-	pkt_interserver_fail,
+	pkt_user_out_success,
+	pkt_user_out_fail,
+	pkt_room_destroy_success,
+	pkt_room_destroy_fail,
+	pkt_kill_server_success,
+	pkt_kill_server_fail,
 	
 	// MS -> AG
 	pkt_user_out,
 	pkt_room_destroy,
-	pkt_interserver_connect,
-	pkt_interserver_disconnect,
-	
+	pkt_kill_server,
+	pkt_total_request,
 };
 
 /*
 * Agent -> Monitoring Server
 */
 
+#pragma pack(1)
 typedef struct{
 	unsigned short type;
 	unsigned short roomCnt;
 	RoomInfo roomInfoList[MAX_TOTAL_ROOM];
 }agms_total_room_info;
 
+#pragma pack(1)
 typedef struct{
 	unsigned short type;
+	unsigned short serverCnt;
+}agms_total_server_count;
+
+#pragma pack(1)
+typedef struct{
+	unsigned short type;
+	int serverNum;
 	unsigned short userCnt;
 	UserInfo userInfoList[MAX_TOTAL_USER];
 }agms_total_user_info;
 
+#pragma pack(1)
 typedef struct{
 	unsigned short type;
-	unsigned short serverCnt;
-	unsigned short serverNumList[MAX_CONNECTED_SERVER];
-}agms_total_interserver_info;
+}agms_user_out_success;
 
-
-
-//typedef struct{
-//	unsigned short type;
-//
-//	// 7
-//	unsigned short agentNum;
-//
-//	// 6
-//	unsigned short serverCnt;
-//	unsigned short serverNumList[MAX_CONNECTED_SERVER];
-//
-//	// 4
-//	unsigned short roomCnt;
-//	RoomInfo roomInfoList[MAX_TOTAL_ROOM];
-//
-//	// 5
-//	unsigned short userCnt;
-//	UserInfo userInfoList[MAX_TOTAL_USER];
-//
-//}agms_total_info_send;
-
-typedef struct{
-	unsigned short type;
-}agms_pt_interserver_success;
-
+#pragma pack(1)
 typedef struct{
 	unsigned short type;
 	unsigned short failSignal;
-}agms_pt_interserver_fail;
+}agms_user_out_fail;
 
+#pragma pack(1)
+typedef struct{
+	unsigned short type;
+}agms_room_destroy_success;
+
+#pragma pack(1)
+typedef struct{
+	unsigned short type;
+	unsigned short failSignal;
+}agms_room_destroy_fail;
+
+#pragma pack(1)
+typedef struct{
+	unsigned short type;
+}agms_kill_server_success;
+
+#pragma pack(1)
+typedef struct{
+	unsigned short type;
+	unsigned short failSignal;
+}agms_kill_server_fail;
 
 
 /*
 * Monitoring Server -> Agent
 */
 
+#pragma pack(1)
 typedef struct{
 	unsigned short type;
+	int serverNum;
 	int userSocket;
 }msag_user_out;
 
+#pragma pack(1)
 typedef struct{
 	unsigned short type;
 	unsigned short roomNum;
 }msag_room_destroy;
 
+#pragma pack(1)
 typedef struct{
 	unsigned short type;
-	unsigned short serverNum;
-}msag_interserver_connect;
+	int serverNum;
+}msag_kill_server;
 
-typedef struct{
-	unsigned short type;
-	unsigned short serverNum;
-}msag_interserver_disconnect;
-
+#pragma pack(1)
 typedef struct{
 	unsigned short type;
 }msag_request_total_info;

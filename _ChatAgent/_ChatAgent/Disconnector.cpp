@@ -17,7 +17,7 @@ void Disconnector::ProcEvent(Act* act, DWORD bytes_transferred)
 	assert(tcpact.tcpSocket_);
 	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
-	//PRINTF("...Disconnector s(%d)\n", tcpsocket.GetSocket());
+	PRINTF("...Disconnector s(%d)\n", tcpsocket.socket_);
 
 	assert(tcpsocket.disconnector_);
 

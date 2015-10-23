@@ -53,8 +53,8 @@ typedef struct mswsock_s {
 
 
 #include "WinSockBase.h"
-#include "MSAgentProtocol.h"
 #include "SAgentProtocol.h"
+#include "MSAgentProtocol.h"
 
 #include "Utilities.h"
 

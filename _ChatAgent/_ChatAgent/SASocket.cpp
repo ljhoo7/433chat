@@ -19,10 +19,10 @@ void SASocket::PacketHandling(char* buf)
 
 	sag_room_info_changed			 roomInfoChangedPkt;
 	sag_user_info_changed			 userInfoChangedPkt;
-	sag_server_info_changed			 serverInfoChangedPkt;
+	//sag_server_info_changed			 serverInfoChangedPkt;
 	sag_total_room_info*			 totalRoomInfoPkt;
 	sag_total_user_info*			 totalUserInfoPkt;
-	sag_total_interserver_info*		 totalInterServerInfoPkt;
+	//sag_total_interserver_info*		 totalInterServerInfoPkt;
 
 	switch (eType)
 	{
@@ -46,14 +46,14 @@ void SASocket::PacketHandling(char* buf)
 
 
 		break;
-	case sag_pkt_type::pt_server_info_changed:
-		PRINTF("sag_pkt_type::pt_user_info_changed \n");
+	/*case sag_pkt_type::pt_server_info_changed:
+		PRINTF("sag_pkt_type::pt_server_info_changed \n");
 
 		serverInfoChangedPkt = *((sag_server_info_changed*)(buf));
 
 		AgentApp::Instance()->SaveDeltaInterSeverInfo(serverInfoChangedPkt.serverNum, serverInfoChangedPkt.isConnected);
 
-		break;
+		break;*/
 	case sag_pkt_type::pt_total_room_info:
 		PRINTF("sag_pkt_type::pt_total_room_info \n");
 
@@ -68,13 +68,13 @@ void SASocket::PacketHandling(char* buf)
 		AgentApp::Instance()->SaveTotalServerUserInfo(mServerNum,totalUserInfoPkt->userCnt, totalUserInfoPkt->userInfoList);
 		break;
 
-	case sag_pkt_type::pt_total_interserver_info:
+	/*case sag_pkt_type::pt_total_interserver_info:
 		PRINTF("sag_pkt_type::pt_total_interserver_info \n");
 
 		totalInterServerInfoPkt = (sag_total_interserver_info*)(buf);
 		AgentApp::Instance()->SaveTotalInterServerInfo(totalInterServerInfoPkt->serverCnt, totalInterServerInfoPkt->serverNumList);
 
-		break;
+		break;*/
 
 	}
 
@@ -119,14 +119,14 @@ void SASocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred)
 				mRemainBytes = sizeof(sag_user_info_changed)-HEADER_SIZE;
 
 				break;
-			case sag_pkt_type::pt_server_info_changed:
-				PRINTF("pt_server_info_changed\n");
-				mRemainBytes = sizeof(sag_server_info_changed)-HEADER_SIZE;
-
-				break;
+			//case sag_pkt_type::pt_server_info_changed:
+			//	PRINTF("pt_server_info_changed\n");
+			//	mRemainBytes = sizeof(sag_server_info_changed)-HEADER_SIZE;
+			//
+			//	break;
 			case sag_pkt_type::pt_total_room_info:
 			case sag_pkt_type::pt_total_user_info:
-			case sag_pkt_type::pt_total_interserver_info:
+			//case sag_pkt_type::pt_total_interserver_info:
 				mIsVar = true;
 				mRemainBytes = sizeof(short);
 				break;
@@ -161,12 +161,12 @@ void SASocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred)
 					mRemainBytes = cnt*sizeof(UserInfo);
 
 					break;
-				case sag_pkt_type::pt_total_interserver_info:
-					
-					//PRINTF("m_nRemainBytes %d /sag_pkt_type::pt_total_interserver_info \n", mRemainBytes);
-					mRemainBytes = cnt * sizeof(unsigned short);
-
-					break;
+				//case sag_pkt_type::pt_total_interserver_info:
+				//	
+				//	//PRINTF("m_nRemainBytes %d /sag_pkt_type::pt_total_interserver_info \n", mRemainBytes);
+				//	mRemainBytes = cnt * sizeof(unsigned short);
+				//
+				//	break;
 				}
 				mIsVar = false;
 
@@ -197,10 +197,8 @@ void SASocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred)
 		
 		PRINTF("Connect Server Success, %d\n", this->socket_);
 		
-
 		memcpy(&mServerNum, this->acceptBuf_, sizeof(mServerNum));
 		PRINTF("Server Number : %d \n", mServerNum);
-
 		AgentApp::Instance()->AddServer(this);
 		Recv(this->recvBuf_, HEADER_SIZE);
 	}
@@ -222,6 +220,23 @@ void SASocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred)
 	if (!isError)
 	{
 		
+		bool isSearchDelete = AgentApp::Instance()->DeleteServerInfo(mServerNum);
+		
+
+		if (isSearchDelete)
+		{
+
+			PRINTF("Disconnect Server Success, %d\n", this->socket_);
+
+			AgentApp::Instance()->DeleteServer(this);
+
+		}
+		else
+		{
+
+			PRINTF("Disconnect Server Failed, %d\n", this->socket_);
+
+		}
 	}
 	else
 	{

@@ -2,12 +2,14 @@
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	if (argc != 3)
+	if (argc != 4)
 	{
 		PRINTF("The Number of Parameters is error !\n");
 
 		exit(0);
 	}
+
+	unsigned short agentPort = _wtoi(argv[3]);
 
 	/// server & monitoring server IP & PORT INPUT
 	unsigned int gMonitoringServerPort = _wtoi(argv[1]);
@@ -20,7 +22,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		exit(0);
 	}
 
-	AgentApp::Instance()->Init(gMonitoringServerIP, gMonitoringServerPort);
+	AgentApp::Instance()->Init(agentPort, gMonitoringServerIP, gMonitoringServerPort);
 	
 	while (TRUE)
 	{

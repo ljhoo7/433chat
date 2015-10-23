@@ -3,21 +3,21 @@
 
 MServerAgent::MServerAgent(int p_nThreadPoolSize, int p_nSocketPoolSize)
 :WinSockBase(),
- m_nThreadPoolSize(p_nThreadPoolSize),
- m_nSocketPoolSize(p_nSocketPoolSize),
- isUse(false),
- isVar(false)
+m_nThreadPoolSize(p_nThreadPoolSize),
+m_nSocketPoolSize(p_nSocketPoolSize),
+isUse(false),
+isVar(false)
 {
 	InitializeCriticalSectionAndSpinCount(&IOLock, 4000);
 
 
-	mProactor     = new Proactor(p_nThreadPoolSize);
-	mConnector    = new Connector(mProactor);
+	mProactor = new Proactor(p_nThreadPoolSize);
+	mConnector = new Connector(mProactor);
 	mDisconnector = new Disconnector(mProactor);
-	mReceiver	  = new CReceiver(mProactor);
-	mSender		  = new CSender(mProactor);
+	mReceiver = new CReceiver(mProactor);
+	mSender = new CSender(mProactor);
 
-	m_pSock		  = new MSASocket(static_cast<MServerAgent*>(this));
+	m_pSock = new MSASocket(static_cast<MServerAgent*>(this));
 
 	m_nPosition = 0;
 	m_nRemainBytes = HEADER_SIZE;
@@ -34,6 +34,7 @@ MServerAgent::MServerAgent(int p_nThreadPoolSize, int p_nSocketPoolSize)
 
 	mProactor->Register((HANDLE)m_pSock->socket_);
 
+	
 	//isConnect = true;
 
 	PRINTF("MSASocket start....\n");
@@ -50,86 +51,199 @@ void MServerAgent::PacketHandling(char* buf)
 	msag_pkt_type eType = (msag_pkt_type)((unsigned short)(*buf));
 
 	// after received AGENT -> SERVER
-	ags_user_out					 userOutPkt;
-	ags_room_destroy				 roomDestroyPkt;
+	msag_user_out					 userOutPkt;
+	msag_room_destroy				 roomDestroyPkt;
+	msag_kill_server				 killServerPkt;
 	ags_health_check                 healthCheckPkt;
+	
 	// after received AGENT -> MONITORING SERVER
-	msag_request_total_info			 totalSendInfoPkt;
 
 	switch (eType)
 	{
 	case msag_pkt_type::pkt_user_out:
-		userOutPkt = *((ags_user_out*)(buf));
-		userOutPkt.type = sag_pkt_type::pt_user_out;
-
-		//if (m_pServerAgentSocket != nullptr)
-		//	m_pServerAgentSocket->Send((char*)&userOutPkt, sizeof(ags_user_out));
-
+		userOutPkt = *((msag_user_out*)(buf));
+		/// 이 부분 예외처리 필요. 서버랑 연결됐는지 확인. 
+		SendUserOut(userOutPkt.serverNum, userOutPkt.userSocket);
+	
 		break;
 	case msag_pkt_type::pkt_room_destroy:
-		roomDestroyPkt = *((ags_room_destroy*)(buf));
-		roomDestroyPkt.type = sag_pkt_type::pt_room_destroy;
-
-		//if (m_pServerAgentSocket != nullptr)
-		//	m_pServerAgentSocket->Send((char*)&roomDestroyPkt, sizeof(ags_room_destroy));
+		roomDestroyPkt = *((msag_room_destroy*)(buf));
+		SendRoomDestroy(roomDestroyPkt.roomNum);
 
 		break;
-	//case msag_pkt_type::pkt_interserver_connect:
-	//	interServerConnectedPkt = *(ags_interserver_connect*)(buf);
-	//	interServerConnectedPkt.type = sag_pkt_type::pt_interserver_connect;
+	case msag_pkt_type::pkt_kill_server:
+		killServerPkt = *((msag_kill_server*)(buf));
+		SendKillServer(killServerPkt.serverNum);
 
-	//	//if (m_pServerAgentSocket != nullptr)
-	//	//	m_pServerAgentSocket->Send((char*)&interServerConnectedPkt, sizeof(pkt_interserver_connect));
-
-	//	break;
-	//case msag_pkt_type::pkt_interserver_disconnect:
-	//	interServerDisConnectedPkt = *(ags_interserver_disconnect*)(buf);
-	//	interServerDisConnectedPkt.type = sag_pkt_type::pt_interserver_disconnect;
-
-	//	//if (m_pServerAgentSocket != nullptr)
-	//	//	m_pServerAgentSocket->Send((char*)&interServerDisConnectedPkt, sizeof(pkt_interserver_disconnect));
-
-	//	break;
-	//case msag_pkt_type::pkt_request_total_info:
-		//SendTotalData();
+		break;
+	case msag_pkt_type::pkt_total_request:
+		PRINTF("Send Total Data\n");
+		SendTotalData();
 		/// MS가 TOTAL을 요청할때
 		break;
 
 	}
 }
+void MServerAgent::SendUserOut(int serverNum, int userSocket)
+{
+	bool isSearch = AgentApp::Instance()->IsSearchUser(serverNum, userSocket);
+
+	if (isSearch)
+	{
+		// 성공시 서버로 Send 
+		ags_user_out serverPkt;
+		serverPkt.type = sag_pkt_type::pt_user_out;
+		serverPkt.userSocket = userSocket;
+		
+		SASocket* pServerSocket = AgentApp::Instance()->FindServer(serverNum);
+		
+		PRINTF("Send to Server User Out Packet\n");
+		pServerSocket->Send((char*)&serverPkt, sizeof(ags_user_out));
+
+
+		agms_user_out_success mserverPkt;
+		mserverPkt.type = msag_pkt_type::pkt_user_out_success;
+		PRINTF("Send to Monitoring Server User Out Success Packet\n");
+		m_pSock->Send((char*)&mserverPkt, sizeof(agms_user_out_success));
+	}
+	else
+	{
+		// 실패시 모니터링 서버로 리턴
+		agms_user_out_fail pkt;
+		pkt.type = msag_pkt_type::pkt_user_out_fail;
+		pkt.failSignal = fail_signal::fs_no_exist;
+
+		PRINTF("Send to Monitoring Server User Out Failed Packet\n");
+		m_pSock->Send((char*)&pkt, sizeof(agms_user_out_fail));
+	}
+}
+
+
+void MServerAgent::SendRoomDestroy(int roomNum)
+{
+	bool isSearch = AgentApp::Instance()->IsSearchRoom(roomNum);
+
+	if (isSearch)
+	{
+		// 성공시 서버로 Send 
+		ags_room_destroy serverPkt;
+		serverPkt.type = sag_pkt_type::pt_room_destroy;
+		serverPkt.roomNum = roomNum;
+
+		SASocket* pServerSocket = AgentApp::Instance()->GetServerSocketList().back();
+		PRINTF("Send to Server Room Destroy Packet\n");
+		pServerSocket->Send((char*)&serverPkt, sizeof(ags_room_destroy));
+
+		agms_room_destroy_success mserverPkt;
+		mserverPkt.type = msag_pkt_type::pkt_room_destroy_fail;
+		PRINTF("Send to Monitoring Server Room Destroy Success Packet\n");
+		m_pSock->Send((char*)&mserverPkt, sizeof(agms_room_destroy_success));
+	}
+	else
+	{
+		
+		// 실패시 모니터링 서버로 리턴
+		agms_room_destroy_fail pkt;
+		pkt.type = msag_pkt_type::pkt_room_destroy_success;
+		pkt.failSignal = fail_signal::fs_no_exist;
+
+		PRINTF("Send to Monitoring Server Room Destroy Failed Packet\n");
+		m_pSock->Send((char*)&pkt, sizeof(agms_room_destroy_fail));
+	}
+
+}
+void MServerAgent::SendKillServer(int serverNum)
+{
+	SASocket* pServerSocket = AgentApp::Instance()->FindServer(serverNum);
+
+	if (pServerSocket)
+	{
+		// 성공시 서버로 Send, MS로 Success 패킷 리턴
+		PRINTF("Success Find Server \n");
+		
+		ags_kill_server serverPkt;
+		serverPkt.type = sag_pkt_type::pt_kill_server;
+		PRINTF("Send to Server Kill Server Packet\n");
+		pServerSocket->Send((char*)&serverPkt, sizeof(ags_kill_server));
+		
+		
+		agms_kill_server_success mserverPkt;
+		mserverPkt.type = msag_pkt_type::pkt_kill_server_success;
+		PRINTF("Send to Monitoring Server Kill Server Success Packet\n");
+		m_pSock->Send((char*)&mserverPkt, sizeof(agms_kill_server_success));
+	}
+	else
+	{
+		// 실패시 MS로 Fail 패킷 리턴
+		PRINTF("Failed Find Server \n");
+
+		agms_kill_server_fail pkt;
+		pkt.type = msag_pkt_type::pkt_kill_server_fail;
+		pkt.failSignal = fail_signal::fs_no_exist;
+
+		
+		PRINTF("Send to Monitoring Server Kill Server Failed Packet\n");
+		m_pSock->Send((char*)&pkt, sizeof(agms_kill_server_fail));
+
+	}
+
+}
+
 void MServerAgent::SendTotalData()
 {
 	SendRoomInfo();
-	SendUserInfo();
-	SendInterServerInfo();
+	SendServerCount();
+	SendServerInfo();
 }
-void MServerAgent::SendUserInfo()
+void MServerAgent::SendServerCount()
 {
-	//agms_total_user_info pkt;
-	//pkt.type = msag_pkt_type::pkt_total_user_info;
-	//
-	//EnterCriticalSection(&IOLock);
-	//
-	//pkt.userCnt = AgentApp::Instance()->GetTotalInfoData()->userCount;
-	//
-	//int size = 0;
-	//size = sizeof(pkt.type) + sizeof(pkt.userCnt);
-	//
-	//if (!m_pTotalInfoData->userInfoList.empty())
-	//{
-	//	int i = 0;
-	//	for (auto& user : m_pTotalInfoData->userInfoList)
-	//	{
-	//		pkt.userInfoList[i] = user;
-	//		++i;
-	//
-	//		size += sizeof(UserInfo);
-	//	}
-	//}
-	//LeaveCriticalSection(&IOLock);
-	//
-	//m_pSock->Send((char*)&pkt, size);
+	EnterCriticalSection(&IOLock);
 
+	agms_total_server_count pkt;
+	pkt.type = msag_pkt_type::pkt_total_server_count;
+	pkt.serverCnt = AgentApp::Instance()->GetTotalInfoData()->serverUserInfoList.size();
+
+	PRINTF("Send Server Count Packet\n");
+
+	m_pSock->Send((char*)&pkt, sizeof(agms_total_server_count));
+
+	LeaveCriticalSection(&IOLock);
+
+}
+void MServerAgent::SendServerInfo()
+{
+	EnterCriticalSection(&IOLock);
+	
+	std::list<ServerInfo>& serverInfoList = AgentApp::Instance()->GetTotalInfoData()->serverUserInfoList;
+
+	if (!serverInfoList.empty())
+	{
+		for (auto& serverInfo : serverInfoList)
+		{
+			agms_total_user_info pkt;
+			pkt.type = msag_pkt_type::pkt_total_user_info;
+			pkt.serverNum = serverInfo.serverNum;
+			pkt.userCnt = serverInfo.userCount;
+			
+			int i = 0;
+			int size = sizeof(pkt.type) + sizeof(pkt.serverNum) + sizeof(pkt.userCnt);
+			for (auto& user : serverInfo.userInfoList)
+			{
+				pkt.userInfoList[i] = user;
+				++i;
+
+				size += sizeof(UserInfo);
+			}
+			
+			PRINTF("Send Server Information Packet\n");
+
+			m_pSock->Send((char*)&pkt, size);
+
+		}
+		
+	}
+
+	LeaveCriticalSection(&IOLock);
 }
 
 void MServerAgent::SendRoomInfo()
@@ -159,37 +273,7 @@ void MServerAgent::SendRoomInfo()
 	}
 	LeaveCriticalSection(&IOLock);
 
-	m_pSock->Send((char*)&pkt, size);
-
-}
-
-void MServerAgent::SendInterServerInfo()
-{
-	agms_total_interserver_info pkt;
-	pkt.type = msag_pkt_type::pkt_total_interserver_info;
-
-	EnterCriticalSection(&IOLock);
-
-	pkt.serverCnt = AgentApp::Instance()->GetTotalInfoData()->serverCnt;
-
-	int size = 0;
-	size = sizeof(pkt.type) + sizeof(pkt.serverCnt);
-
-	std::list<unsigned short>& serverNumList = AgentApp::Instance()->GetTotalInfoData()->serverNumList;
-
-
-	if (!serverNumList.empty())
-	{
-		int i = 0;
-		for (auto& serverNum : serverNumList)
-		{
-			pkt.serverNumList[i] = serverNum;
-			++i;
-
-			size += sizeof(unsigned short);
-		}
-	}
-	LeaveCriticalSection(&IOLock);
+	PRINTF("Send Room Information Packet\n");
 
 	m_pSock->Send((char*)&pkt, size);
 
@@ -235,21 +319,17 @@ void MServerAgent::RecvProcess(bool isError, Act* act, DWORD bytes_transferred)
 				m_nRemainBytes = sizeof(msag_room_destroy)-HEADER_SIZE;
 
 				break;
-			case msag_pkt_type::pkt_interserver_connect:
-				PRINTF("received interserver connect packet\n");
-				m_nRemainBytes = sizeof(msag_interserver_connect)-HEADER_SIZE;
+			case msag_pkt_type::pkt_kill_server:
+				PRINTF("received kill server packet\n");
+				m_nRemainBytes = sizeof(msag_kill_server)-HEADER_SIZE;
 
 				break;
-			case msag_pkt_type::pkt_interserver_disconnect:
-				PRINTF("received interserver disconnect packet\n");
-				m_nRemainBytes = sizeof(msag_interserver_disconnect)-HEADER_SIZE;
-
-				break;
-			case msag_pkt_type::pkt_request_total_info:
-				PRINTF("received request total info\n");
+			case msag_pkt_type::pkt_total_request:
+				PRINTF("received total request packet\n");
 				m_nRemainBytes = sizeof(msag_request_total_info)-HEADER_SIZE;
 
 				break;
+		
 			}
 		}
 		if (m_nRemainBytes <= 0)
@@ -310,6 +390,7 @@ void MServerAgent::ConnProcess(bool isError, Act* act, DWORD bytes_transferred)
 {
 	if (!isError)
 	{
+		// Wait Recv
 		m_pSock->Recv(m_pSock->recvBuf_, HEADER_SIZE);
 	}
 	else{
