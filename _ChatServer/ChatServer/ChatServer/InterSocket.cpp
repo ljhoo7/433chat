@@ -564,7 +564,7 @@ void InterSocket::packetHandling(CPacket *packet){
 	case ssType::pkt_room_info_failure:
 	case ssType::pkt_player_info_failure:
 		PRINTF("recieve fail msg!\n");
-		//this->Disconnect();
+		this->Disconnect();
 		break;
 
 	case ssType::pkt_create:
@@ -598,6 +598,7 @@ void InterSocket::packetHandling(CPacket *packet){
 		PRINTF("join call by other server\n");
 		ss_join msg = *((ss_join *)packet->msg);
 		CPlayer* p = FindPlayerBySocket(msg.client_socket);
+
 		if (p == NULL)
 		{
 			PRINTF("not available!\n");
@@ -612,9 +613,10 @@ void InterSocket::packetHandling(CPacket *packet){
 		PRINTF("leave call by other server\n");
 		ss_leave msg = *((ss_leave *)packet->msg);
 		CPlayer* p = FindPlayerBySocket(msg.client_socket);
+
 		if (p == NULL)
 		{
-			PRINTF("not available!\n");
+			PRINTF("%d not available!\n", msg.client_socket);
 			break;
 		}
 		p->nickname = msg.nickname;

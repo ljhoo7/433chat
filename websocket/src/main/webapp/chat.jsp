@@ -8,7 +8,7 @@
 	<script language="javascript" type="text/javascript">
         	
 			//서버 주소를 변경해야 정상작동
-            var wsUri = "ws://10.10.1.22:8080/websocket/echo";
+            var wsUri = "ws://127.0.0.1:8080/websocket/echo";
             
             function init() {
             	bt_open_socket=document.getElementById("open_socket");
@@ -22,6 +22,30 @@
             //접속버튼 누를 경우
             function open_socket(){
             	websocket = new WebSocket(wsUri);
+                websocket.onopen = function(evt) {
+                    onOpen(evt)
+                };
+                websocket.onmessage = function(evt) {
+                    onMessage(evt)
+                };
+                websocket.onerror = function(evt) {
+                    onError(evt)
+                };
+                
+                //두 번 접속 방지용 버튼 상태 변경
+                bt_close_socket.disabled = false; 
+                bt_open_socket.disabled = true; 
+                
+                //연결을 기다린 후 접속할 방 번호와 닉네임 성정
+                waitForSocketConnection(websocket, function() {
+                	websocket.send("/set nickname "+document.getElementById("nickname").value);
+                	//websocket.send("/set room "+ "0");
+                	
+                    document.getElementById("textID").focus();
+                });
+                
+                document.getElementById("nickname").style.visibility="hidden";
+                
                 
             }
             function close_socket(){
@@ -86,7 +110,6 @@
 	<h1 style="text-align: center;">WebSocket Chat Client</h1>
 	<br>
 	<div style="text-align: center;">
-
 		<div>
 			<input id="nickname" name="nickname" placeholder="Input your Nickname" type="text"
 				onKeyPress="if (event.keyCode==13){change_nickname();event.returnValue=false}">	

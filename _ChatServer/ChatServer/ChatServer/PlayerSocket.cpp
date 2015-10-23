@@ -473,6 +473,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 
 		type = ssType::pkt_chat;
 		memcpy(packet->msg, &type, sizeof(unsigned short));
+
 		PlayerSync((char *)packet->msg, size);
 
 		PRINTF("chat alarm message has been sent.\n");		break;

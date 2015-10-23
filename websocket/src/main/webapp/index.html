@@ -1,0 +1,184 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+<!-- 합쳐지고 최소화된 최신 CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+<!-- 부가적인 테마 -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+<!-- 합쳐지고 최소화된 최신 자바스크립트 -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+
+<!-- css -->
+<link rel="stylesheet" href="resources/css/index.css">
+
+
+</head>
+<body>
+	<meta charset="utf-8">
+	<title>Chat</title>
+	<script language="javascript" type="text/javascript">
+        	
+			//서버 주소를 변경해야 정상작동
+            var wsUri = "ws://127.0.0.1:8080/websocket/echo";
+            
+            function init() {
+            	bt_open_socket=document.getElementById("open_socket");
+            	bt_close_socket=document.getElementById("close_socket");
+            	
+                output = document.getElementById("output");
+
+            	bt_close_socket.disabled = true; 
+            	
+            	websocket = new WebSocket(wsUri);
+                websocket.onopen = function(evt) {
+                    onOpen(evt)
+                };
+                websocket.onmessage = function(evt) {
+                    onMessage(evt)
+                };
+                websocket.onerror = function(evt) {
+                    onError(evt)
+                };
+                
+                //두 번 접속 방지용 버튼 상태 변경-정책에 따라 수정됨
+                bt_close_socket.disabled = false; 
+                //bt_open_socket.disabled = true; 
+            }
+
+            //접속버튼 누를 경우
+            function open_socket(){
+                
+                //연결을 기다린 후 접속할 방 번호와 닉네임 성정
+                waitForSocketConnection(websocket, function() {
+                	websocket.send("/set nickname "+document.getElementById("nickname").value);
+                	websocket.send("/set room "+document.getElementById("roomname").value);
+                	
+                    document.getElementById("textID").focus();
+                });
+                
+            }
+            function close_socket(){
+                websocket.close()
+                writeToScreen("소캣이 닫혔습니다.")
+            }
+            
+            function send_message() {
+            	if(textID.value!="")
+	                doSend(textID.value);
+            }
+            function onOpen(evt) {
+                writeToScreen("Connected to Endpoint!");
+            }
+            function onMessage(evt) {
+                writeToScreen(evt.data);
+            }
+            function onError(evt) {
+                writeToScreen('ERROR: ' + evt.data);
+            }
+            function doSend(message) {
+                websocket.send(message);
+                document.getElementById("textID").value="";
+            }
+            function writeToScreen(message) {
+                var pre = document.createElement("p");
+                pre.style.wordWrap = "break-word";
+                pre.innerHTML = message;
+                 
+                output.appendChild(pre);
+                output.scrollTop = output.scrollHeight; 
+            }
+
+            function kick_user() {
+            	websocket.send("/set kick");
+            }
+            
+            function create_room() {
+            	websocket.send("/set create "+document.getElementById("roomManage").value);
+            }
+            function delete_room() {
+            	websocket.send("/set destroy "+document.getElementById("roomManage").value);
+            }
+            
+            function waitForSocketConnection(socket, callback){
+                setTimeout(
+                    function(){
+                        if (socket.readyState === 1) {
+                            if(callback !== undefined){
+                                callback();
+                            }
+                            return;
+                        } else {
+                            waitForSocketConnection(socket,callback);
+                        }
+                    }, 5);
+            };
+            
+            window.addEventListener("load", init, false);
+            
+            window.onbeforeunload = function (evt) {
+            	close_socket();
+            };
+        </script>
+	<br>
+	<div style="text-align: center;">
+		<div class="col-xs-12">
+			<nav class="navbar navbar-default">
+				<div class="container-fluid">
+					<div class="navbar-header">
+						<a class="navbar-brand" href="#">
+							WebSocket Chat Client
+						</a>
+					</div>
+				</div>
+			</nav>
+			<div class="well col-xs-12" id="inputForm">
+				<div class="col-xs-12">
+					<div class="col-xs-1">방 생성 </div>
+					<div class="col-xs-4"><input type="text" id="roomManage"class="maxWidth form-control"></div>
+					<div class="col-xs-1" style="margin-bottom:20px"><button class="maxWidth btn btn-default" onclick="create_room()">생성</button></div>
+					<div class="col-xs-1" style="margin-bottom:20px"><button class="maxWidth btn btn-default" onclick="delete_room()">제거</button></div>
+				</div>
+				
+				<div class="col-xs-12">
+					<div class="col-xs-1">방 선택 </div>
+					<div class="col-xs-5"><input type="text" class="maxWidth form-control" id="roomname" name="roomname" placeholder="생성 되어있는 방 번호를 입력하세요"></div>
+					<div class="col-xs-1"  id="nicknameTag">닉네임 </div>
+					<div class="col-xs-5"><input class="maxWidth form-control" id="nickname" name="nickname" placeholder="닉네임을 임력하세요" type="text"
+						onKeyPress="if (event.keyCode==13){change_nickname();event.returnValue=false}">
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-xs-12">
+				<div class="col-xs-6"><button class="maxWidth btn btn-default" id="open_socket" onclick="open_socket()">방 접속</button></div>
+				<div class="col-xs-5"><button class="maxWidth btn btn-default">방 나오기</button></div>
+				<div class="col-xs-1" style="margin-bottom:20px"><button class="maxWidth btn btn-default" id="close_socket" onclick="close_socket()">소캣 닫기</button></div>
+				<br>
+			</div>
+			
+
+			<div class="well col-xs-12" style="height:50%">
+				<div id="output" style="max-height: 50%; overflow-y: scroll; text-align:left"></div>
+			</div>
+			
+			<div class="well col-xs-12">
+				<div class="col-xs-12">
+					<div class="col-xs-10">
+						<input class="maxWidth form-control"	id="textID" name="message" value="" type="text" placeholder=""
+						onKeyPress="if (event.keyCode==13){ send_message();event.returnValue=false}">
+						</div>
+					<div class="col-xs-2"><button class="maxWidth btn btn-default" onclick="send_message()">전송</button></div>
+				</div>
+			</div>
+						
+		</div>
+		<div>
+			
+			<br>
+		</div>
+	</div>
+	<div id="output" style="max-height: 80%; overflow-y: scroll;"></div>
+</body>
+</html>
+
