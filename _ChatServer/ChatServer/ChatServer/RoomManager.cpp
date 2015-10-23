@@ -120,6 +120,13 @@ int CRoomManager::DestroyRoom(int roomNumber)
 
 	room->BroadcastMsg((char*)&tmpKick, sizeof(t_kick));
 
+	std::list<CPlayer*>::iterator iter;
+	for (iter = room->players.begin(); iter != room->players.end(); iter++)
+	{
+		if (chatServer->agentServer->socket->isConnected)
+			chatServer->agentServer->socket->UserInfoSend(false, *iter, 3);
+	}
+
 	EnterCriticalSection(&roomLock);
 	for (std::list<CPlayer*>::iterator iter = room->players.begin();
 		iter != room->players.end(); ++iter)

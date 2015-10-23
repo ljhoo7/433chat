@@ -571,12 +571,12 @@ void InterSocket::packetHandling(CPacket *packet){
 	{
 		PRINTF("create call by other server\n");
 		ss_create msg = *((ss_create *)packet->msg);
-		CPlayer* p = FindPlayerBySocket(msg.client_socket);
+		/*CPlayer* p = FindPlayerBySocket(msg.client_socket);
 		if (p == NULL)
 		{
 			PRINTF("not available!\n");
 			break;
-		}
+		}*/
 		chatServer->roomManager.CreateRoom(msg.room_num);
 		break;
 	}
@@ -584,12 +584,12 @@ void InterSocket::packetHandling(CPacket *packet){
 	{
 		PRINTF("destroy call by other server\n");
 		ss_destroy msg = *((ss_destroy *)packet->msg);
-		CPlayer* p = FindPlayerBySocket(msg.client_socket);
+		/*CPlayer* p = FindPlayerBySocket(msg.client_socket);
 		if (p == NULL)
 		{
 			PRINTF("not available!\n");
 			break;
-		}
+		}*/
 		chatServer->roomManager.DestroyRoom(msg.room_num);
 		break;
 	}
