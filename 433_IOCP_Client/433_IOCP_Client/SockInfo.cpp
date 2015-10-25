@@ -92,9 +92,10 @@ bool CSockInfo::Connect(DWORD ip, int port)
 
 bool CSockInfo::Disconnect()
 {
+	BOOL ret = true;
 	if (NULL != g_pClient->m_hOldSock)
 	{
-		BOOL ret;
+
 		ret = TransmitFile(
 			g_pClient->m_hOldSock,
 			NULL,
@@ -106,25 +107,35 @@ bool CSockInfo::Disconnect()
 			);
 		//closesocket(m_hSock);
 		g_pClient->m_hOldSock = NULL;
-
-		if (!ret)
-		{
-			int error = WSAGetLastError();
-
-			if (error != ERROR_IO_PENDING)
-			{
-				g_pLog->myWprintf(L"already disconnected, DisconnectEx Error!!!\n");
-
-				return false;
-			}
-		}
-		return true;
 	}
 	else
 	{
-		g_pLog->myWprintf(L"Disconnect( ) socket is NULL !!!\n");
-		return false;
+		ret = TransmitFile(
+			g_pClient->m_pSock->m_hSock,
+			NULL,
+			0,
+			0,
+			static_cast<OVERLAPPED*>(m_vAct[ACT_DISCONNECT]),
+			NULL,
+			TF_DISCONNECT | TF_REUSE_SOCKET
+			);
+		//closesocket(m_hSock);
+		g_pClient->m_pSock->m_hSock = NULL;
 	}
+
+	if (!ret)
+	{
+		int error = WSAGetLastError();
+
+		if (error != ERROR_IO_PENDING)
+		{
+			g_pLog->myWprintf(L"already disconnected, DisconnectEx Error!!!\n");
+
+			return false;
+		}
+	}
+
+	return true;
 }
 
 bool CSockInfo::Recv(char *p_pBuf, int p_nBufSize)
