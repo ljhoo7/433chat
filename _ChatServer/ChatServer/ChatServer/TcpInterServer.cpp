@@ -234,6 +234,17 @@ void TcpInterServer::GetServerNums(std::vector<int>& list){
 }
 
 void TcpInterServer::DisconnectAllServers(){
+	if (this->ServerCnt() == 0){
+		if (chatServer->agentServer->socket->isConnected){
+			PRINTF("disconnect all interserver success!\n");
+			PRINTF("starting agentserver disconnect...\n");
+			chatServer->agentServer->socket->Disconnect();
+		}
+		else{
+			PRINTF("all disconnect success!!\nend complete\n");
+		}
+	}
+
 	EnterCriticalSection(&socketLock);
 	for (std::vector<InterSocket *>::iterator iter = sockets.begin(); iter != sockets.end(); iter++){
 		(*iter)->Disconnect();

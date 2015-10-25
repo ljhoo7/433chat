@@ -29,6 +29,8 @@ public:
 //	int connG[MAXSERVER][MAXSERVER];
 //	bool isVisit[MAXSERVER];
 
+	bool isEnd;
+
 public:
 	ChatServer(int serverNum, WORD port);
 	void Init();
@@ -38,6 +40,7 @@ public:
 	void AddUser(CPlayer* player);
 	void DeleteUser(CPlayer* player);
 	int GetUserCnt();
+	int GetUserCnt(int serverNum);
 	CPlayer* FindUser(SOCKET socket, int serverNum);
 	void RemoveOtherServerUsers(int serverNum);
 	bool EnterOtherServerUsers(int serverNum);
@@ -45,6 +48,7 @@ public:
 	int GetServerNum(unsigned int ip, unsigned short port);
 
 	void EscapingAllUsers();
+	void EndServer();
 
 private:
 	bool isCycle(int i, int parent);

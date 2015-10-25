@@ -168,6 +168,13 @@ void CPlayer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		RemovePlayer();
 
+		if (chatServer->isEnd){
+			if (chatServer->GetUserCnt(chatServer->serverNum) == 0){
+				PRINTF("disconnect all user success!\n");
+				PRINTF("starting interserver disconnect...\n");
+				chatServer->interServer->DisconnectAllServers();
+			}
+		}
 
 	}
 	else{

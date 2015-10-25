@@ -200,6 +200,10 @@ void AgentSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 		chatServer->agentServer->CreateConnectSocket();
 		isConnected = false;
 		/* disconn complete */
+
+		if (chatServer->isEnd){
+			PRINTF("all disconnect success!!\n end complete\n");
+		}
 	}
 	else{
 		PRINTF("AgentSocket DisconnProcess : Error : %d\n", WSAGetLastError());
@@ -403,6 +407,7 @@ void AgentSocket::PacketHandling(CPacket *packet){
 		break;
 	case sag_pkt_type::pt_kill_server:
 		PRINTF("kill_server msg was sent!\n");
+		chatServer->EndServer();
 		break;
 	case sag_pkt_type::pt_health_check:
 		PRINTF("health check msg was sent!\n");
