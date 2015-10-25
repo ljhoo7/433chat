@@ -589,7 +589,10 @@ void InterSocket::packetHandling(CPacket *packet){
 			PRINTF("not available!\n");
 			break;
 		}*/
-		chatServer->roomManager.CreateRoom(msg.room_num);
+		if ((chatServer->roomManager.CreateRoom(msg.room_num)) == -1){
+			if (chatServer->agentServer->socket->isConnected)
+				chatServer->agentServer->socket->RoomInfoSend(false, msg.room_num, true);
+		}
 		break;
 	}
 	case ssType::pkt_destroy:
@@ -602,7 +605,10 @@ void InterSocket::packetHandling(CPacket *packet){
 			PRINTF("not available!\n");
 			break;
 		}*/
-		chatServer->roomManager.DestroyRoom(msg.room_num);
+		if ((chatServer->roomManager.DestroyRoom(msg.room_num)) == -1){
+			if (chatServer->agentServer->socket->isConnected)
+				chatServer->agentServer->socket->RoomInfoSend(false, msg.room_num, false);
+		}
 		break;
 	}
 	case ssType::pkt_join:
