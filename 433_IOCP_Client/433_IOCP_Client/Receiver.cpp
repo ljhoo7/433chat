@@ -207,13 +207,13 @@ bool EscapeServerFunc(PVOID p_pParam)
 
 	CSockInfo &t_sMysock = *t_pAct->m_pSock;
 
-	//g_pClient->GetStateMachine()->ChangeState(CEscaping::Instance());
-
 	g_pClient->m_bIsEscaping = true;
 
 	t_escape_server *t_sEscapingServer = (t_escape_server*)t_pAct->m_pSock->m_szReceiveBuf;
 
 	t_sMysock.Connect(t_sEscapingServer->dest_ip, t_sEscapingServer->port);
+
+	g_pClient->GetStateMachine()->ChangeState(CLobby::Instance());
 
 	return true;
 }
@@ -323,6 +323,7 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 				g_pLog->myWprintf(L"pt_escape_server\n");
 				t_nRemain = sizeof(t_escape_server) - HEADER_SIZE;
 				p_pAct->m_eType = pkt_type::pt_escape_server;
+				g_pClient->m_hOldSock = p_pAct->m_pSock->m_hSock;
 			}
 			else if (CCreate_Response_Wait::Instance() == t_pState)
 			{

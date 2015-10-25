@@ -2,24 +2,14 @@
 
 extern mswsock_s g_cMswsock;
 extern CLogWriter *g_pLog;
+extern CClient *g_pClient;
 
 void CSockInfo::BindBeforeConnectEx()
 {
-	if (m_bWhich)
+	g_pClient->m_pSock->m_hSock = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+	if (g_pClient->m_pSock->m_hSock == INVALID_SOCKET)
 	{
-		m_hSock = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
-		if (m_hSock == INVALID_SOCKET)
-		{
-			printf("WSASocket() Error!!! err(%d)\n", WSAGetLastError());
-		}
-	}
-	else
-	{
-		m_hOtherSock = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
-		if (m_hOtherSock == INVALID_SOCKET)
-		{
-			printf("WSASocket() Error!!! err(%d)\n", WSAGetLastError());
-		}
+		printf("WSASocket() Error!!! err(%d)\n", WSAGetLastError());
 	}
 
 	ZeroMemory(&m_cAddr, sizeof(m_cAddr));
@@ -28,14 +18,7 @@ void CSockInfo::BindBeforeConnectEx()
 	m_cAddr.sin_port = 0;
 
 	int t_nRc;
-	if (m_bWhich)
-	{
-		t_nRc = bind(m_hSock, (SOCKADDR*)&m_cAddr, sizeof(m_cAddr));
-	}
-	else
-	{
-		t_nRc = bind(m_hOtherSock, (SOCKADDR*)&m_cAddr, sizeof(m_cAddr));
-	}
+	t_nRc = bind(g_pClient->m_pSock->m_hSock, (SOCKADDR*)&m_cAddr, sizeof(m_cAddr));
 
 	if (t_nRc != 0) {
 		g_pLog->myWprintf(L"bind error in CSockInfo constructor\n");
@@ -53,20 +36,13 @@ void CSockInfo::BindBeforeConnectEx()
 	ZeroMemory(m_szSendBuf, BUFSIZE);
 	ZeroMemory(m_szConnectBuf, BUFSIZE);
 
-	if (m_bWhich)
-	{
-		m_pProactor->Register((HANDLE)m_hSock);
-	}
-	else
-	{
-		m_pProactor->Register((HANDLE)m_hOtherSock);
-	}
+	m_pProactor->Register((HANDLE)g_pClient->m_pSock->m_hSock);
 }
 
 CSockInfo::CSockInfo(CProactor *p_pProactor, CConnector *p_pConnector, CDisconnector *p_pDisconnector, CReceiver *p_pReceiver, CSender *p_pSender)
 : m_pProactor(p_pProactor), m_pConnector(p_pConnector), m_pDisconnector(p_pDisconnector)
 , m_pReceiver(p_pReceiver), m_pSender(p_pSender), m_nRecvPosition(0), m_nRecvRemain(HEADER_SIZE)
-, m_bIsVar(false), m_bWhich(true)
+, m_bIsVar(false), m_hSock(NULL)
 {
 	m_vAct[0] = new CAct();
 	m_vAct[1] = new CAct();
@@ -83,30 +59,17 @@ bool CSockInfo::Connect(DWORD ip, int port)
 {
 	BOOL t_bRet;
 
-	if (m_bWhich)
-	{
-		BindBeforeConnectEx();
+	// This must be here !!!
+	//m_hSock = g_pClient->m_pSock->m_hSock;
 
-		ZeroMemory(&m_cAddr, sizeof(m_cAddr));
-		m_cAddr.sin_family = AF_INET;
-		m_cAddr.sin_addr.s_addr = ip;
-		m_cAddr.sin_port = htons(port);
+	BindBeforeConnectEx();
 
-		t_bRet = g_cMswsock.ConnectEx(m_hSock, (SOCKADDR*)&m_cAddr, sizeof(m_cAddr), NULL, 0, NULL, static_cast<LPOVERLAPPED>(m_vAct[CSockInfo::ACT_TYPE::ACT_CONNECT]));
-		m_bWhich = false;
-	}
-	else
-	{
-		BindBeforeConnectEx();
+	ZeroMemory(&m_cAddr, sizeof(m_cAddr));
+	m_cAddr.sin_family = AF_INET;
+	m_cAddr.sin_addr.s_addr = ip;
+	m_cAddr.sin_port = htons(port);
 
-		ZeroMemory(&m_cAddr, sizeof(m_cAddr));
-		m_cAddr.sin_family = AF_INET;
-		m_cAddr.sin_addr.s_addr = ip;
-		m_cAddr.sin_port = htons(port);
-
-		t_bRet = g_cMswsock.ConnectEx(m_hOtherSock, (SOCKADDR*)&m_cAddr, sizeof(m_cAddr), NULL, 0, NULL, static_cast<LPOVERLAPPED>(m_vAct[CSockInfo::ACT_TYPE::ACT_CONNECT]));
-		m_bWhich = true;
-	}
+	t_bRet = g_cMswsock.ConnectEx(g_pClient->m_pSock->m_hSock, (SOCKADDR*)&m_cAddr, sizeof(m_cAddr), NULL, 0, NULL, static_cast<LPOVERLAPPED>(m_vAct[CSockInfo::ACT_TYPE::ACT_CONNECT]));
 
 	if (!t_bRet)
 	{
@@ -129,11 +92,11 @@ bool CSockInfo::Connect(DWORD ip, int port)
 
 bool CSockInfo::Disconnect()
 {
-	BOOL ret;
-	if (m_bWhich)
+	if (NULL != g_pClient->m_hOldSock)
 	{
+		BOOL ret;
 		ret = TransmitFile(
-			m_hSock,
+			g_pClient->m_hOldSock,
 			NULL,
 			0,
 			0,
@@ -141,36 +104,27 @@ bool CSockInfo::Disconnect()
 			NULL,
 			TF_DISCONNECT | TF_REUSE_SOCKET
 			);
-		closesocket(m_hSock);
-		m_hSock = NULL;
+		//closesocket(m_hSock);
+		g_pClient->m_hOldSock = NULL;
+
+		if (!ret)
+		{
+			int error = WSAGetLastError();
+
+			if (error != ERROR_IO_PENDING)
+			{
+				g_pLog->myWprintf(L"already disconnected, DisconnectEx Error!!!\n");
+
+				return false;
+			}
+		}
+		return true;
 	}
 	else
 	{
-		ret = TransmitFile(
-			m_hOtherSock,
-			NULL,
-			0,
-			0,
-			static_cast<OVERLAPPED*>(m_vAct[ACT_DISCONNECT]),
-			NULL,
-			TF_DISCONNECT | TF_REUSE_SOCKET
-			);
-		closesocket(m_hOtherSock);
-		m_hOtherSock = NULL;
+		g_pLog->myWprintf(L"Disconnect( ) socket is NULL !!!\n");
+		return false;
 	}
-
-	if (!ret)
-	{
-		int error = WSAGetLastError();
-
-		if (error != ERROR_IO_PENDING)
-		{
-			g_pLog->myWprintf(L"already disconnected, DisconnectEx Error!!!\n");
-
-			return false;
-		}
-	}
-	return true;
 }
 
 bool CSockInfo::Recv(char *p_pBuf, int p_nBufSize)
@@ -182,14 +136,7 @@ bool CSockInfo::Recv(char *p_pBuf, int p_nBufSize)
 
 	INT ret;
 
-	if (m_bWhich)
-	{
-		ret = WSARecv(m_hOtherSock, &m_wsaRecvBuf, 1, &recvbytes, &flags, static_cast<OVERLAPPED*>(m_vAct[ACT_RECV]), NULL);
-	}
-	else
-	{
-		ret = WSARecv(m_hSock, &m_wsaRecvBuf, 1, &recvbytes, &flags, static_cast<OVERLAPPED*>(m_vAct[ACT_RECV]), NULL);
-	}
+	ret = WSARecv(g_pClient->m_pSock->m_hSock, &m_wsaRecvBuf, 1, &recvbytes, &flags, static_cast<OVERLAPPED*>(m_vAct[ACT_RECV]), NULL);
 
 	if (ret != 0)
 	{
@@ -225,14 +172,7 @@ bool CSockInfo::Send(char *p_pBuf, int p_nBufLen)
 
 	INT ret;
 
-	if (m_bWhich)
-	{
-		ret = WSASend(m_hOtherSock, &m_wsaSendBuf, 1, &sentbytes, 0, static_cast<OVERLAPPED*>(m_vAct[ACT_SEND]), NULL);
-	}
-	else
-	{
-		ret = WSASend(m_hSock, &m_wsaSendBuf, 1, &sentbytes, 0, static_cast<OVERLAPPED*>(m_vAct[ACT_SEND]), NULL);
-	}
+	ret = WSASend(g_pClient->m_pSock->m_hSock, &m_wsaSendBuf, 1, &sentbytes, 0, static_cast<OVERLAPPED*>(m_vAct[ACT_SEND]), NULL);
 
 	if (ret != 0)
 	{
