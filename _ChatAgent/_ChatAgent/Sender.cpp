@@ -1,8 +1,8 @@
 #include "stdafx.h"
 
-CSender::CSender(CProactor *p_pProactor)
+CSender::CSender(Proactor *p_pProactor)
 {
-	m_pProactor = p_pProactor;
+	mProactor = p_pProactor;
 }
 
 
@@ -10,12 +10,12 @@ CSender::~CSender()
 {
 }
 
-void CSender::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
+void CSender::ProcEvent(Act *p_pAct, DWORD p_dwTransferredBytes)
 {
 
 }
 
-void CSender::ProcError(CAct *p_pAct, DWORD p_dwError)
+void CSender::ProcError(Act *p_pAct, DWORD p_dwError)
 {
 
 }

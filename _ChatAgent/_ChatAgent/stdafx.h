@@ -21,53 +21,43 @@
 #include <MSWSock.h>
 #include <assert.h>
 
-
-class CActor;
-struct CProactor;
+class WinSockBase;
+class Actor;
+class Proactor;
 
 //struct CSockInfo;
 class TcpSocket;
 class SASocket;
 class MSASocket;
 
-class CAct;
+class Act;
 class TcpAct;
-
-class CConnector;
-class CDisconnector;
+class Acceptor;
+class Connector;
+class Disconnector;
 class CReceiver;
 class CSender;
-
 class CLogWriter;
-
-template <class entity_type>
-class StateMachine;
-
-template <class entity_type>
-class State;
-
 class ServerAgent;
+class AgentApp;
 
 #define HEADER_SIZE			2
 #define BUFSIZE				8192
 #define ELAPSED_DEST		1500
 
-#ifdef _DEBUG
-#define MYDEF
-#else
-#endif
+
 
 typedef struct mswsock_s {
 	LPFN_CONNECTEX ConnectEx;
 }mswsock_s;
 
 
-#include "MSAgentProtocol.h"
+#include "WinSockBase.h"
 #include "SAgentProtocol.h"
+#include "MSAgentProtocol.h"
 
 #include "Utilities.h"
 
-//#include "SockInfo.h"
 #include "Act.h"
 #include "Actor.h"
 #include "TcpAct.h"
@@ -78,14 +68,13 @@ typedef struct mswsock_s {
 #include "Proactor.h"
 
 
-#include "LogWriter.h"
-class CLogWriter;
-extern CLogWriter* g_pLog;
+//#include "LogWriter.h"
 
 #define PRINTF printf
 
-
+#include "TcpListenSocket.h"
 #include "Connector.h"
+#include "Acceptor.h"
 #include "Disconnector.h"
 #include "Receiver.h"
 #include "Sender.h"
@@ -93,3 +82,4 @@ extern CLogWriter* g_pLog;
 #include "ServerAgent.h"
 #include "MServerAgent.h"
 #include "MSASocket.h"
+#include "AgentApp.h"

@@ -1,11 +1,13 @@
 #pragma once
-class CDisconnector : public CActor
+
+
+class Disconnector : public Actor
 {
 public:
-	CDisconnector(CProactor *p_pProactor);
-	~CDisconnector();
+	Disconnector(Proactor *p_pProactor);
+	~Disconnector();
 
-	void ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes);
-	void ProcError(CAct *p_pAct, DWORD p_dwError);
+	void ProcEvent(Act* act, DWORD bytes_transferred);
+	void ProcError(Act* act, DWORD error);
 };
 

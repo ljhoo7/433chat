@@ -2,10 +2,10 @@
 
 #include "stdafx.h"
 
-class CAct : public OVERLAPPED
+class Act : public OVERLAPPED
 {
 public:
-	CAct()
+	Act()
 	{
 		hEvent = NULL;
 		Internal = 0;
@@ -20,6 +20,6 @@ public:
 	virtual void Error(DWORD error) = 0;
 
 public:
-	CActor*	actor_;
+	Actor*	actor_;
 };
 

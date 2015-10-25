@@ -1,11 +1,11 @@
 #pragma once
-class CSender : public CActor
+class CSender : public Actor
 {
 public:
-	CSender(CProactor *p_pProactor);
+	CSender(Proactor *p_pProactor);
 	~CSender();
 
-	void ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes);
-	void ProcError(CAct *p_pAct, DWORD p_dwError);
+	void ProcEvent(Act *p_pAct, DWORD p_dwTransferredBytes);
+	void ProcError(Act *p_pAct, DWORD p_dwError);
 };
 

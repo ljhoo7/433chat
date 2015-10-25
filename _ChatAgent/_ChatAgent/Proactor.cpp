@@ -1,20 +1,19 @@
 #include "stdafx.h"
 
-extern CLogWriter *g_pLog;
 
-UINT WINAPI CProactor::ThreadProc(void* pProactor)
+UINT WINAPI Proactor::ThreadProc(void* pProactor)
 {
-	static_cast<CProactor*>(pProactor)->ProcEvents();
+	static_cast<Proactor*>(pProactor)->ProcEvents();
 
 	return 0;
 }
 
-void CProactor::Register(HANDLE pHandle)
+void Proactor::Register(HANDLE pHandle)
 {
 	CreateIoCompletionPort(pHandle, m_hIOCP, 0, 0);
 }
 
-CProactor::CProactor(int p_nThreadPoolSize)
+Proactor::Proactor(int p_nThreadPoolSize)
 :m_nNumOfThreads(p_nThreadPoolSize)
 {
 	m_hIOCP = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, NULL, p_nThreadPoolSize);
@@ -28,15 +27,15 @@ CProactor::CProactor(int p_nThreadPoolSize)
 	for (int k = 0; k < p_nThreadPoolSize; ++k)
 	{
 		unsigned int t_unThreadId;
-		_beginthreadex(NULL, 0, CProactor::ThreadProc, (void*)this, 0, &t_unThreadId);
+		_beginthreadex(NULL, 0, Proactor::ThreadProc, (void*)this, 0, &t_unThreadId);
 	}
 }
 
-CProactor::~CProactor()
+Proactor::~Proactor()
 {
 }
 
-void CProactor::ProcEvents()
+void Proactor::ProcEvents()
 {
 	while (1)
 	{
@@ -55,7 +54,7 @@ void CProactor::ProcEvents()
 				continue;
 			}
 
-			CAct *t_pAct = static_cast<CAct*>(t_pOverlapped);
+			Act *t_pAct = static_cast<Act*>(t_pOverlapped);
 			t_pAct->Complete(t_dwBytesTransferred);
 		}
 		else
@@ -63,7 +62,7 @@ void CProactor::ProcEvents()
 			DWORD t_dwError = WSAGetLastError();
 			if (NULL != t_pOverlapped)
 			{
-				CAct *t_pAct = static_cast<CAct*>(t_pOverlapped);
+				Act *t_pAct = static_cast<Act*>(t_pOverlapped);
 				//t_pAct->Error(t_dwByteesTransferred);
 				continue;
 			}
