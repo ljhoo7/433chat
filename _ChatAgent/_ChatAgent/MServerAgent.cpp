@@ -135,16 +135,17 @@ void MServerAgent::SendRoomDestroy(int roomNum)
 		pServerSocket->Send((char*)&serverPkt, sizeof(ags_room_destroy));
 
 		agms_room_destroy_success mserverPkt;
-		mserverPkt.type = msag_pkt_type::pkt_room_destroy_fail;
+		mserverPkt.type = msag_pkt_type::pkt_room_destroy_success;
+		
 		PRINTF("Send to Monitoring Server Room Destroy Success Packet\n");
 		m_pSock->Send((char*)&mserverPkt, sizeof(agms_room_destroy_success));
 	}
 	else
 	{
-		
-		// 실패시 모니터링 서버로 리턴
 		agms_room_destroy_fail pkt;
-		pkt.type = msag_pkt_type::pkt_room_destroy_success;
+		// 실패시 모니터링 서버로 리턴
+		
+		pkt.type = msag_pkt_type::pkt_room_destroy_fail;
 		pkt.failSignal = fail_signal::fs_no_exist;
 
 		PRINTF("Send to Monitoring Server Room Destroy Failed Packet\n");
@@ -191,8 +192,8 @@ void MServerAgent::SendKillServer(int serverNum)
 
 void MServerAgent::SendTotalData()
 {
-	SendRoomInfo();
 	SendServerCount();
+	SendRoomInfo();
 	SendServerInfo();
 }
 void MServerAgent::SendServerCount()
