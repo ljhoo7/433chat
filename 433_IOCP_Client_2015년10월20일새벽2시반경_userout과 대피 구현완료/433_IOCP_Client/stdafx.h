@@ -45,9 +45,9 @@ class State;
 #define ELAPSED_DEST		1500
 
 #ifdef _DEBUG
-
-#else
 #define MYDEF
+#else
+
 #endif
 
 typedef struct mswsock_s {
