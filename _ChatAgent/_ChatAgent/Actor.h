@@ -1,15 +1,15 @@
 #pragma once
 #include "stdafx.h"
 
-class CActor
+class Actor
 {
 protected:
-	CProactor		*m_pProactor;
+	Proactor		*mProactor;
 public:
-	CActor();
-	~CActor();
+	Actor();
+	virtual ~Actor();
 
-	virtual void ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes) = 0;
-	virtual void ProcError(CAct *p_pAct, DWORD p_dwError) = 0;
+	virtual void ProcEvent(Act *p_pAct, DWORD p_dwTransferredBytes) = 0;
+	virtual void ProcError(Act *p_pAct, DWORD p_dwError) = 0;
 };
 

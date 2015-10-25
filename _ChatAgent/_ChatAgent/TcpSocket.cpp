@@ -5,6 +5,10 @@ TcpSocket::TcpSocket()
 	socket_ = INVALID_SOCKET;
 	
 }
+TcpSocket::~TcpSocket()
+{
+
+}
 
 void TcpSocket::Init()
 {
@@ -32,15 +36,18 @@ void TcpSocket::InitBuf()
 	ZeroMemory(acceptBuf_, BUFSIZE);
 }
 
-void TcpSocket::InitAct(CProactor* proactor,  CDisconnector* disconnector,
-	CConnector* connector, CSender* sender, CReceiver* receiver)
+void TcpSocket::InitAct(Proactor* proactor, Acceptor* acceptor, Disconnector* disconnector,
+	Connector* connector, CSender* sender, CReceiver* receiver)
 {
 	proactor_ = proactor;
+	acceptor_ = acceptor;
+
 	disconnector_ = disconnector;
 	sender_ = sender;
 	receiver_ = receiver;
 	connector_ = connector;
 
+	act_[ACT_ACCEPT].Init(acceptor_, this);
 	act_[ACT_RECV].Init(receiver_, this);
 	act_[ACT_SEND].Init(sender_, this);
 	act_[ACT_DISCONNECT].Init(disconnector_, this);
@@ -89,7 +96,7 @@ void TcpSocket::Recv(char* buf, int buflen)
 			Disconnect();
 		}
 	}
-	PRINTF("%d bytes were received !\n", recvbytes);
+	//PRINTF("%d bytes were received !\n", recvbytes);
 }
 
 void TcpSocket::Send(char* buf, int buflen)

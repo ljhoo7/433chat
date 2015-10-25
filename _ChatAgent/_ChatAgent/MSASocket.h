@@ -13,16 +13,17 @@ private:
 
 public:
 	MSASocket(MServerAgent* _serverAgent);
-	~MSASocket();
+	~MSASocket(){};
 
 public:
 	MServerAgent* serverAgent;
 
 public:
-	void RecvProcess(bool isError, CAct* act, DWORD bytes_transferred);
-	void SendProcess(bool isError, CAct* act, DWORD bytes_transferred);
-	void DisconnProcess(bool isError, CAct* act, DWORD bytes_transferred);
-	void ConnProcess(bool isError, CAct* act, DWORD bytes_transferred);
+	void RecvProcess(bool isError, Act* act, DWORD bytes_transferred);
+	void SendProcess(bool isError, Act* act, DWORD bytes_transferred);
+	void AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){}
+	void DisconnProcess(bool isError, Act* act, DWORD bytes_transferred);
+	void ConnProcess(bool isError, Act* act, DWORD bytes_transferred);
 
 	void Bind(bool reuse);
 	void Connect(DWORD ip, WORD port);
