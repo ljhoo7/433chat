@@ -3,6 +3,8 @@
 extern mswsock_s g_cMswsock;
 extern CLogWriter *g_pLog;
 
+
+
 extern DWORD		g_dwIp;
 extern int			t_nPort;
 
