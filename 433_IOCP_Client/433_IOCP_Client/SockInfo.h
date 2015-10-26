@@ -2,10 +2,9 @@
 
 struct CSockInfo
 {
-	SOCKET			m_hSock, m_hOtherSock;
+	SOCKET			m_hSock;
 
 	bool			m_bIsVar;
-	bool			m_bWhich;
 
 	int				m_nRecvPosition;
 	int				m_nRecvRemain;
@@ -37,7 +36,7 @@ struct CSockInfo
 
 	CAct			*m_vAct[ACT_TYPE_CNT];
 
-	CSockInfo() : m_nRecvPosition(0), m_bIsVar(false), m_bWhich(true)
+	CSockInfo() : m_nRecvPosition(0), m_bIsVar(false), m_hSock(NULL)
 	{
 		m_vAct[0] = NULL;
 		m_vAct[1] = NULL;
