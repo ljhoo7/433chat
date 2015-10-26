@@ -150,11 +150,6 @@ public class TcpServer extends Thread implements Runnable {
 		    in.close();
 		    
 		    agentSocket = new AgentSocket(null, serverNum);
-	    	if (agentSocket.connect("127.0.0.1", 7000)){
-	    		System.out.println("agent client connect");
-	    	}else{
-	    		System.out.println("agent client failed");
-	    	}
 		    
 		    for (int i=0; i<serverList.size(); i++){
 		    	if (i==serverNum) continue;
@@ -166,6 +161,14 @@ public class TcpServer extends Thread implements Runnable {
 		    	}
 		    	
 		    }
+		    
+		   
+	    	if (agentSocket.connect("127.0.0.1", 7000)){
+	    		System.out.println("agent client connect");
+	    	}else{
+	    		System.out.println("agent client failed");
+	    	}
+		    
 		    
 		    listenSocket = new ListenSocket(serverList.get(serverNum).interPort);
 		    listenSocket.start();
