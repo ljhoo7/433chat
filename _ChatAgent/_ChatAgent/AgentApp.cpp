@@ -225,9 +225,11 @@ void AgentApp::SaveDeltaUserInfo(unsigned int serverNum, int clientSocket, unsig
 		{
 			PRINTF("User Disconnect! \n ");
 			serverInfoIter->userCount--;
+
+		
 			serverInfoIter->userInfoList.remove_if([&](UserInfo& user){
-				return (user.roomNum == roomNum) &&
-					(user.userSocket == clientSocket);
+				//PRINTF("Room Number : (%d, %d) / Socket Number : (%d, %d)\n", user.roomNum, roomNum, user.userSocket, clientSocket);
+				return (user.userSocket == clientSocket);
 			
 			});
 		}

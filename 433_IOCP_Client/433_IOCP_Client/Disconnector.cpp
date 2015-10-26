@@ -12,7 +12,7 @@ CDisconnector::~CDisconnector()
 
 void CDisconnector::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 {
-
+	printf("disconnect success!\n");
 }
 
 void CDisconnector::ProcError(CAct *p_pAct, DWORD p_dwError)

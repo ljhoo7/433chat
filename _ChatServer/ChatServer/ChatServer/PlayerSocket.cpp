@@ -306,6 +306,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 	{
 	case pkt_type::pt_escape_success:
 	{
+		PRINTF("userout success %d", socket_);
 		tmpEscapeSuccess = (t_escape_success*)packet->msg;
 
 		t_user_out tmpUserOut;

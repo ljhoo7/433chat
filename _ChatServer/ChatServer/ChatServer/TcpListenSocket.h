@@ -7,8 +7,11 @@ class TcpListenSocket
 
 public:
 	TcpListenSocket();
+	
+	
 	void Init(WORD port, int backlogsize = 0);
 	void Listen(Proactor* proactor);
+	
 
 public:
 	SOCKET		socket_;

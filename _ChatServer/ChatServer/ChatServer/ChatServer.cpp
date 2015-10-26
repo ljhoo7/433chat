@@ -80,13 +80,15 @@ void ChatServer::Start(){
 	interServer->Start();
 	agentServer->Start();
 
-	agentServer->Connect("127.0.0.1", agentPort);
-	Sleep(1000);
-
 	for (unsigned int i = 0; i < serverInfo.size(); i++){
 		if (i == chatServer->serverNum) continue;
 		interServer->Connect(i);
 	}
+
+	Sleep(1000);
+
+	agentServer->Connect("127.0.0.1", agentPort);
+	
 
 	/*if (interServer->sockets.size() != 0){
 		PRINTF("%d server on!", interServer->sockets.size());
@@ -161,8 +163,8 @@ void ChatServer::Start(){
 void ChatServer::EndServer(){
 	isEnd = true;
 
-	closesocket(clientServer->listenSocket_.socket_);
-	closesocket(interServer->listenSocket_.socket_);
+	//closesocket(clientServer->listenSocket_.socket_);
+	//closesocket(interServer->listenSocket_.socket_);
 	Sleep(1000);
 	if (GetUserCnt(serverNum) > 0){
 		EscapingAllUsers();
