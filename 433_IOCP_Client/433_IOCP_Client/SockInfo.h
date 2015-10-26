@@ -49,6 +49,7 @@ struct CSockInfo
 
 	bool Recv(char *p_pBuf, int p_nBufSize);
 	bool Send(char *p_pBuf, int p_nBufLen);
+	bool OldSend(char *p_pBuf, int p_nBufLen);
 	bool Connect(DWORD ip, int port);
 	bool Disconnect();
 

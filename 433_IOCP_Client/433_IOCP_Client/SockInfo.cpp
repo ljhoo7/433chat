@@ -60,7 +60,7 @@ bool CSockInfo::Connect(DWORD ip, int port)
 	BOOL t_bRet;
 
 	// This must be here !!!
-	//m_hSock = g_pClient->m_pSock->m_hSock;
+	// m_hSock = g_pClient->m_pSock->m_hSock;
 
 	BindBeforeConnectEx();
 
@@ -184,6 +184,41 @@ bool CSockInfo::Send(char *p_pBuf, int p_nBufLen)
 	INT ret;
 
 	ret = WSASend(g_pClient->m_pSock->m_hSock, &m_wsaSendBuf, 1, &sentbytes, 0, static_cast<OVERLAPPED*>(m_vAct[ACT_SEND]), NULL);
+
+	if (ret != 0)
+	{
+		int error = WSAGetLastError();
+
+		if (error != ERROR_IO_PENDING)
+		{
+			g_pLog->myWprintf(L"WSASend() Error!!!");
+
+			return false;
+		}
+	}
+
+	g_pLog->myWprintf(L"%d bytes were sent !\n", sentbytes);
+
+	return true;
+}
+
+bool CSockInfo::OldSend(char *p_pBuf, int p_nBufLen)
+{
+	if (p_nBufLen == 0)
+	{
+		g_pLog->myWprintf(L"p_nBufLen is zero in Send function.\n");
+		return false;
+	}
+
+	DWORD sentbytes = 0;
+	m_wsaSendBuf.buf = p_pBuf;
+	m_wsaSendBuf.len = p_nBufLen;
+
+	unsigned short t_buf = *(unsigned short*)p_pBuf;
+
+	INT ret;
+
+	ret = WSASend(g_pClient->m_hOldSock, &m_wsaSendBuf, 1, &sentbytes, 0, static_cast<OVERLAPPED*>(m_vAct[ACT_SEND]), NULL);
 
 	if (ret != 0)
 	{

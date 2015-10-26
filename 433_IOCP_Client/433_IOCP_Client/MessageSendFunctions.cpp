@@ -134,7 +134,7 @@ bool CClient::SendEscapeSuccessMessage()
 
 	tmp_packet.type = pkt_type::pt_escape_success;
 
-	m_pSock->Send((char*)&tmp_packet, sizeof(t_escape_success));
+	m_pSock->OldSend((char*)&tmp_packet, sizeof(t_escape_success));
 
 	int retval;
 
