@@ -145,7 +145,7 @@ public class TcpServer extends Thread implements Runnable {
 		    while ((s = in.readLine()) != null) {
 		      System.out.println(s);
 		      String[] ret = s.split(" ");
-		      serverList.add(new ServerInfo(ret[0], Integer.parseInt(ret[1]), Integer.parseInt(ret[2])));
+		      serverList.add(new ServerInfo(ret[0], Integer.parseInt(ret[1]), Integer.parseInt(ret[2]), Integer.parseInt(ret[3])));
 		    }
 		    in.close();
 		    

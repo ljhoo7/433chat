@@ -16,6 +16,8 @@ public class InterSocket{
     boolean end = false;
     boolean isConnect;
     
+    int isWeb;
+    
     InterSocketThread recieveThread;
     
     public byte[] readBuffer = new byte[8092];
@@ -25,7 +27,6 @@ public class InterSocket{
     	this.serverNum = serverNum;
     	end = false;
     	this.isConnect = isConnect;
-    	
     	if (socket!=null){
     		try {
     			inStream = socket.getInputStream();

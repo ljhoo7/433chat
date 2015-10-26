@@ -222,13 +222,17 @@ void TcpInterServer::ShowConnectServerList(){
 void TcpInterServer::GetServerNums(std::vector<int>& list){
 	EnterCriticalSection(&socketLock);
 	for (std::vector<InterSocket *>::iterator iter = sockets.begin(); iter != sockets.end(); iter++){
-		list.push_back((*iter)->serverNum);
+		if (!chatServer->serverInfo[(*iter)->serverNum].isWeb){
+			list.push_back((*iter)->serverNum);
+		}
 	}
 	LeaveCriticalSection(&socketLock);
 
 	EnterCriticalSection(&connectSocketLock);
 	for (std::vector<InterSocket *>::iterator iter = connectSockets.begin(); iter != connectSockets.end(); iter++){
-		list.push_back((*iter)->serverNum);
+		if (!chatServer->serverInfo[(*iter)->serverNum].isWeb){
+			list.push_back((*iter)->serverNum);
+		}
 	}
 	LeaveCriticalSection(&connectSocketLock);
 }

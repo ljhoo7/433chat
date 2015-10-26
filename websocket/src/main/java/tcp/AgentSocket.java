@@ -140,6 +140,8 @@ public class AgentSocket{
         	msg.pop_int();// delete padding
         	int client_socket = msg.pop_int();
         	
+        	
+        	Server.comHandler.killSession(client_socket);
         	/* user out! */
         }else if (protocol == sagType.pt_room_destroy.ordinal()){
         	System.out.println("room destroy request");
@@ -149,6 +151,7 @@ public class AgentSocket{
         	msg.pop_short(); // delete padding
         	int room_num = msg.pop_short();
         	
+        	Server.comHandler.destroyRoom(room_num+"");
         	/* delete room */
         	
         }else if (protocol==sagType.pt_kill_server.ordinal()){

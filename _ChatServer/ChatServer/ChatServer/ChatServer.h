@@ -4,6 +4,8 @@ struct ServerInfo{
 	unsigned long ip;
 	unsigned short inter_port;
 	unsigned short client_port;
+
+	boolean isWeb;
 };
 
 class ChatServer{

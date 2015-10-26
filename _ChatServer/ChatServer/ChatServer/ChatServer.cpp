@@ -46,13 +46,22 @@ void ChatServer::Init(){
 		int port1;
 		int port2;
 
-		inFile >> temp >> port1 >> port2;
+		int isWeb;
 
+		inFile >> temp >> port1 >> port2 >> isWeb;
 
 		ServerInfo info;
 		info.ip = inet_addr(temp.c_str());
 		info.inter_port = port1;
 		info.client_port = port2;
+
+		if (isWeb == 0){
+			info.isWeb = false;
+		}
+		else{
+			info.isWeb = true;
+		}
+
 		serverInfo.push_back(info);
 	}
 

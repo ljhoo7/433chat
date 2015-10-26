@@ -194,14 +194,23 @@ public class CommandHandler extends Handler {
       }
 
    }
-   public void killSession(Session session){
+   public void killSession(int sessionID){
       try {
-         session.close();
+         getUser(sessionID+"").getSession().close();
       } catch (IOException e) {
          // TODO Auto-generated catch block
          e.printStackTrace();
       }
    }
+   
+   public void killSession(Session session){
+	      try {
+	         session.close();
+	      } catch (IOException e) {
+	         // TODO Auto-generated catch block
+	         e.printStackTrace();
+	      }
+	   }
 
    public void deleteUser(Room room, Session session) {
       User u = getUser(session);
