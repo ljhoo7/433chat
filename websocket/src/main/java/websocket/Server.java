@@ -47,6 +47,11 @@ public class Server implements javax.servlet.ServletContextListener {
 		msg.push(Integer.parseInt(session.getId()));
 		msg.push(TcpServer.serverNum);
 		TcpServer.SendAll(msg);
+		
+		 if (TcpServer.agentSocket.isConnected){
+           	 TcpServer.agentSocket.SendUserInfo(msgHandler.getUser(session), msgHandler.getRoom(session), (byte)1);
+           }
+		
 		msgHandler.broadcastToUser(session, "대기방에 접속했습니다. /set room 명령어로 방을 이동 할 수 있습니다.");
 	}
 
@@ -126,6 +131,10 @@ public class Server implements javax.servlet.ServletContextListener {
 		msg.push(TcpServer.serverNum);
 		TcpServer.SendAll(msg);
 		System.out.println("[System] : Session " + session.getId() + " has ended");
+		
+		if (TcpServer.agentSocket.isConnected){
+          	 TcpServer.agentSocket.SendUserInfo(msgHandler.getUser(session), msgHandler.getRoom(session), (byte)0);
+          }
 	}
 
 	public void contextDestroyed(ServletContextEvent arg0) {

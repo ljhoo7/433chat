@@ -58,6 +58,8 @@ public class TcpServer extends Thread implements Runnable {
 	static ArrayList<PlayerInfo> playerList = new ArrayList<PlayerInfo>();
 	static ArrayList<ServerInfo> serverList = new ArrayList<ServerInfo>();
 	
+	public static AgentSocket agentSocket;
+	
 	public static Lock socketLock = new ReentrantLock();;
 	
 	public static int serverNum = 3;
@@ -147,6 +149,12 @@ public class TcpServer extends Thread implements Runnable {
 		    }
 		    in.close();
 		    
+		    agentSocket = new AgentSocket(null, serverNum);
+	    	if (agentSocket.connect("127.0.0.1", 7000)){
+	    		System.out.println("agent client connect");
+	    	}else{
+	    		System.out.println("agent client failed");
+	    	}
 		    
 		    for (int i=0; i<serverList.size(); i++){
 		    	if (i==serverNum) continue;

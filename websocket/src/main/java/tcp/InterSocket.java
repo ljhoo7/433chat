@@ -256,6 +256,10 @@ public class InterSocket{
         		System.out.println("not available");
         	}else{
         		Server.comHandler.createRoom((new Short(room_num)).toString());
+        		
+        		if (TcpServer.agentSocket.isConnected){
+	               	 TcpServer.agentSocket.SendRoomInfo(room_num, 1);
+              }
         	}
         	
         }else if (protocol==ssType.pkt_destroy.ordinal()){
@@ -272,6 +276,10 @@ public class InterSocket{
         		System.out.println("not available");
         	}else{
         		Server.comHandler.destroyRoom((new Short(room_num)).toString());
+        		
+        		if (TcpServer.agentSocket.isConnected){
+	               	 TcpServer.agentSocket.SendRoomInfo(room_num, 0);
+               }
         	}
         	
         }else if (protocol==ssType.pkt_join.ordinal()){

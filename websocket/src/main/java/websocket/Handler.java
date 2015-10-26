@@ -23,6 +23,17 @@ public class Handler {
 		return null;
 	}
 	
+	public User getUser(String sessionId) {
+		for (Room room :roomlist) {
+			for(User user:room.getUserlist()){
+				if(user.getSession().getId().equals(sessionId)){
+					return user;
+				}
+			}
+		}
+		return null;
+	}
+	
 	public Room getRoom(Session session) {
 		for (Room room :roomlist) {
 			for(User user:room.getUserlist()){
