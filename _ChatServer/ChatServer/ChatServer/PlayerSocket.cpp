@@ -175,6 +175,9 @@ void CPlayer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 				chatServer->interServer->DisconnectAllServers();
 			}
 		}
+		else{
+			this->Reuse(0);
+		}
 
 	}
 	else{
@@ -214,9 +217,10 @@ void CPlayer::RemovePlayer(){
 			chatServer->agentServer->socket->UserInfoSend(false, this, 0);
 	}
 	/* remove in list */
+	
 	chatServer->DeleteUser(this);
 
-	this->Reuse(0);
+	
 }
 
 void CPlayer::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
@@ -306,7 +310,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 	{
 	case pkt_type::pt_escape_success:
 	{
-		PRINTF("userout success %d", socket_);
+		PRINTF("userout success %d\n", socket_);
 		tmpEscapeSuccess = (t_escape_success*)packet->msg;
 
 		t_user_out tmpUserOut;

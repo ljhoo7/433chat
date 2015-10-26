@@ -62,4 +62,6 @@ public:
 	Receiver*		receiver_;
 	Connector* connector_;
 
+	bool disconnectCall;
+
 };

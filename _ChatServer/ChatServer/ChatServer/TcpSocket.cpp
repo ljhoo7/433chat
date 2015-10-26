@@ -16,6 +16,7 @@ void TcpSocket::Init()
 		PRINTF("WSASocket() Error!!! err(%d)\n", WSAGetLastError());
 	}
 
+	disconnectCall = false;
 	InitBuf();
 }
 
@@ -65,7 +66,7 @@ void TcpSocket::Recv()
 		if (error != ERROR_IO_PENDING)
 		{
 			PRINTF("WSARecv() Error!!! s(%d) err(%d)\n", socket_, error);
-			Disconnect();
+			//Disconnect();
 		}
 	}
 }
@@ -86,7 +87,7 @@ void TcpSocket::Recv(char* buf, int buflen)
 		if (error != ERROR_IO_PENDING)
 		{
 			PRINTF("WSARecv() Error!!! s(%d) err(%d)\n", socket_, error);
-			Disconnect();
+			//Disconnect();
 		}
 	}
 }
@@ -114,11 +115,16 @@ void TcpSocket::Send(char* buf, int buflen)
 
 void TcpSocket::Reuse(int size)
 {
+	disconnectCall = false;
 	acceptor_->Register(*this, size);
 }
 
 void TcpSocket::Disconnect()
 {
+	if (disconnectCall) return;
+
+	disconnectCall = true;
+
 	BOOL ret = TransmitFile(
 		socket_,
 		NULL,
