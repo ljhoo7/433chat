@@ -249,7 +249,8 @@ void ChatServer::EndServer(){
 		chatServer->agentServer->socket->Disconnect();
 	}
 	else{
-		PRINTF("all disconnect success!!\nend complete\n");
+		chatServer->logicHandle.isEnd = true;
+		PRINTF("all disconnect success!!\n real end complete\n");
 	}
 	
 }

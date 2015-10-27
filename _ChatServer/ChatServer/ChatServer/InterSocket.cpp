@@ -226,7 +226,9 @@ void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 		}
 
 		if (chatServer->isEnd){
+			PRINTF("server cnt %d\n", chatServer->interServer->ServerCnt());
 			if (chatServer->interServer->ServerCnt() == 0){
+				
 				chatServer->EndServer();
 			}
 		}

@@ -202,7 +202,7 @@ void AgentSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 		/* disconn complete */
 
 		if (chatServer->isEnd){
-			PRINTF("all disconnect success!!\n end complete\n");
+			chatServer->EndServer();
 		}
 	}
 	else{
