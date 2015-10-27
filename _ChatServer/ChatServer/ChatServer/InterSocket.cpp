@@ -227,12 +227,7 @@ void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 
 		if (chatServer->isEnd){
 			if (chatServer->interServer->ServerCnt() == 0){
-				PRINTF("disconnect all interserver success!\n");
-				PRINTF("starting agentserver disconnect...\n");
-				if (chatServer->agentServer->socket->isConnected)
-					chatServer->agentServer->socket->Disconnect();
-				else
-					PRINTF("end complete\n");
+				chatServer->EndServer();
 			}
 		}
 		else{

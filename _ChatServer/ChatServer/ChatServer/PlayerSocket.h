@@ -26,6 +26,7 @@ public:
 	MemPooler<msg_buffer> *poolManager;
 	MemPooler<CPacket> *packetPoolManager;
 
+	std::vector<int> escapingList;
 	
 public:
 	bool ValidPacket(CPacket *packet);
@@ -39,5 +40,6 @@ public:
 	void ConnProcess(bool isError, Act* act, DWORD bytes_transferred);
 
 	void RemovePlayer();
+	void EscapePlayer(bool first, int i);
 };
 

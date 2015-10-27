@@ -228,17 +228,13 @@ void ChatServer::Start(){
 	
 	// escaping all user to another server
 	if (!isEnd){
+		isEnd = true;
 		EndServer();
 	}
 	logic_thread.join();
 }
 
 void ChatServer::EndServer(){
-	isEnd = true;
-
-	//closesocket(clientServer->listenSocket_.socket_);
-	//closesocket(interServer->listenSocket_.socket_);
-	Sleep(1000);
 	if (GetUserCnt(serverNum) > 0){
 		EscapingAllUsers();
 	}
@@ -261,47 +257,14 @@ void ChatServer::EndServer(){
 void ChatServer::EscapingAllUsers(){
 	PRINTF("Escaping All Users to other Server...\n");
 
-	std::vector<int> serverNums;
-	interServer->GetServerNums(serverNums);
-
 	int i = 0;
-	int n = serverNums.size();
-
-	if (n == 0){
-		PRINTF("no interserver! all client will be disconnected\n");
-
-		for (std::list<CPlayer*>::iterator iter = chatServer->users.begin();
-			iter != chatServer->users.end(); ++iter)
-		{
-			if ((*iter)->serverNum == chatServer->serverNum)
-
-			{
-				PRINTF("send user out!\n");
-				t_user_out tmpUserOut;
-				tmpUserOut.type = pkt_type::pt_user_out_client;
-				tmpUserOut.client_socket = (*iter)->socket_;
-				(*iter)->Send((char*)&tmpUserOut, sizeof(t_user_out));
-			}
-		}
+	for (std::list<CPlayer*>::iterator iter = chatServer->users.begin();
+		iter != chatServer->users.end(); ++iter)
+	{
+		(*iter)->EscapePlayer(true, i);
+		i++;
 	}
-	else{
-		for (std::list<CPlayer*>::iterator iter = chatServer->users.begin();
-			iter != chatServer->users.end(); ++iter)
-		{
-			t_escape_server tmpEscape;
-			tmpEscape.type = pkt_type::pt_escape_server;
-
-			if ((*iter)->serverNum == chatServer->serverNum)
-			{
-				PRINTF("%d client escape to server %d\n", (*iter)->socket_, serverNums[i%n]);
-
-				tmpEscape.dest_ip = chatServer->serverInfo[serverNums[i%n]].ip;
-				tmpEscape.port = chatServer->serverInfo[serverNums[i%n]].client_port;
-				i++;
-				(*iter)->Send((char*)&tmpEscape, sizeof(t_escape_server));
-			}
-		}
-	}
+			
 }
 
 void ChatServer::AddUser(CPlayer* player){
