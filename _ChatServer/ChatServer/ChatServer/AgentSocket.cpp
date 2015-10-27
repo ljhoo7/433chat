@@ -202,7 +202,7 @@ void AgentSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 		/* disconn complete */
 
 		if (chatServer->isEnd){
-			PRINTF("all disconnect success!!\n end complete\n");
+			chatServer->EndServer();
 		}
 	}
 	else{
@@ -411,6 +411,10 @@ void AgentSocket::PacketHandling(CPacket *packet){
 		break;
 	case sag_pkt_type::pt_health_check:
 		PRINTF("health check msg was sent!\n");
+		sag_health_ack msg;
+		msg.type = sag_pkt_type::pt_health_ack;
+
+		Send((char *)&msg, sizeof(msg));
 		break;
 	default:
 		this->Disconnect();

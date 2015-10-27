@@ -155,6 +155,17 @@ void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 		if (chatServer->agentServer->socket->isConnected)
 			chatServer->agentServer->socket->UserInfoSend(false, this, 1);
 
+
+		this->nickname = "";
+		this->roomNum = -1;
+		this->identifier = -1;
+
+		this->position = 0;
+		this->remainBytes = HEADER_SIZE;
+		this->isVar = false;
+
+		escapingList.clear();
+
 		Recv(this->recvBuf_, HEADER_SIZE);
 	}
 	else{
@@ -170,10 +181,11 @@ void CPlayer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 		if (chatServer->isEnd){
 			if (chatServer->GetUserCnt(chatServer->serverNum) == 0){
-				PRINTF("disconnect all user success!\n");
-				PRINTF("starting interserver disconnect...\n");
-				chatServer->interServer->DisconnectAllServers();
+				chatServer->EndServer();
 			}
+		}
+		else{
+			this->Reuse(0);
 		}
 
 	}
@@ -214,9 +226,52 @@ void CPlayer::RemovePlayer(){
 			chatServer->agentServer->socket->UserInfoSend(false, this, 0);
 	}
 	/* remove in list */
+	
 	chatServer->DeleteUser(this);
 
-	this->Reuse(0);
+	
+}
+
+void CPlayer::EscapePlayer(bool first, int i){
+	if (first){
+		chatServer->interServer->GetServerNums(escapingList);
+	}
+	int n = escapingList.size();
+
+	if (n == 0){
+		if (serverNum == chatServer->serverNum)
+		{
+			PRINTF("send user out!\n");
+			t_user_out tmpUserOut;
+			tmpUserOut.type = pkt_type::pt_user_out_client;
+			tmpUserOut.client_socket = socket_;
+			Send((char*)&tmpUserOut, sizeof(t_user_out));
+		}
+	}
+	else{
+		t_escape_server tmpEscape;
+		tmpEscape.type = pkt_type::pt_escape_server;
+
+		if (serverNum == chatServer->serverNum)
+		{
+			PRINTF("%d client escape to server %d\n", socket_, escapingList[i%n]);
+
+			tmpEscape.dest_ip = chatServer->serverInfo[escapingList[i%n]].ip;
+			tmpEscape.port = chatServer->serverInfo[escapingList[i%n]].client_port;
+
+			for (std::vector<int>::iterator iter = escapingList.begin();
+				iter != escapingList.end(); ++iter)
+			{
+				if ((*iter) == escapingList[i%n]){
+					escapingList.erase(iter);
+					break;
+				}
+			}
+
+			Send((char*)&tmpEscape, sizeof(t_escape_server));
+		}
+	}
+
 }
 
 void CPlayer::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
@@ -306,7 +361,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 	{
 	case pkt_type::pt_escape_success:
 	{
-		PRINTF("userout success %d", socket_);
+		PRINTF("userout success %d\n", socket_);
 		tmpEscapeSuccess = (t_escape_success*)packet->msg;
 
 		t_user_out tmpUserOut;
@@ -318,6 +373,8 @@ void CPlayer::PacketHandling(CPacket *packet){
 	}
 	case pkt_type::pt_escape_failure:
 		tmpEscapeFailure = (t_escape_failure*)packet->msg;
+		PRINTF("escaping fail! retry... %d\n", socket_);
+		EscapePlayer(false, 0);
 		break;
 	case pkt_type::pt_create:
 		tmpCreate = (t_create*)packet->msg;		//memcpy(&tmpCreate, packet->msg, sizeof(t_create));

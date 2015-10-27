@@ -146,26 +146,95 @@ void ChatServer::Start(){
 			}
 			PRINTF("-----------------------------------------------------------\n");
 		}
-		if (input == "quit")
+		else if (input == "quit")
 		{
 			break;
+		}
+		else if (input.substr(0, 3) == "out")
+		{
+			int tRoomNum = -1;
+			char nickname[20];
+
+			strcpy(nickname, "");
+
+			int s_result = sscanf(input.c_str(), "out %d %s\n", &tRoomNum, nickname);
+
+			if (tRoomNum < 0)
+			{
+				std::cout << "RoomNum Error !" << std::endl;
+				continue;
+			}
+
+			if (!strcmp(nickname, ""))
+			{
+				std::cout << "NickName Error !" << std::endl;
+			}
+
+			CRoom *tRoom = roomManager.FindRoom(tRoomNum);
+			std::list<CPlayer*>::iterator tIter = tRoom->players.begin();
+			for (; tIter != tRoom->players.end(); ++tIter)
+			{
+				if (!strcmp(nickname, (*tIter)->nickname.c_str()))
+				{
+					t_user_out tOut;
+
+					tOut.type = pkt_type::pt_user_out_client;
+					tOut.client_socket = (*tIter)->socket_;
+
+					std::cout << "out message has been sent to !" << std::endl;
+					(*tIter)->Send((char*)&tOut, sizeof(tOut));
+				}
+			}
+		}
+		else if (input.substr(0, 6) == "escape")
+		{
+			char ip[20];
+			int port = -1;
+
+			strcpy(ip, "");
+
+			int s_result = sscanf(input.c_str(), "escape %s %d\n", ip, &port);
+
+			if (!strcmp(ip, ""))
+			{ 
+				std::cout << "IP Error !" << std::endl;
+			}
+
+			if (1025 > port || port > 65535)
+			{
+				std::cout << "port Error !" << std::endl;
+			}
+
+			t_escape_server tEscape;
+
+			tEscape.type = pkt_type::pt_escape_server;
+			tEscape.dest_ip = inet_addr(ip);
+			tEscape.port = port;
+
+			std::cout << "escape message has been sent to all ! ip :" << tEscape.dest_ip << ", port : " << tEscape.port << std::endl;
+
+			// escaping all
+			std::list<CPlayer*>::iterator tIter = chatServer->users.begin();
+			for (; tIter != chatServer->users.end(); ++tIter)
+			{
+				if ((*tIter)->serverNum == chatServer->serverNum)
+				{
+					(*tIter)->Send((char*)&tEscape, sizeof(tEscape));
+				}
+			}
 		}
 	}
 
 	
 	// escaping all user to another server
 	if (!isEnd){
+		isEnd = true;
 		EndServer();
 	}
 	logic_thread.join();
 }
 
 void ChatServer::EndServer(){
-	isEnd = true;
-
-	//closesocket(clientServer->listenSocket_.socket_);
-	//closesocket(interServer->listenSocket_.socket_);
-	Sleep(1000);
 	if (GetUserCnt(serverNum) > 0){
 		EscapingAllUsers();
 	}
@@ -180,7 +249,8 @@ void ChatServer::EndServer(){
 		chatServer->agentServer->socket->Disconnect();
 	}
 	else{
-		PRINTF("all disconnect success!!\nend complete\n");
+		chatServer->logicHandle.isEnd = true;
+		PRINTF("all disconnect success!!\n real end complete\n");
 	}
 	
 }
@@ -188,47 +258,14 @@ void ChatServer::EndServer(){
 void ChatServer::EscapingAllUsers(){
 	PRINTF("Escaping All Users to other Server...\n");
 
-	std::vector<int> serverNums;
-	interServer->GetServerNums(serverNums);
-
 	int i = 0;
-	int n = serverNums.size();
-
-	if (n == 0){
-		PRINTF("no interserver! all client will be disconnected\n");
-
-		for (std::list<CPlayer*>::iterator iter = chatServer->users.begin();
-			iter != chatServer->users.end(); ++iter)
-		{
-			if ((*iter)->serverNum == chatServer->serverNum)
-
-			{
-				PRINTF("send user out!\n");
-				t_user_out tmpUserOut;
-				tmpUserOut.type = pkt_type::pt_user_out_client;
-				tmpUserOut.client_socket = (*iter)->socket_;
-				(*iter)->Send((char*)&tmpUserOut, sizeof(t_user_out));
-			}
-		}
+	for (std::list<CPlayer*>::iterator iter = chatServer->users.begin();
+		iter != chatServer->users.end(); ++iter)
+	{
+		(*iter)->EscapePlayer(true, i);
+		i++;
 	}
-	else{
-		for (std::list<CPlayer*>::iterator iter = chatServer->users.begin();
-			iter != chatServer->users.end(); ++iter)
-		{
-			t_escape_server tmpEscape;
-			tmpEscape.type = pkt_type::pt_escape_server;
-
-			if ((*iter)->serverNum == chatServer->serverNum)
-			{
-				PRINTF("%d client escape to server %d\n", (*iter)->socket_, serverNums[i%n]);
-
-				tmpEscape.dest_ip = chatServer->serverInfo[serverNums[i%n]].ip;
-				tmpEscape.port = chatServer->serverInfo[serverNums[i%n]].client_port;
-				i++;
-				(*iter)->Send((char*)&tmpEscape, sizeof(t_escape_server));
-			}
-		}
-	}
+			
 }
 
 void ChatServer::AddUser(CPlayer* player){

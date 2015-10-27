@@ -12,5 +12,7 @@ public:
 
 	void EnqueueOper(CPacket* msg, bool interServer);
 	void Process();
+
+	bool isEnd;
 };
 

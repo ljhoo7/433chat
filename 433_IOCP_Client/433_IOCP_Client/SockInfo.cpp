@@ -6,8 +6,8 @@ extern CClient *g_pClient;
 
 void CSockInfo::BindBeforeConnectEx()
 {
-	g_pClient->m_pSock->m_hSock = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
-	if (g_pClient->m_pSock->m_hSock == INVALID_SOCKET)
+	g_pClient->m_hNewSock = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+	if (g_pClient->m_hNewSock == INVALID_SOCKET)
 	{
 		printf("WSASocket() Error!!! err(%d)\n", WSAGetLastError());
 	}
@@ -18,7 +18,7 @@ void CSockInfo::BindBeforeConnectEx()
 	m_cAddr.sin_port = 0;
 
 	int t_nRc;
-	t_nRc = bind(g_pClient->m_pSock->m_hSock, (SOCKADDR*)&m_cAddr, sizeof(m_cAddr));
+	t_nRc = bind(g_pClient->m_hNewSock, (SOCKADDR*)&m_cAddr, sizeof(m_cAddr));
 
 	if (t_nRc != 0) {
 		g_pLog->myWprintf(L"bind error in CSockInfo constructor\n");
@@ -36,7 +36,7 @@ void CSockInfo::BindBeforeConnectEx()
 	ZeroMemory(m_szSendBuf, BUFSIZE);
 	ZeroMemory(m_szConnectBuf, BUFSIZE);
 
-	m_pProactor->Register((HANDLE)g_pClient->m_pSock->m_hSock);
+	m_pProactor->Register((HANDLE)g_pClient->m_hNewSock);
 }
 
 CSockInfo::CSockInfo(CProactor *p_pProactor, CConnector *p_pConnector, CDisconnector *p_pDisconnector, CReceiver *p_pReceiver, CSender *p_pSender)
@@ -60,7 +60,7 @@ bool CSockInfo::Connect(DWORD ip, int port)
 	BOOL t_bRet;
 
 	// This must be here !!!
-	//m_hSock = g_pClient->m_pSock->m_hSock;
+	// m_hSock = g_pClient->m_pSock->m_hSock;
 
 	BindBeforeConnectEx();
 
@@ -69,7 +69,7 @@ bool CSockInfo::Connect(DWORD ip, int port)
 	m_cAddr.sin_addr.s_addr = ip;
 	m_cAddr.sin_port = htons(port);
 
-	t_bRet = g_cMswsock.ConnectEx(g_pClient->m_pSock->m_hSock, (SOCKADDR*)&m_cAddr, sizeof(m_cAddr), NULL, 0, NULL, static_cast<LPOVERLAPPED>(m_vAct[CSockInfo::ACT_TYPE::ACT_CONNECT]));
+	t_bRet = g_cMswsock.ConnectEx(g_pClient->m_hNewSock, (SOCKADDR*)&m_cAddr, sizeof(m_cAddr), NULL, 0, NULL, static_cast<LPOVERLAPPED>(m_vAct[CSockInfo::ACT_TYPE::ACT_CONNECT]));
 
 	if (!t_bRet)
 	{
@@ -93,24 +93,7 @@ bool CSockInfo::Connect(DWORD ip, int port)
 bool CSockInfo::Disconnect()
 {
 	BOOL ret = true;
-	if (NULL != g_pClient->m_hOldSock)
-	{
-
-		ret = TransmitFile(
-			g_pClient->m_hOldSock,
-			NULL,
-			0,
-			0,
-			static_cast<OVERLAPPED*>(m_vAct[ACT_DISCONNECT]),
-			NULL,
-			TF_DISCONNECT | TF_REUSE_SOCKET
-			);
-		//closesocket(m_hSock);
-		g_pClient->m_hOldSock = NULL;
-	}
-	else
-	{
-		ret = TransmitFile(
+	ret = TransmitFile(
 			g_pClient->m_pSock->m_hSock,
 			NULL,
 			0,
@@ -120,8 +103,7 @@ bool CSockInfo::Disconnect()
 			TF_DISCONNECT | TF_REUSE_SOCKET
 			);
 		//closesocket(m_hSock);
-		g_pClient->m_pSock->m_hSock = NULL;
-	}
+	g_pClient->m_pSock->m_hSock = NULL;
 
 	if (!ret)
 	{
@@ -156,7 +138,7 @@ bool CSockInfo::Recv(char *p_pBuf, int p_nBufSize)
 		if (error != ERROR_IO_PENDING)
 		{
 			g_pLog->myWprintf(L"WSARecv() Error!!!\n");
-			Disconnect();
+			//Disconnect();
 
 			return false;
 		}

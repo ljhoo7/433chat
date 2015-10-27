@@ -4,6 +4,7 @@ extern ChatServer* chatServer;
 
 CLogicHandle::CLogicHandle()
 {
+	isEnd = false;
 	InitializeCriticalSection(&operationLock);
 	InitializeCriticalSection(&interOperationLock);
 }
@@ -34,7 +35,7 @@ void CLogicHandle::EnqueueOper(CPacket* msg, bool interServer)
 
 void CLogicHandle::Process()
 {
-	while (true)
+	while (!isEnd)
 	{
 		if (interOperationQueue.size() <= 0)
 		{

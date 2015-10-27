@@ -217,23 +217,24 @@ void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 		PRINTF("closed the other server.\n");
 
 		//if (heartThread.joinable()) heartThread.join();
+		
 		if (!isConnect){
 			interServer_->DeleteSocket(this);
-			this->Reuse(sizeof(int));
 		}
 		else{
 			interServer_->DeleteConnectSocket(this);
 		}
 
-
 		if (chatServer->isEnd){
+			PRINTF("server cnt %d\n", chatServer->interServer->ServerCnt());
 			if (chatServer->interServer->ServerCnt() == 0){
-				PRINTF("disconnect all interserver success!\n");
-				PRINTF("starting agentserver disconnect...\n");
-				if (chatServer->agentServer->socket->isConnected)
-					chatServer->agentServer->socket->Disconnect();
-				else
-					PRINTF("disconnect success\n");
+				
+				chatServer->EndServer();
+			}
+		}
+		else{
+			if (!isConnect){
+				this->Reuse(sizeof(int));
 			}
 		}
 	}

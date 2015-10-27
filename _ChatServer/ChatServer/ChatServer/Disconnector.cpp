@@ -27,6 +27,8 @@ void Disconnector::ProcError(Act* act, DWORD error)
 
 	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
+	tcpsocket.disconnectCall = false;
+
 	PRINTF("...에러처리 Disconnector s(%d) err(%d)\n", tcpsocket.socket_, error);
 
 	tcpsocket.DisconnProcess(true, act, error);
