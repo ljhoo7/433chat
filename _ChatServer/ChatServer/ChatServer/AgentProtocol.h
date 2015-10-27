@@ -65,6 +65,10 @@ typedef struct{
 	SAGUserInfo userInfoList[TOTAL_PLAYER];
 }sag_total_user_info;
 
+
+typedef struct{
+	unsigned short type;
+}sag_health_ack;
 //typedef struct{
 //	unsigned short type;
 //	unsigned short serverCnt;
