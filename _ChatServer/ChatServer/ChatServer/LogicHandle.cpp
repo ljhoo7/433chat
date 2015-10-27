@@ -34,7 +34,7 @@ void CLogicHandle::EnqueueOper(CPacket* msg, bool interServer)
 
 void CLogicHandle::Process()
 {
-	while (true)
+	while (!chatServer->isEnd)
 	{
 		if (interOperationQueue.size() <= 0)
 		{
