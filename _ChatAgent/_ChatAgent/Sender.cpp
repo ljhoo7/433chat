@@ -1,21 +1,21 @@
 #include "stdafx.h"
 
-CSender::CSender(Proactor *p_pProactor)
+Sender::Sender(Proactor *p_pProactor)
 {
 	mProactor = p_pProactor;
 }
 
 
-CSender::~CSender()
+Sender::~Sender()
 {
 }
 
-void CSender::ProcEvent(Act *p_pAct, DWORD p_dwTransferredBytes)
+void Sender::ProcEvent(Act *p_pAct, DWORD p_dwTransferredBytes)
 {
 
 }
 
-void CSender::ProcError(Act *p_pAct, DWORD p_dwError)
+void Sender::ProcError(Act *p_pAct, DWORD p_dwError)
 {
 
 }

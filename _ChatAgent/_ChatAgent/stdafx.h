@@ -17,9 +17,12 @@
 #include <winnt.h>
 #include <vector>
 #include <list>
+#include <fstream>
 #include <algorithm>
 #include <MSWSock.h>
 #include <assert.h>
+#include <chrono>
+#include <thread>
 
 class WinSockBase;
 class Actor;
@@ -35,8 +38,8 @@ class TcpAct;
 class Acceptor;
 class Connector;
 class Disconnector;
-class CReceiver;
-class CSender;
+class Receiver;
+class Sender;
 class CLogWriter;
 class ServerAgent;
 class AgentApp;

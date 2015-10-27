@@ -25,7 +25,14 @@ public:
 	void				   Init(unsigned short agentPort, DWORD ip, unsigned int port);
 	void				   Run();
 	void				   Destroy();
-						 
+
+
+public:
+	/**************** Control Server Process *******************/
+	bool				   GenerateServerProcess();
+	void				   GenerateTimeWait(int serverNum);
+
+
 public:					 
 	/*********************** Set & Get *************************/
 	void				   SetAgentNumber(unsigned short agentNumber) { mAgentNumber = agentNumber; }
@@ -35,14 +42,25 @@ public:
 	DWORD				   GetMServerIP()   { return mMonitoringServerIP; }
 						   
 	TotalInfo*			   GetTotalInfoData(); 
-						 				  
+	
+
+public:
+	bool				   IsConnected(int serverNum);
+
+	void				   SetConnected(int serverNum, bool connected);
+	
+	void				   AddCheck(int serverNum, bool connected);
+
+
+
 public:					 
 
 	/************** Socket List Managed Function ****************/
 	void				   AddServer(SASocket* pSocket);
 	void				   DeleteServer(SASocket* pSocket);
 	SASocket*			   FindServer(int serverNum);
-
+	
+	int					   GetServerCount() { return mServerSocketList.size(); }
 	std::list<SASocket*>&  GetServerSocketList() { return mServerSocketList; }
 public:
 	
@@ -60,6 +78,8 @@ public:
 	bool				   IsSearchUser(int serverNum, int userSocket);
 	bool				   IsSearchRoom(unsigned short roomNum);
 
+
+
 private:
 	bool				   mIsExit;
 						   
@@ -73,7 +93,11 @@ private:
 	ServerAgent*		   mServerAgent;
 	MServerAgent*		   mMonitoringServerAgent;
 						   
-	std::list<SASocket*>   mServerSocketList;
+	std::list<SASocket*>     mServerSocketList;
+	std::vector<std::thread> mTimeWaitThreads;
+
+
+	std::list<std::pair<int, bool>>   mConnectCheckList;
 						   
 	CRITICAL_SECTION	   serverLock;
 };

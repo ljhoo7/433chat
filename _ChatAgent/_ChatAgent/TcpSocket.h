@@ -13,7 +13,7 @@ public:
 	void Init();
 	void InitBuf();
 	void InitAct(Proactor* proactor, Acceptor* acceptor, Disconnector* disconnector,
-		Connector* connector, CSender* sender, CReceiver* receiver);
+		Connector* connector, Sender* sender, Receiver* receiver);
 
 public:
 	void Recv();
@@ -59,8 +59,8 @@ public:
 	Proactor*		proactor_;
 	Disconnector*	disconnector_;
 	Acceptor*		acceptor_;
-	CSender*		sender_;
-	CReceiver*		receiver_;
+	Sender*			sender_;
+	Receiver*		receiver_;
 	Connector*		connector_;
 
 };

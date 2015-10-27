@@ -44,6 +44,14 @@ void AgentApp::Destroy()
 	if (mTotalInfoData)			delete mTotalInfoData;
 	if (mServerAgent)			delete mServerAgent;
 	if (mMonitoringServerAgent) delete mMonitoringServerAgent;
+
+	for (auto& waitThreads : mTimeWaitThreads)
+	{
+		if (waitThreads.joinable())
+		{
+			waitThreads.join();
+		}
+	}
 }
 
 void AgentApp::Run()
@@ -91,16 +99,15 @@ void AgentApp::Run()
 			PRINTF("\n");
 		}
 		PRINTF("\n");
-
-	/*	PRINTF("------------------------ InterServer Information --------------------\n");
-		PRINTF("Server Count : %d\n", mTotalInfoData->serverCnt);
-		PRINTF("[Server Number List]\n");
-		for (auto& serverNum : mTotalInfoData->serverNumList)
-		{
-			PRINTF("%d\t", serverNum);
-		}*/
 		PRINTF("\n\n");
 
+	}
+	else if (input == "generate")
+	{
+		PRINTF("Generate Server Process...\n");
+		GenerateServerProcess();
+
+		PRINTF("\n");
 	}
 	else if (input == "ms-disconnect")
 	{
@@ -113,6 +120,110 @@ void AgentApp::Run()
 	}
 
 }
+bool AgentApp::GenerateServerProcess()
+{
+	bool isAllAlive = false;
+
+	EnterCriticalSection(&serverLock);
+
+	std::string fileName = "GenerateServerList.txt";
+	std::ifstream fin(fileName);
+
+	if (!fin)
+	{
+		std::cerr << fileName << " 파일이 열리지 않습니다 " << std::endl;
+
+		return false;
+	}
+	
+	std::string LABLE;
+	std::string PROCESS_NAME;
+	std::string SERVER_NUM;
+	std::string AGENT_PORT;
+	WORD serverCount = 0;
+
+	fin >> LABLE >> serverCount;
+
+	for (int i = 0; i < serverCount; ++i)
+	{
+		fin >> PROCESS_NAME >> SERVER_NUM >> AGENT_PORT;
+		
+		AddCheck(atoi(SERVER_NUM.c_str()), false);
+
+
+		SASocket* pSocket = FindServer(atoi(SERVER_NUM.c_str()));
+		if (pSocket)
+		{
+			isAllAlive = true;
+			continue;
+		}
+
+
+		isAllAlive = false;
+		break;
+	}
+	
+	if (!isAllAlive)
+	{
+
+		std::string commandStr = PROCESS_NAME + ' ' + SERVER_NUM + ' ' + AGENT_PORT;
+
+
+		STARTUPINFO si = { 0, };
+		PROCESS_INFORMATION pi;
+
+		ZeroMemory(&si, sizeof(STARTUPINFO));
+
+		si.cb = sizeof(si);
+		si.dwFlags = STARTF_USEPOSITION | STARTF_USESIZE;
+		si.dwX = 100;
+		si.dwY = 100;
+		si.dwXSize = 800;
+		si.dwYSize = 300;
+
+		si.lpTitle = _T("Child Server");
+
+		bool isGenerate;
+
+		std::wstring commandLine = StringToWstring(commandStr);
+
+		isGenerate = ::CreateProcess(NULL,
+									 const_cast<wchar_t*>(commandLine.c_str()),
+									 NULL, NULL,
+									 TRUE,
+									 CREATE_NEW_CONSOLE,
+									 NULL, NULL,
+									 &si,
+									 &pi);
+									 
+		if (isGenerate == 0)
+		{
+			fin.close();
+
+			PRINTF("ERROR : Creating Error\n");
+			LeaveCriticalSection(&serverLock);
+			return false;
+		}
+		
+	}
+	else
+	{
+		PRINTF("ERROR : Already All Server Alive \n");
+		fin.close();
+		LeaveCriticalSection(&serverLock);
+		return false;
+	}
+
+	mTimeWaitThreads.push_back(std::thread(&AgentApp::GenerateTimeWait, this, atoi(SERVER_NUM.c_str())));
+
+	fin.close();
+
+	LeaveCriticalSection(&serverLock);
+
+	return true;
+	
+}
+
 
 TotalInfo* AgentApp::GetTotalInfoData()
 {
@@ -159,6 +270,56 @@ SASocket* AgentApp::FindServer(int serverNum)
 }
 
 
+bool AgentApp::IsConnected(int serverNum)
+{
+	EnterCriticalSection(&serverLock);
+
+	std::list<std::pair<int, bool>>::iterator iter;
+
+	for (iter = mConnectCheckList.begin(); iter != mConnectCheckList.end(); iter++)
+	{
+
+		if (iter->first == serverNum)
+		{
+			LeaveCriticalSection(&serverLock);
+			return iter->second;
+		}
+	}
+
+	LeaveCriticalSection(&serverLock);
+	return false;
+
+}
+
+void AgentApp::SetConnected(int serverNum, bool connected)
+{
+	EnterCriticalSection(&serverLock);
+
+	std::list<std::pair<int,bool>>::iterator iter;
+
+	for (iter = mConnectCheckList.begin(); iter != mConnectCheckList.end(); iter++)
+	{
+		
+		if (iter->first == serverNum)
+		{
+			iter->second = connected;
+			LeaveCriticalSection(&serverLock);
+			return;
+		}
+	}
+
+	LeaveCriticalSection(&serverLock);
+
+}
+
+void AgentApp::AddCheck(int serverNum, bool connected)
+{
+	EnterCriticalSection(&serverLock);
+	
+	mConnectCheckList.push_back(std::pair<int,bool>(serverNum,connected));
+	
+	LeaveCriticalSection(&serverLock);
+}
 
 void AgentApp::SaveDeltaRoomInfo(unsigned short roomNum, bool isState)
 {
@@ -349,12 +510,6 @@ void AgentApp::SaveTotalServerUserInfo(unsigned int serverNum, unsigned short us
 {
 	EnterCriticalSection(&serverLock);
 
-
-	/*if (!mTotalInfoData->serverUserInfoList.empty())
-	{
-		mTotalInfoData->serverUserInfoList.clear();
-	}*/
-
 	bool isExist = false;
 	for (auto& serverInfo : mTotalInfoData->serverUserInfoList)
 	{
@@ -495,3 +650,44 @@ bool AgentApp::IsSearchRoom(unsigned short roomNum)
 
 }
 
+void AgentApp::GenerateTimeWait(int serverNum)
+{
+	PRINTF("Start Wait\n");
+
+	std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+
+	while (1)
+	{
+		std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
+
+		std::chrono::duration<double> sec = end - start;
+
+		if (IsConnected(serverNum))
+		{
+			agms_generate_server_success pkt;
+			pkt.type = msag_pkt_type::pkt_generate_server_success;
+
+			mMonitoringServerAgent->m_pSock->Send((char*)&pkt, sizeof(agms_generate_server_success));
+			
+			PRINTF("Generate Real Success\n");
+			break;
+		}
+
+		if (sec.count() >= 10.0)
+		{
+			agms_generate_server_fail pkt;
+			pkt.type = msag_pkt_type::pkt_generate_server_fail;
+			pkt.failSignal = fail_signal::fs_overflow;
+
+			mMonitoringServerAgent->m_pSock->Send((char*)&pkt, sizeof(agms_generate_server_fail));
+
+			PRINTF("ERROR : Generate Failed \n");
+			break;
+		}
+
+	}
+
+	PRINTF("Exit Wait\n");
+
+
+}

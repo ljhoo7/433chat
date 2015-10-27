@@ -28,8 +28,8 @@ void ServerAgent::Run()
 	mProactor		 = new Proactor(mThreadPoolSize);
 	mDisconnector	 = new Disconnector(mProactor);
 	mAcceptor		 = new Acceptor;
-	mReceiver		 = new CReceiver(mProactor);
-	mSender			 = new CSender(mProactor);
+	mReceiver		 = new Receiver(mProactor);
+	mSender			 = new Sender(mProactor);
 
 	mListenSocket	 = new TcpListenSocket;
 

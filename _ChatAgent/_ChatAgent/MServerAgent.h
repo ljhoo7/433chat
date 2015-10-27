@@ -9,10 +9,10 @@ public:
 	Proactor*						mProactor;
 	Connector*						mConnector;
 	Disconnector*					mDisconnector;
-	CReceiver*						mReceiver;
-	CSender*						mSender;
+	Receiver*						mReceiver;
+	Sender*							mSender;
 
-	TcpSocket						*m_pSock;
+	TcpSocket*					    m_pSock;
 
 	int								m_nThreadPoolSize;
 	int								m_nSocketPoolSize;
@@ -41,6 +41,7 @@ public:
 
 	void SendUserOut(int serverNum, int userSocket);
 	void SendRoomDestroy(int roomNum);
+	void SendGenerateServer();
 	void SendKillServer(int serverNum);
 
 	void SendTotalData();
@@ -51,7 +52,5 @@ public:
 
 	void Connect(DWORD ip, WORD port);
 
-public:
-	void IsConnected(ServerAgent* pServerAgent);
 };
 

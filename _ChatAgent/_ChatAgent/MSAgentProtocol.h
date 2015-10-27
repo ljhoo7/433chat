@@ -14,12 +14,15 @@ enum msag_pkt_type
 	pkt_room_destroy_fail,
 	pkt_kill_server_success,
 	pkt_kill_server_fail,
+	pkt_generate_server_success,
+	pkt_generate_server_fail,
 	
 	// MS -> AG
 	pkt_user_out,
 	pkt_room_destroy,
 	pkt_kill_server,
 	pkt_total_request,
+	pkt_generate_server
 };
 
 /*
@@ -80,6 +83,16 @@ typedef struct{
 	unsigned short failSignal;
 }agms_kill_server_fail;
 
+#pragma pack(1)
+typedef struct{
+	unsigned short type;
+}agms_generate_server_success;
+
+#pragma pack(1)
+typedef struct{
+	unsigned short type;
+	unsigned short failSignal;
+}agms_generate_server_fail;
 
 /*
 * Monitoring Server -> Agent
@@ -108,4 +121,10 @@ typedef struct{
 typedef struct{
 	unsigned short type;
 }msag_request_total_info;
+
+#pragma pack(1)
+typedef struct{
+	unsigned short type;
+}msag_generate_server;
+
 

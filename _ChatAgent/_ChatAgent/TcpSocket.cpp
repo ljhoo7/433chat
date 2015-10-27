@@ -37,7 +37,7 @@ void TcpSocket::InitBuf()
 }
 
 void TcpSocket::InitAct(Proactor* proactor, Acceptor* acceptor, Disconnector* disconnector,
-	Connector* connector, CSender* sender, CReceiver* receiver)
+	Connector* connector, Sender* sender, Receiver* receiver)
 {
 	proactor_ = proactor;
 	acceptor_ = acceptor;

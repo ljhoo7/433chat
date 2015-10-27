@@ -17,8 +17,8 @@ private:
 	Proactor*						mProactor;
 	Acceptor*						mAcceptor;
 	Disconnector*					mDisconnector;
-	CReceiver*						mReceiver;
-	CSender*						mSender;
+	Receiver*						mReceiver;
+	Sender*							mSender;
 
 	TcpListenSocket*				mListenSocket;
 

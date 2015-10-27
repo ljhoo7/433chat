@@ -14,8 +14,8 @@ isVar(false)
 	mProactor = new Proactor(p_nThreadPoolSize);
 	mConnector = new Connector(mProactor);
 	mDisconnector = new Disconnector(mProactor);
-	mReceiver = new CReceiver(mProactor);
-	mSender = new CSender(mProactor);
+	mReceiver = new Receiver(mProactor);
+	mSender = new Sender(mProactor);
 
 	m_pSock = new MSASocket(static_cast<MServerAgent*>(this));
 
@@ -43,6 +43,13 @@ isVar(false)
 
 MServerAgent::~MServerAgent()
 {
+	if (mProactor) delete mProactor;
+	if (mConnector) delete mConnector;
+	if (mDisconnector) delete mDisconnector;
+	if (mReceiver) delete mReceiver;
+	if (mSender) delete mSender;
+
+
 	DeleteCriticalSection(&IOLock);
 }
 
@@ -53,6 +60,7 @@ void MServerAgent::PacketHandling(char* buf)
 	// after received AGENT -> SERVER
 	msag_user_out					 userOutPkt;
 	msag_room_destroy				 roomDestroyPkt;
+	msag_generate_server			 generateServerPkt;
 	msag_kill_server				 killServerPkt;
 	ags_health_check                 healthCheckPkt;
 	
@@ -62,13 +70,17 @@ void MServerAgent::PacketHandling(char* buf)
 	{
 	case msag_pkt_type::pkt_user_out:
 		userOutPkt = *((msag_user_out*)(buf));
-		/// 이 부분 예외처리 필요. 서버랑 연결됐는지 확인. 
 		SendUserOut(userOutPkt.serverNum, userOutPkt.userSocket);
 	
 		break;
 	case msag_pkt_type::pkt_room_destroy:
 		roomDestroyPkt = *((msag_room_destroy*)(buf));
 		SendRoomDestroy(roomDestroyPkt.roomNum);
+
+		break;
+	case msag_pkt_type::pkt_generate_server:
+		generateServerPkt = *((msag_generate_server*)(buf));
+		SendGenerateServer();
 
 		break;
 	case msag_pkt_type::pkt_kill_server:
@@ -153,6 +165,40 @@ void MServerAgent::SendRoomDestroy(int roomNum)
 	}
 
 }
+
+void MServerAgent::SendGenerateServer()
+{
+	unsigned int serverCount = AgentApp::Instance()->GetServerCount();
+
+	if (serverCount == 0)
+	{
+		bool isGenerate = AgentApp::Instance()->GenerateServerProcess();
+
+		if (isGenerate)
+		{
+			//PRINTF("Generate Server Success\n");
+
+		}
+		else
+		{
+			//PRINTF("Generate Server Failed\n");
+		}
+
+	}
+	else
+	{
+		PRINTF("Already Generate All Server \n");
+
+		agms_generate_server_fail pkt;
+		
+		pkt.type = msag_pkt_type::pkt_generate_server_fail;
+		pkt.failSignal = fail_signal::fs_alreadyexist;
+
+		PRINTF("Send to Monitoring Server Generate Server Failed Packet\n");
+		m_pSock->Send((char*)&pkt, sizeof(agms_generate_server_fail));
+	}
+}
+
 void MServerAgent::SendKillServer(int serverNum)
 {
 	SASocket* pServerSocket = AgentApp::Instance()->FindServer(serverNum);
@@ -168,10 +214,6 @@ void MServerAgent::SendKillServer(int serverNum)
 		pServerSocket->Send((char*)&serverPkt, sizeof(ags_kill_server));
 		
 		
-		agms_kill_server_success mserverPkt;
-		mserverPkt.type = msag_pkt_type::pkt_kill_server_success;
-		PRINTF("Send to Monitoring Server Kill Server Success Packet\n");
-		m_pSock->Send((char*)&mserverPkt, sizeof(agms_kill_server_success));
 	}
 	else
 	{
@@ -294,8 +336,6 @@ void MServerAgent::RecvProcess(bool isError, Act* act, DWORD bytes_transferred)
 	m_nPosition += bytes_transferred;
 	m_nRemainBytes -= bytes_transferred;
 
-	//PRINTF("MServer to Agent Packet Received %d bytes! \n", m_nRemainBytes);
-
 	char *buf = m_pSock->recvBuf_;
 
 	if (m_nPosition < HEADER_SIZE)
@@ -330,6 +370,12 @@ void MServerAgent::RecvProcess(bool isError, Act* act, DWORD bytes_transferred)
 				m_nRemainBytes = sizeof(msag_request_total_info)-HEADER_SIZE;
 
 				break;
+
+			case msag_pkt_type::pkt_generate_server:
+				PRINTF("received generate server packet\n");
+				m_nRemainBytes = sizeof(msag_generate_server)-HEADER_SIZE;
+
+				break;
 		
 			}
 		}
@@ -348,43 +394,22 @@ void MServerAgent::RecvProcess(bool isError, Act* act, DWORD bytes_transferred)
 void MServerAgent::SendProcess(bool isError, Act* act, DWORD bytes_transferred)
 {
 
-
 }
 
 void MServerAgent::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred)
 {
-	/*if (!isError){
-	isUse = false;
-
-	std::list<CPlayer*>::iterator iter;
-	for (iter = players.begin(); iter != players.end();)
+	if (!isError)
 	{
-	if (!(*iter)->isMine)
-	{
-	if ((*iter)->roomNum != -1)
-	{
-	roomManager.LeaveRoom((*iter), (*iter)->roomNum);
-	}
-	PRINTF("delete other server's user : %d\n", (*iter)->socket_);
-	iter = players.erase(iter);
+		agms_kill_server_success mserverPkt;
+		mserverPkt.type = msag_pkt_type::pkt_kill_server_success;
+		PRINTF("Send to Monitoring Server Kill Server Success Packet\n");
+		m_pSock->Send((char*)&mserverPkt, sizeof(agms_kill_server_success));
 	}
 	else
 	{
-	iter++;
-	}
-	}
-	PRINTF("closed the other server.\n");
 
-	if (heartThread.joinable()) heartThread.join();
-	if (!isConnect) this->socket->Reuse();
-	else{
-	static_cast<InterConnectSocket *>(socket)->Bind(false);
-	proactor_->Register((HANDLE)socket->socket_);
 	}
-	}
-	else{
-	PRINTF("interServer disconnect error\n");
-	}*/
+	
 }
 
 void MServerAgent::ConnProcess(bool isError, Act* act, DWORD bytes_transferred)
@@ -403,9 +428,4 @@ void MServerAgent::Connect(DWORD ip, WORD port)
 {
 	MSASocket* sock = static_cast<MSASocket*>(m_pSock);
 	sock->Connect(ip, port);
-}
-void MServerAgent::IsConnected(ServerAgent* pServerAgent)
-{
-	
-
 }

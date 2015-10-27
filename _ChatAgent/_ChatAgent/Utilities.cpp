@@ -52,3 +52,12 @@ void BeforeMakingIOCPMessage(PTCH p_szStr)
 	// Kill This Service ! Don't use KillProcess or TerminateProcess !
 #endif
 }
+
+
+std::wstring StringToWstring(std::string str)
+{
+	std::wstring wstr(str.length(), L' ');
+	copy(str.begin(), str.end(), wstr.begin());
+	return wstr;
+}
+

@@ -16,7 +16,11 @@ public:
 	void DisconnProcess(bool isError, Act* act, DWORD bytes_transferred);
 	void ConnProcess(bool isError, Act* act, DWORD bytes_transferred);
 
+	
+
+
 public:
+
 	int			 mServerNum;
 	int			 mPosition;
 	int			 mRemainBytes;

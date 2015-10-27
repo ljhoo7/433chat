@@ -22,6 +22,7 @@ void SASocket::PacketHandling(char* buf)
 	//sag_server_info_changed			 serverInfoChangedPkt;
 	sag_total_room_info*			 totalRoomInfoPkt;
 	sag_total_user_info*			 totalUserInfoPkt;
+	sag_health_ack					 healthAckPkt;
 	//sag_total_interserver_info*		 totalInterServerInfoPkt;
 
 	switch (eType)
@@ -68,6 +69,13 @@ void SASocket::PacketHandling(char* buf)
 		AgentApp::Instance()->SaveTotalServerUserInfo(mServerNum,totalUserInfoPkt->userCnt, totalUserInfoPkt->userInfoList);
 		break;
 
+	case sag_pkt_type::pt_health_ack:
+		PRINTF("sag_pkt_type::pt_health_ack \n");
+
+		healthAckPkt = *((sag_health_ack*)(buf));
+		//AgentApp::Instance()->SaveTotalServerUserInfo(mServerNum, totalUserInfoPkt->userCnt, totalUserInfoPkt->userInfoList);
+		break;
+
 	/*case sag_pkt_type::pt_total_interserver_info:
 		PRINTF("sag_pkt_type::pt_total_interserver_info \n");
 
@@ -81,6 +89,7 @@ void SASocket::PacketHandling(char* buf)
 }
 void SASocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred)
 {
+	
 	if (0 == bytes_transferred)
 	{
 		PRINTF("Disconnect in Receiver ProcEvent() \n");
@@ -194,18 +203,24 @@ void SASocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred)
 	
 	if (!isError)
 	{
-		
 		PRINTF("Connect Server Success, %d\n", this->socket_);
+
 		
+
 		memcpy(&mServerNum, this->acceptBuf_, sizeof(mServerNum));
 		PRINTF("Server Number : %d \n", mServerNum);
+		
+		AgentApp::Instance()->SetConnected(mServerNum, true);
 		AgentApp::Instance()->AddServer(this);
+
 		Recv(this->recvBuf_, HEADER_SIZE);
 	}
 	else
 	{
+		AgentApp::Instance()->SetConnected(mServerNum, false);
+
 		/* error handling */
-		PRINTF("CPlayer AcceptProcess : Error : %d\n", WSAGetLastError());
+		PRINTF("SASocket AcceptProcess : Error : %d\n", WSAGetLastError());
 	}
 
 }
@@ -228,6 +243,7 @@ void SASocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred)
 
 			PRINTF("Disconnect Server Success, %d\n", this->socket_);
 
+			AgentApp::Instance()->SetConnected(mServerNum, false);
 			AgentApp::Instance()->DeleteServer(this);
 
 		}
