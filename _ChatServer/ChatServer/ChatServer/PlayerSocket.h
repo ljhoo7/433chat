@@ -27,6 +27,8 @@ public:
 	MemPooler<CPacket> *packetPoolManager;
 
 	std::vector<int> escapingList;
+
+	CRITICAL_SECTION disconnectLock;
 	
 public:
 	bool ValidPacket(CPacket *packet);

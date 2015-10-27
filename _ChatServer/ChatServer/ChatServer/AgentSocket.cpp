@@ -119,6 +119,7 @@ void AgentSocket::Bind(bool reuse){
 void AgentSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		if (bytes_transferred == 0){
+			//printf("disconnect 4\n");
 			Disconnect();
 		}
 
@@ -159,6 +160,7 @@ void AgentSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 					remainBytes = sizeof(ags_health_check)-2;
 					break;
 				default:
+					//printf("disconnect 5\n");
 					Disconnect();
 					break;
 				}
@@ -181,6 +183,7 @@ void AgentSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 	else{
 		/* error handling */
 		PRINTF("AgentSocket RecvProcess : Error : %d\n", WSAGetLastError());
+
 		Disconnect();
 	}
 }
@@ -197,6 +200,8 @@ void AgentSocket::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 void AgentSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
+		PRINTF("agent disconnect success\n");
+
 		chatServer->agentServer->CreateConnectSocket();
 		isConnected = false;
 		/* disconn complete */
@@ -407,6 +412,7 @@ void AgentSocket::PacketHandling(CPacket *packet){
 		break;
 	case sag_pkt_type::pt_kill_server:
 		PRINTF("kill_server msg was sent!\n");
+		chatServer->isEnd = true;
 		chatServer->EndServer();
 		break;
 	case sag_pkt_type::pt_health_check:
@@ -417,6 +423,7 @@ void AgentSocket::PacketHandling(CPacket *packet){
 		Send((char *)&msg, sizeof(msg));
 		break;
 	default:
+		//printf("disconnect 6\n");
 		this->Disconnect();
 		break;
 	}

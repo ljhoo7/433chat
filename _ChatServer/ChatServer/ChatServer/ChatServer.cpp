@@ -138,6 +138,7 @@ void ChatServer::Start(){
 
 			std::list<CPlayer*>::iterator iter;
 			PRINTF("\n--------------------------player info----------------------\n");
+			PRINTF("\n----------------------player cnt %d, %d--------------------\n", GetUserCnt(), GetUserCnt(serverNum));
 			for (iter = users.begin(); iter != users.end(); iter++)
 			{
 				CPlayer *p = (*iter);
@@ -232,6 +233,11 @@ void ChatServer::Start(){
 		EndServer();
 	}
 	logic_thread.join();
+
+
+	PRINTF("end process..\n");
+
+	return;
 }
 
 void ChatServer::EndServer(){
@@ -240,16 +246,18 @@ void ChatServer::EndServer(){
 	}
 	else if (interServer->ServerCnt() > 0){
 		PRINTF("disconnect all user success!\n");
+		Sleep(10000);
 		PRINTF("starting interserver disconnect...\n");
 		interServer->DisconnectAllServers();
 	}
 	else if (agentServer->socket->isConnected){
 		PRINTF("disconnect all interserver success!\n");
+		Sleep(10000);
 		PRINTF("starting agentserver disconnect...\n");
 		chatServer->agentServer->socket->Disconnect();
 	}
 	else{
-		chatServer->logicHandle.isEnd = true;
+		//chatServer->logicHandle.isEnd = true;
 		PRINTF("all disconnect success!!\n real end complete\n");
 	}
 	
@@ -278,6 +286,26 @@ void ChatServer::DeleteUser(CPlayer* player){
 	EnterCriticalSection(&userLock);
 	users.remove(player);
 	LeaveCriticalSection(&userLock);
+}
+
+int ChatServer::DeleteUserAndCnt(CPlayer* player){
+	int ret = 0;
+	EnterCriticalSection(&userLock);
+	users.remove(player);
+	
+	std::list<CPlayer*>::iterator iter;
+	for (iter = users.begin(); iter != users.end(); iter++)
+	{
+		CPlayer* p = *(iter);
+		if (p->serverNum == serverNum)
+		{
+			ret++;
+		}
+	}
+
+	LeaveCriticalSection(&userLock);
+
+	return ret;
 }
 
 CPlayer* ChatServer::FindUser(SOCKET socket, int serverNum){

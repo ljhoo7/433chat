@@ -34,8 +34,8 @@ public:
 		if (m_freeVector.size() > 0)
 		{
 			m_nAllocCount++;
-			Type* ret = (Type *)m_freeVector[m_freeVector.size() - 1];
-			m_freeVector.pop_back();
+			Type* ret = (Type *)m_freeVector.front();
+			m_freeVector.pop_front();
 			pRet = reinterpret_cast<Type*>(ret);
 		}
 
@@ -74,7 +74,7 @@ protected:
 	{
 
 		for (int i = 0; i < m_nNumofBlock; i++){
-			m_freeVector.push_back(new Type);
+			m_freeVector.push_back(new Type());
 		}
 		InitializeCriticalSectionAndSpinCount(&m_cs, 4000);
 
@@ -90,6 +90,6 @@ protected:
 	int m_nListBlockSize;   // 한 블럭 사이즈 
 	int m_nAllocCount;      // 할당된 메모리 블럭 갯수
 
-	std::vector<Type*> m_freeVector;
+	std::list<Type*> m_freeVector;
 	CRITICAL_SECTION m_cs;  // For Thread-Safe;
 };

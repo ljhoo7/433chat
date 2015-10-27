@@ -92,7 +92,7 @@ bool CSockInfo::Connect(DWORD ip, int port)
 
 bool CSockInfo::Disconnect()
 {
-	BOOL ret = true;
+	/*BOOL ret = true;
 	ret = TransmitFile(
 			g_pClient->m_pSock->m_hSock,
 			NULL,
@@ -100,12 +100,12 @@ bool CSockInfo::Disconnect()
 			0,
 			static_cast<OVERLAPPED*>(m_vAct[ACT_DISCONNECT]),
 			NULL,
-			TF_DISCONNECT | TF_REUSE_SOCKET
-			);
-		//closesocket(m_hSock);
+			TF_DISCONNECT
+			);*/
+	closesocket(m_hSock);
 	g_pClient->m_pSock->m_hSock = NULL;
 
-	if (!ret)
+	/*if (!ret)
 	{
 		int error = WSAGetLastError();
 
@@ -115,7 +115,15 @@ bool CSockInfo::Disconnect()
 
 			return false;
 		}
+	}*/
+
+	if (g_pClient->m_hNewSock != NULL){
+		g_pClient->m_pSock->m_hSock = g_pClient->m_hNewSock;
+		g_pClient->m_hNewSock = NULL;
+
+		(g_pClient->m_pSock)->Recv((g_pClient->m_pSock)->m_szReceiveBuf, HEADER_SIZE);
 	}
+	printf("disconnect success!\n");
 
 	return true;
 }

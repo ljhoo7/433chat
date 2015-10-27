@@ -41,6 +41,7 @@ public:
 
 	void AddUser(CPlayer* player);
 	void DeleteUser(CPlayer* player);
+	int DeleteUserAndCnt(CPlayer* player);
 	int GetUserCnt();
 	int GetUserCnt(int serverNum);
 	CPlayer* FindUser(SOCKET socket, int serverNum);

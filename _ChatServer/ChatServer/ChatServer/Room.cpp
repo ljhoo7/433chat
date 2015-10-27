@@ -3,6 +3,8 @@
 CRoom::CRoom(int roomNumber)
 {
 	this->roomNumber = roomNumber;
+
+	InitializeCriticalSectionAndSpinCount(&playerLock, 4000);
 }
 CRoom::~CRoom()
 {
@@ -11,6 +13,8 @@ CRoom::~CRoom()
 	{
 		PlayerQuit(*iter, false);
 	}
+
+	DeleteCriticalSection(&playerLock);
 }
 
 void CRoom::PlayerEnter(CPlayer* player)
@@ -26,13 +30,20 @@ void CRoom::PlayerEnter(CPlayer* player)
 	PRINTF("join alarm message has been sent.\n");
 
 	/* informing the entered */
+	EnterCriticalSection(&playerLock);
 	players.push_back(player);
+	LeaveCriticalSection(&playerLock);
+	
 }
 
 
 void CRoom::PlayerQuit(CPlayer* player, bool msg)
 {
 	if (player->roomNum != this->roomNumber) return;
+
+
+	EnterCriticalSection(&playerLock);
+	
 	std::list<CPlayer*>::iterator iter;
 	bool check = false;
 	for (iter = players.begin(); iter != players.end(); iter++)
@@ -43,7 +54,10 @@ void CRoom::PlayerQuit(CPlayer* player, bool msg)
 			break;
 		}
 	}
-	if (!check) return;
+	if (!check){
+		LeaveCriticalSection(&playerLock);
+		return;
+	}
 	t_leave_alarm		tmpLeaveAlarm;
 	memcpy(tmpLeaveAlarm.nickname, player->nickname.c_str(), sizeof(tmpLeaveAlarm.nickname));
 	tmpLeaveAlarm.room_num = this->roomNumber;
@@ -54,6 +68,8 @@ void CRoom::PlayerQuit(CPlayer* player, bool msg)
 	player->nickname = "";
 	players.remove(player);
 
+	LeaveCriticalSection(&playerLock);
+
 	/* informing the exited */
 	if (msg) this->BroadcastMsg((char*)&tmpLeaveAlarm, sizeof(t_leave_alarm));
 	PRINTF("leave alarm message has been sent.\n");
@@ -61,11 +77,63 @@ void CRoom::PlayerQuit(CPlayer* player, bool msg)
 
 void CRoom::BroadcastMsg(char* msg, int size)
 {
-	if (players.size() == 0) return;
+	EnterCriticalSection(&playerLock);
+	if (players.size() == 0){
+		LeaveCriticalSection(&playerLock);
+		return;
+	}
+
 	std::list<CPlayer*>::iterator iter;
 	//PRINTF("CRoom %d : %d persons are connecting...\n", roomNumber, players.size());
 	for (iter = players.begin(); iter != players.end(); iter++)
 	{
 		if ((*iter)->serverNum == chatServer->serverNum) (*iter)->Send(msg, size);
 	}
+	LeaveCriticalSection(&playerLock);
+}
+
+int CRoom::GetPlayerSize(){
+	int ret = 0;
+	EnterCriticalSection(&playerLock);
+	ret = players.size();
+	LeaveCriticalSection(&playerLock);
+	return ret;
+}
+
+bool CRoom::NickNameCheck(const char* nick){
+	EnterCriticalSection(&playerLock);
+	std::list<CPlayer*>::iterator iter2 = players.begin();
+	for (; iter2 != players.end(); ++iter2)
+	{
+		if (!strcmp((*iter2)->nickname.c_str(), nick)){
+			LeaveCriticalSection(&playerLock);
+			return false;
+		}
+	}
+	LeaveCriticalSection(&playerLock);
+
+	return true;
+}
+
+void CRoom::KickAllPlayer(){
+	EnterCriticalSection(&playerLock);
+	t_kick tmpKick;
+
+	tmpKick.type = pkt_type::pt_kick;
+
+	BroadcastMsg((char*)&tmpKick, sizeof(t_kick));
+
+	std::list<CPlayer*>::iterator iter;
+
+	for (iter = players.begin(); iter != players.end(); iter++)
+	{
+		if (chatServer->agentServer->socket->isConnected)
+			chatServer->agentServer->socket->UserInfoSend(false, *iter, 3);
+	}
+	for (std::list<CPlayer*>::iterator iter = players.begin();
+		iter != players.end(); ++iter)
+	{
+		(*iter)->roomNum = -1;
+	}
+	LeaveCriticalSection(&playerLock);
 }

@@ -125,6 +125,7 @@ void TcpSocket::Disconnect()
 {
 	if (disconnectCall) return;
 
+	//PRINTF("real disconnect call!\n");
 	disconnectCall = true;
 
 	BOOL ret = TransmitFile(

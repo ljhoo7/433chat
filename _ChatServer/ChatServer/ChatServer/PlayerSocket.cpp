@@ -5,11 +5,13 @@
 extern ChatServer* chatServer;
 
 CPlayer::CPlayer(){
+	
 	this->serverNum = chatServer->serverNum;
 }
 
 CPlayer::CPlayer(int serverNum)
 {
+	InitializeCriticalSectionAndSpinCount(&disconnectLock, 4000);
 	this->socket_ = NULL;
 
 	this->serverNum = serverNum;
@@ -36,9 +38,14 @@ CPlayer::CPlayer(int serverNum)
 	}
 }
 
+CPlayer::~CPlayer(){
+	DeleteCriticalSection(&disconnectLock);
+}
+
 void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		if (bytes_transferred == 0){
+			//printf("disconnect 1\n");
 			Disconnect();
 		}
 
@@ -88,6 +95,7 @@ void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 							remainBytes = sizeof(short);
 							break;
 						default:
+							//printf("disconnect 2\n");
 							Disconnect();
 					}
 				}
@@ -124,6 +132,7 @@ void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 	else{
 		/* error handling */
 		PRINTF("CPlayer RecvProcess : Error : %d\n", WSAGetLastError());
+		//printf("disconnect 3\n");
 		Disconnect();
 	}
 	
@@ -179,8 +188,12 @@ void CPlayer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		RemovePlayer();
 
+		/* remove in list */
+		int cnt = chatServer->DeleteUserAndCnt(this);
+		printf("player count %d\n", cnt);
+
 		if (chatServer->isEnd){
-			if (chatServer->GetUserCnt(chatServer->serverNum) == 0){
+			if (cnt == 0){
 				chatServer->EndServer();
 			}
 		}
@@ -225,11 +238,6 @@ void CPlayer::RemovePlayer(){
 		if (chatServer->agentServer->socket->isConnected)
 			chatServer->agentServer->socket->UserInfoSend(false, this, 0);
 	}
-	/* remove in list */
-	
-	chatServer->DeleteUser(this);
-
-	
 }
 
 void CPlayer::EscapePlayer(bool first, int i){

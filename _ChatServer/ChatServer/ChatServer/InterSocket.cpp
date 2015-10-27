@@ -56,11 +56,11 @@ InterSocket::InterSocket(TcpInterServer* InterServer, bool isConnect){
 	}
 }
 
-
 void InterSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		if (bytes_transferred == 0){
 			Disconnect();
+			//printf("disconnect 8\n");
 			return;
 		}
 
@@ -83,33 +83,43 @@ void InterSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 				switch (_type){
 
 				case ssType::pkt_create:
+					PRINTF("interserver create packet\n");
 					remainBytes = sizeof(ss_create)-2;
 					break;
 				case ssType::pkt_destroy:
+					PRINTF("interserver destroy packet\n");
 					remainBytes = sizeof(ss_destroy)-2;
 					break;
 				case ssType::pkt_join:
+					PRINTF("interserver join packet\n");
 					remainBytes = sizeof(ss_join)-2;
 					break;
 				case ssType::pkt_leave:
+					PRINTF("interserver leave packet\n");
 					remainBytes = sizeof(ss_leave)-2;
 					break;
 				case ssType::pkt_connect:
+					PRINTF("interserver connect packet\n");
 					remainBytes = sizeof(ss_connect)-2;
 					break;
 				case ssType::pkt_disconnect:
+					PRINTF("interserver disconnect packet\n");
 					remainBytes = sizeof(ss_disconnect)-2;
 					break;
 				case ssType::pkt_heartbeats:
+					PRINTF("interserver heartbeats packet\n");
 					remainBytes = sizeof(ss_heartbeats)-2;
 					break;
 				case ssType::pkt_heartbeats_response:
+					PRINTF("interserver heartbeats response packet\n");
 					remainBytes = sizeof(ss_heartbeats_response)-2;
 					break;
 				case ssType::pkt_room_info_success:
+					PRINTF("interserver room info success packet\n");
 					remainBytes = sizeof(ss_room_info_success)-2;
 					break;
 				case ssType::pkt_player_info_success:
+					PRINTF("interserver player info success packet\n");
 					remainBytes = sizeof(ss_player_info_success)-2;
 					break;
 				case ssType::pkt_room_info_failure:
@@ -119,6 +129,7 @@ void InterSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 					remainBytes = sizeof(ss_player_info_failure)-2;
 					break;
 				case ssType::pkt_sync_req:
+					PRINTF("interserver sync req packet\n");
 					remainBytes = sizeof(ss_sync_req)-2;
 					break;
 
@@ -151,7 +162,7 @@ void InterSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 					memcpy(msg->msg, buf, position);
 					chatServer->logicHandle.EnqueueOper(msg, true);
 
-					memset(buf, 0, sizeof(buf));
+					//memset(buf, 0, sizeof(buf));
 					position = 0;
 					remainBytes = HEADER_SIZE;
 				}
@@ -163,6 +174,7 @@ void InterSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 		PRINTF("interServer recieve error\n");
 		/* Error Handling */
 		this->Disconnect();
+		//printf("disconnect 9\n");
 	}
 }
 
@@ -202,12 +214,11 @@ void InterSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred)
 	}
 }
 
-
 void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		isUse = false;
 
-		chatServer->RemoveOtherServerUsers(serverNum);
+		//chatServer->RemoveOtherServerUsers(serverNum);
 
 		/*if (chatServer->agentServer->socket->isConnected)
 			chatServer->agentServer->socket->InterServerInfoSend(false, serverNum, false);*/
@@ -218,16 +229,13 @@ void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 
 		//if (heartThread.joinable()) heartThread.join();
 		
-		if (!isConnect){
-			interServer_->DeleteSocket(this);
-		}
-		else{
-			interServer_->DeleteConnectSocket(this);
-		}
+		
+		int cnt = interServer_->DeleteSocketAndCnt(this);
+		
 
 		if (chatServer->isEnd){
-			PRINTF("server cnt %d\n", chatServer->interServer->ServerCnt());
-			if (chatServer->interServer->ServerCnt() == 0){
+			PRINTF("server cnt %d\n", cnt);
+			if (cnt == 0){
 				
 				chatServer->EndServer();
 			}
@@ -578,6 +586,7 @@ void InterSocket::packetHandling(CPacket *packet){
 	case ssType::pkt_player_info_failure:
 		PRINTF("recieve fail msg!\n");
 		this->Disconnect();
+		//printf("disconnect 7\n");
 		break;
 
 	case ssType::pkt_create:

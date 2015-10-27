@@ -25,7 +25,6 @@ TcpInterServer::TcpInterServer(WORD Port, int ThreadPoolSize, int socketPoolSize
 	port_ = 0;
 	threadPoolSize_ = 0;
 	InitializeCriticalSection(&socketLock);
-	InitializeCriticalSection(&connectSocketLock);
 
 	port_ = Port;
 	threadPoolSize_ = ThreadPoolSize;
@@ -35,7 +34,6 @@ TcpInterServer::TcpInterServer(WORD Port, int ThreadPoolSize, int socketPoolSize
 TcpInterServer::~TcpInterServer()
 {
 	DeleteCriticalSection(&socketLock);
-	DeleteCriticalSection(&connectSocketLock);
 }
 
 void TcpInterServer::Start()
@@ -115,11 +113,8 @@ int TcpInterServer::ServerCnt(){
 	int ret = 0;
 	EnterCriticalSection(&socketLock);
 	ret += sockets.size();
-	LeaveCriticalSection(&socketLock);
-
-	EnterCriticalSection(&connectSocketLock);
 	ret += connectSockets.size();
-	LeaveCriticalSection(&connectSocketLock);
+	LeaveCriticalSection(&socketLock);
 
 	return ret;
 }
@@ -131,15 +126,12 @@ void TcpInterServer::SendAll(char* buf, int size){
 			sockets[i]->Send(buf, size);
 		}
 	}
-	LeaveCriticalSection(&socketLock);
-
-	EnterCriticalSection(&connectSocketLock);
 	for (unsigned int i = 0; i < connectSockets.size(); i++){
 		if (connectSockets[i]->serverNum != -1){
 			connectSockets[i]->Send(buf, size);
 		}
 	}
-	LeaveCriticalSection(&connectSocketLock);
+	LeaveCriticalSection(&socketLock);
 }
 
 InterSocket* TcpInterServer::GetSocketWithNum(int serverNum){
@@ -156,14 +148,15 @@ InterSocket* TcpInterServer::GetSocketWithNum(int serverNum){
 }
 
 InterSocket* TcpInterServer::GetConnectSocketWithNum(int serverNum){
-	EnterCriticalSection(&connectSocketLock);
+	EnterCriticalSection(&socketLock);
 	InterSocket* ret = NULL;
 	for (unsigned int i = 0; i < connectSockets.size(); i++){
 		if (sockets[i]->serverNum == serverNum){
 			ret = sockets[i];
+			break;
 		}
 	}
-	LeaveCriticalSection(&connectSocketLock);
+	LeaveCriticalSection(&socketLock);
 	return ret;
 }
 
@@ -174,9 +167,9 @@ void TcpInterServer::AddSocket(InterSocket* socket){
 }
 
 void TcpInterServer::AddConnectSocket(InterSocket* socket){
-	EnterCriticalSection(&connectSocketLock);
+	EnterCriticalSection(&socketLock);
 	connectSockets.push_back(socket);
-	LeaveCriticalSection(&connectSocketLock);
+	LeaveCriticalSection(&socketLock);
 }
 
 void TcpInterServer::DeleteSocket(InterSocket* socket){
@@ -188,11 +181,7 @@ void TcpInterServer::DeleteSocket(InterSocket* socket){
 		}
 		else iter++;
 	}
-	LeaveCriticalSection(&socketLock);
-}
 
-void TcpInterServer::DeleteConnectSocket(InterSocket* socket){
-	EnterCriticalSection(&connectSocketLock);
 	for (std::vector<InterSocket *>::iterator iter = connectSockets.begin(); iter != connectSockets.end();){
 		if ((*iter) == socket){
 			iter = connectSockets.erase(iter);
@@ -200,7 +189,34 @@ void TcpInterServer::DeleteConnectSocket(InterSocket* socket){
 		}
 		else iter++;
 	}
-	LeaveCriticalSection(&connectSocketLock);
+	LeaveCriticalSection(&socketLock);
+
+}
+
+int TcpInterServer::DeleteSocketAndCnt(InterSocket* socket){
+	int ret = 0;
+	EnterCriticalSection(&socketLock);
+	for (std::vector<InterSocket *>::iterator iter = sockets.begin(); iter != sockets.end();){
+		if ((*iter) == socket){
+			iter = sockets.erase(iter);
+			break;
+		}
+		else iter++;
+	}
+
+	for (std::vector<InterSocket *>::iterator iter = connectSockets.begin(); iter != connectSockets.end();){
+		if ((*iter) == socket){
+			iter = connectSockets.erase(iter);
+			break;
+		}
+		else iter++;
+	}
+	ret += sockets.size();
+	ret += connectSockets.size();
+
+	LeaveCriticalSection(&socketLock);
+
+	return ret;
 }
 
 void TcpInterServer::ShowConnectServerList(){
@@ -209,13 +225,11 @@ void TcpInterServer::ShowConnectServerList(){
 	for (std::vector<InterSocket *>::iterator iter = sockets.begin(); iter != sockets.end(); iter++){
 		PRINTF("%d server (accept)\n", (*iter)->serverNum);
 	}
-	LeaveCriticalSection(&socketLock);
 
-	EnterCriticalSection(&connectSocketLock);
 	for (std::vector<InterSocket *>::iterator iter = connectSockets.begin(); iter != connectSockets.end(); iter++){
 		PRINTF("%d server (connect)\n", (*iter)->serverNum);
 	}
-	LeaveCriticalSection(&connectSocketLock);
+	LeaveCriticalSection(&socketLock);
 	PRINTF("-----------------------------------------------------------\n\n");
 }
 
@@ -226,29 +240,25 @@ void TcpInterServer::GetServerNums(std::vector<int>& list){
 			list.push_back((*iter)->serverNum);
 		}
 	}
-	LeaveCriticalSection(&socketLock);
-
-	EnterCriticalSection(&connectSocketLock);
 	for (std::vector<InterSocket *>::iterator iter = connectSockets.begin(); iter != connectSockets.end(); iter++){
 		if (!chatServer->serverInfo[(*iter)->serverNum].isWeb){
 			list.push_back((*iter)->serverNum);
 		}
 	}
-	LeaveCriticalSection(&connectSocketLock);
+	LeaveCriticalSection(&socketLock);
 }
 
 void TcpInterServer::DisconnectAllServers(){
 	EnterCriticalSection(&socketLock);
 	for (std::vector<InterSocket *>::iterator iter = sockets.begin(); iter != sockets.end(); iter++){
+		printf("%d try to disconnect\n", (*iter)->serverNum);
+		(*iter)->Disconnect();
+	}
+	for (std::vector<InterSocket *>::iterator iter = connectSockets.begin(); iter != connectSockets.end(); iter++){
+		printf("%d try to disconnect\n", (*iter)->serverNum);
 		(*iter)->Disconnect();
 	}
 	LeaveCriticalSection(&socketLock);
-
-	EnterCriticalSection(&connectSocketLock);
-	for (std::vector<InterSocket *>::iterator iter = connectSockets.begin(); iter != connectSockets.end(); iter++){
-		(*iter)->Disconnect();
-	}
-	LeaveCriticalSection(&connectSocketLock);
 }
 
 

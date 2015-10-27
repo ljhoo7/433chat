@@ -23,7 +23,6 @@ public:
 	std::vector<InterSocket *> sockets; // connected socket
 	std::vector<InterSocket *> connectSockets; // connecting socket
 	CRITICAL_SECTION socketLock;
-	CRITICAL_SECTION connectSocketLock;
 
 
 	void Connect(int num);
@@ -36,7 +35,7 @@ public:
 	void AddSocket(InterSocket* socket);
 	void AddConnectSocket(InterSocket* socket);
 	void DeleteSocket(InterSocket* socket);
-	void DeleteConnectSocket(InterSocket* socket);
+	int DeleteSocketAndCnt(InterSocket* socket);
 
 	void ShowConnectServerList();
 	int ServerCnt();

@@ -87,4 +87,6 @@ void CLogicHandle::Process()
 		}
 
 	}
+
+	return;
 }

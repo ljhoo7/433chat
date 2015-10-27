@@ -12,5 +12,10 @@ public:
 
 	int roomNumber;
 	std::list<CPlayer*> players;
+	CRITICAL_SECTION playerLock;
+
+	int GetPlayerSize();
+	bool NickNameCheck(const char* nick);
+	void KickAllPlayer();
 };
 
