@@ -6,7 +6,7 @@ extern int t_nPort;
 
 CClient::CClient(int p_nThreadPoolSize, int p_nSocketPoolSize)
 :m_nThreadPoolSize(p_nThreadPoolSize), m_nSocketPoolSize(p_nSocketPoolSize)
-, m_nRoom_num(-1), m_nTmpRoom_num(-1), m_bIsEscaping(false), m_hOldSock(NULL)
+, m_nRoom_num(-1), m_nTmpRoom_num(-1), m_bIsEscaping(false), m_hNewSock(NULL)
 {
 	strcpy(m_szNickname, "");
 	strcpy(m_szTmpNickname, "");

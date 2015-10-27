@@ -10,7 +10,7 @@ struct CClient
 	CSender			*m_pSender;
 
 	CSockInfo		*m_pSock;
-	SOCKET			m_hOldSock;
+	SOCKET m_hNewSock;
 
 	int				m_nThreadPoolSize;
 	int				m_nSocketPoolSize;

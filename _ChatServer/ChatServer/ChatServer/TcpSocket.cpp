@@ -73,6 +73,8 @@ void TcpSocket::Recv()
 
 void TcpSocket::Recv(char* buf, int buflen)
 {
+	if (disconnectCall) return;
+
 	DWORD recvbytes = 0;
 	DWORD flags = 0;
 	wsaRecvBuf.buf = buf;

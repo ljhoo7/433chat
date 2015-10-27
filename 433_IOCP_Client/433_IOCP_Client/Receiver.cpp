@@ -194,6 +194,8 @@ bool UserOutFunc(PVOID p_pParam)
 
 	g_pLog->myWprintf(L"An UserOut Message is received...\n");
 
+	g_pClient->GetStateMachine()->ChangeState(CLobby::Instance());
+
 	t_pSock->Disconnect();
 
 	//exit(1);
@@ -212,8 +214,6 @@ bool EscapeServerFunc(PVOID p_pParam)
 	t_escape_server *t_sEscapingServer = (t_escape_server*)t_pAct->m_pSock->m_szReceiveBuf;
 
 	t_sMysock.Connect(t_sEscapingServer->dest_ip, t_sEscapingServer->port);
-
-	g_pClient->GetStateMachine()->ChangeState(CLobby::Instance());
 
 	return true;
 }
@@ -304,6 +304,8 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 
 	char *buf = t_hSock.m_szReceiveBuf;
 
+	bool check = true;
+
 	if (HEADER_SIZE <= t_nPos)
 	{
 		if (HEADER_SIZE == t_nPos)
@@ -323,7 +325,7 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 				g_pLog->myWprintf(L"pt_escape_server\n");
 				t_nRemain = sizeof(t_escape_server) - HEADER_SIZE;
 				p_pAct->m_eType = pkt_type::pt_escape_server;
-				g_pClient->m_hOldSock = p_pAct->m_pSock->m_hSock;
+				//g_pClient->m_hOldSock = p_pAct->m_pSock->m_hSock;
 			}
 			else if (CCreate_Response_Wait::Instance() == t_pState)
 			{
@@ -427,7 +429,7 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 				switch (t_eType)
 				{
 				default:
-					g_pLog->myWprintf(L"[Lobby]error : The packet type is default in the ProcEvent of Receiver !");
+					g_pLog->myWprintf(L"[Lobby]error : The packet type is default in the ProcEvent of Receiver ! %d\n", t_eType);
 				}
 			}
 			else
@@ -474,6 +476,11 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 
 					t_hSock.m_nRecvRemain = HEADER_SIZE;
 					t_hSock.m_nRecvPosition = 0;
+
+					if (pkt_type::pt_user_out == p_pAct->m_eType)
+					{
+						check = false;
+					}
 				}
 				else
 				{
@@ -484,7 +491,8 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 			}
 		}
 	}
-	t_hSock.Recv(buf + t_nPos, t_nRemain);
+
+	if (check) t_hSock.Recv(buf + t_nPos, t_nRemain);
 }
 void CReceiver::ProcError(CAct *p_pAct, DWORD p_dwError)
 {
