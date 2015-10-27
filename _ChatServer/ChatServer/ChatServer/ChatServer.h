@@ -39,6 +39,8 @@ public:
 	void Start();
 	~ChatServer();
 
+	void Process();
+
 	void AddUser(CPlayer* player);
 	void DeleteUser(CPlayer* player);
 	int DeleteUserAndCnt(CPlayer* player);

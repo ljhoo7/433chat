@@ -218,7 +218,7 @@ void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 	if (!isError){
 		isUse = false;
 
-		//chatServer->RemoveOtherServerUsers(serverNum);
+		chatServer->RemoveOtherServerUsers(serverNum);
 
 		/*if (chatServer->agentServer->socket->isConnected)
 			chatServer->agentServer->socket->InterServerInfoSend(false, serverNum, false);*/

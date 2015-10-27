@@ -74,62 +74,39 @@ void ChatServer::Init(){
 	agentServer = new TcpAgentServer(serverInfo[serverNum].inter_port + 1, 10);
 }
 
-void ChatServer::Start(){
-	std::thread logic_thread(&CLogicHandle::Process, &logicHandle);
-	clientServer->Start();
-	interServer->Start();
-	agentServer->Start();
-
-	for (unsigned int i = 0; i < serverInfo.size(); i++){
-		if (i == chatServer->serverNum) continue;
-		interServer->Connect(i);
-	}
-
-	Sleep(1000);
-
-	agentServer->Connect("127.0.0.1", agentPort);
-	
-
-	/*if (interServer->sockets.size() != 0){
-		PRINTF("%d server on!", interServer->sockets.size());
-		
-	}
-	else{
-		PRINTF("first server on!\n");
-	}*/
-
+void ChatServer::Process(){
 	while (true && !isEnd)
 	{
 		std::string input;
 		//ZeroMemory(temp, sizeof(temp));
 		std::getline(std::cin, input);
 
-	/*	if (input == "connect")
+		/*	if (input == "connect")
 		{
-			printf("Enter server number : ");
-			std::string temp;
-			std::getline(std::cin, temp);
-			unsigned int num = atoi(temp.c_str());
+		printf("Enter server number : ");
+		std::string temp;
+		std::getline(std::cin, temp);
+		unsigned int num = atoi(temp.c_str());
 
-			if (num >= serverInfo.size()){
-				printf("wrong input\n");
-				continue;
-			}
-			interServer->Connect(num);
+		if (num >= serverInfo.size()){
+		printf("wrong input\n");
+		continue;
+		}
+		interServer->Connect(num);
 		}
 		else if (input == "disconnect")
 		{
-			printf("Enter server number : ");
-			std::string temp;
-			std::getline(std::cin, temp);
-			unsigned int num = atoi(temp.c_str());
+		printf("Enter server number : ");
+		std::string temp;
+		std::getline(std::cin, temp);
+		unsigned int num = atoi(temp.c_str());
 
-			if (num >= serverInfo.size()){
-				printf("wrong input\n");
-				continue;
-			}
+		if (num >= serverInfo.size()){
+		printf("wrong input\n");
+		continue;
+		}
 
-			interServer->Disconnect(num);
+		interServer->Disconnect(num);
 		}*/
 
 		if (input == "show")
@@ -138,7 +115,7 @@ void ChatServer::Start(){
 
 			std::list<CPlayer*>::iterator iter;
 			PRINTF("\n--------------------------player info----------------------\n");
-			PRINTF("\n----------------------player cnt %d, %d--------------------\n", GetUserCnt(), GetUserCnt(serverNum));
+			PRINTF("\n----------------------player cnt %d, %d----------------------\n", GetUserCnt(), GetUserCnt(serverNum));
 			for (iter = users.begin(); iter != users.end(); iter++)
 			{
 				CPlayer *p = (*iter);
@@ -197,7 +174,7 @@ void ChatServer::Start(){
 			int s_result = sscanf(input.c_str(), "escape %s %d\n", ip, &port);
 
 			if (!strcmp(ip, ""))
-			{ 
+			{
 				std::cout << "IP Error !" << std::endl;
 			}
 
@@ -226,17 +203,46 @@ void ChatServer::Start(){
 		}
 	}
 
-	
 	// escaping all user to another server
 	if (!isEnd){
 		isEnd = true;
 		EndServer();
 	}
-	logic_thread.join();
+}
 
+void ChatServer::Start(){
+	std::thread logic_thread(&CLogicHandle::Process, &logicHandle);
+	
+	clientServer->Start();
+	interServer->Start();
+	agentServer->Start();
+	
+	//std::thread new_thread(&ChatServer::Process, this);
+
+	for (unsigned int i = 0; i < serverInfo.size(); i++){
+		if (i == chatServer->serverNum) continue;
+		interServer->Connect(i);
+	}
+
+	Sleep(1000);
+
+	agentServer->Connect("127.0.0.1", agentPort);
+	
+
+	/*if (interServer->sockets.size() != 0){
+		PRINTF("%d server on!", interServer->sockets.size());
+		
+	}
+	else{
+		PRINTF("first server on!\n");
+	}*/
+
+	Process();
+	
+	logic_thread.join();
+	//new_thread.join();
 
 	PRINTF("end process..\n");
-
 	return;
 }
 
@@ -246,18 +252,19 @@ void ChatServer::EndServer(){
 	}
 	else if (interServer->ServerCnt() > 0){
 		PRINTF("disconnect all user success!\n");
-		Sleep(10000);
+		Sleep(5000);
 		PRINTF("starting interserver disconnect...\n");
 		interServer->DisconnectAllServers();
 	}
 	else if (agentServer->socket->isConnected){
 		PRINTF("disconnect all interserver success!\n");
-		Sleep(10000);
+		Sleep(5000);
 		PRINTF("starting agentserver disconnect...\n");
 		chatServer->agentServer->socket->Disconnect();
 	}
 	else{
-		//chatServer->logicHandle.isEnd = true;
+		Sleep(5000);
+		chatServer->logicHandle.isEnd = true;
 		PRINTF("all disconnect success!!\n real end complete\n");
 	}
 	
