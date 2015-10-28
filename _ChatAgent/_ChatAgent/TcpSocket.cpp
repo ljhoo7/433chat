@@ -69,7 +69,7 @@ void TcpSocket::Recv()
 		if (error != ERROR_IO_PENDING)
 		{
 			PRINTF("WSARecv() Error!!! s(%d) err(%d)\n", socket_, error);
-			Disconnect();
+			
 		}
 	}
 
@@ -93,7 +93,6 @@ void TcpSocket::Recv(char* buf, int buflen)
 		if (error != ERROR_IO_PENDING)
 		{
 			PRINTF("WSARecv() Error!!! s(%d) err(%d)\n", socket_, error);
-			Disconnect();
 		}
 	}
 	//PRINTF("%d bytes were received !\n", recvbytes);
@@ -115,11 +114,10 @@ void TcpSocket::Send(char* buf, int buflen)
 		if (error != ERROR_IO_PENDING)
 		{
 			PRINTF("WSASend() Error!!! s(%d) err(%d)\n", socket_, error);
-			//Disconnect();
 		}
 	}
 
-	PRINTF("%d bytes were sent !\n", sentbytes);
+	//PRINTF("%d bytes were sent !\n", sentbytes);
 }
 
 void TcpSocket::Reuse()

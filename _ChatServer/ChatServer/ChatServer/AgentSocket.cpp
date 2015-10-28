@@ -144,19 +144,15 @@ void AgentSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 				switch (_type){
 				case sag_pkt_type::pt_user_out:
-					PRINTF("userout!\n");
 					remainBytes = sizeof(ags_user_out)-2;
 					break;
 				case sag_pkt_type::pt_room_destroy:
-					PRINTF("room destroy!\n");
 					remainBytes = sizeof(ags_room_destroy)-2;
 					break;
 				case sag_pkt_type::pt_kill_server:
-					PRINTF("interserver connect!\n");
 					remainBytes = sizeof(ags_kill_server)-2;
 					break;
 				case sag_pkt_type::pt_health_check:
-					PRINTF("interserver disconnect!\n");
 					remainBytes = sizeof(ags_health_check)-2;
 					break;
 				default:
@@ -372,7 +368,7 @@ void AgentSocket::PacketHandling(CPacket *packet){
 
 	switch (_type){
 	case sag_pkt_type::pt_user_out:
-		PRINTF("user out msg was sent!\n");
+		PRINTF("Agent : user out msg was sent!\n");
 
 		msg4 = *((ags_user_out *)(packet->msg));
 		for (std::list<CPlayer*>::iterator iter = chatServer->users.begin();
@@ -391,7 +387,7 @@ void AgentSocket::PacketHandling(CPacket *packet){
 		}
 		break;
 	case sag_pkt_type::pt_room_destroy:
-		PRINTF("room destroy msg was sent!\n");
+		PRINTF("Agent : room destroy msg was sent!\n");
 
 		msg = *((ags_room_destroy *)(packet->msg));
 		if (chatServer->roomManager.DestroyRoom(msg.roomNum) == -1){
@@ -411,12 +407,12 @@ void AgentSocket::PacketHandling(CPacket *packet){
 		}
 		break;
 	case sag_pkt_type::pt_kill_server:
-		PRINTF("kill_server msg was sent!\n");
+		PRINTF("Agent : kill_server msg was sent!\n");
 		chatServer->isEnd = true;
 		chatServer->EndServer();
 		break;
 	case sag_pkt_type::pt_health_check:
-		PRINTF("health check msg was sent!\n");
+		PRINTF("Agent : health check msg was sent!\n");
 		sag_health_ack msg;
 		msg.type = sag_pkt_type::pt_health_ack;
 

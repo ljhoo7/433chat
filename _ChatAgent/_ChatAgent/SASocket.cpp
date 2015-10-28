@@ -6,11 +6,34 @@ SASocket::SASocket()
  mRemainBytes(HEADER_SIZE),
  mIsVar(false)
 {
+	inUse = false;
+	beatCheck = false;
 }
 
 SASocket::~SASocket()
 {
 
+}
+
+void SASocket::HeartbeatCheck() {
+	while (true){
+		if (!inUse) return;
+		beatCheck = false;
+
+		PRINTF("*** hearth check send!\n");
+		ags_health_check msg;
+		msg.type = sag_pkt_type::pt_health_check;
+		Send((char *)&msg, sizeof(msg));
+
+		std::this_thread::sleep_for(std::chrono::seconds(5));
+
+		if (!inUse) return;
+		if (beatCheck == false){
+			Disconnect();
+			break;
+		}
+	}
+	PRINTF("*** hearth thread end!\n");
 }
 
 void SASocket::PacketHandling(char* buf)
@@ -74,6 +97,8 @@ void SASocket::PacketHandling(char* buf)
 
 		healthAckPkt = *((sag_health_ack*)(buf));
 		//AgentApp::Instance()->SaveTotalServerUserInfo(mServerNum, totalUserInfoPkt->userCnt, totalUserInfoPkt->userInfoList);
+
+		beatCheck = true;
 		break;
 
 	/*case sag_pkt_type::pt_total_interserver_info:
@@ -89,13 +114,16 @@ void SASocket::PacketHandling(char* buf)
 }
 void SASocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred)
 {
-	
+	if (isError){
+		PRINTF("Disconnect in Receiver ProcEvent() \n");
+		Disconnect();
+		return;
+	}
+
 	if (0 == bytes_transferred)
 	{
 		PRINTF("Disconnect in Receiver ProcEvent() \n");
-
 		Disconnect();
-
 		return;
 	}
 
@@ -203,6 +231,7 @@ void SASocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred)
 	
 	if (!isError)
 	{
+		inUse = true;
 		PRINTF("Connect Server Success, %d\n", this->socket_);
 
 		
@@ -214,6 +243,8 @@ void SASocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred)
 		AgentApp::Instance()->AddServer(this);
 
 		Recv(this->recvBuf_, HEADER_SIZE);
+
+		heartbeatThread = std::thread(&SASocket::HeartbeatCheck, this);
 	}
 	else
 	{
@@ -234,7 +265,7 @@ void SASocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred)
 {
 	if (!isError)
 	{
-		
+		inUse = false;
 		bool isSearchDelete = AgentApp::Instance()->DeleteServerInfo(mServerNum);
 		
 
@@ -253,6 +284,8 @@ void SASocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred)
 			PRINTF("Disconnect Server Failed, %d\n", this->socket_);
 
 		}
+
+		if (heartbeatThread.joinable()) heartbeatThread.join();
 	}
 	else
 	{

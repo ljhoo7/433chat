@@ -17,7 +17,11 @@ public:
 	void ConnProcess(bool isError, Act* act, DWORD bytes_transferred);
 
 	
-
+public:
+	bool inUse;
+	std::thread heartbeatThread;
+	bool beatCheck;
+	void HeartbeatCheck();
 
 public:
 
