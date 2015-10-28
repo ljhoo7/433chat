@@ -107,6 +107,24 @@ bool CProactor::Init()
 		{
 			g_pLog->myWprintf("t_pBot->Connect in CProactor Init !\n");
 		}
+
+		//-------------------------------------------
+
+		int t_nModular = k % PLAYER_MAX;
+		int t_nValue = k / PLAYER_MAX;
+		if (!t_nModular)
+		{
+			std::string tmpStr("bot_" + std::to_string(k));
+			t_pBot->SetTmpNickName(const_cast<char*>(tmpStr.c_str()));
+			t_pBot->m_nTmpRoomNum = t_nValue;
+			t_pBot->SendCreateMessage(t_nValue);
+		}
+		else
+		{
+			std::string tmpStr("bot_" + std::to_string(k));
+			t_pBot->SendJoinMessage(t_nValue, const_cast<char*>(tmpStr.c_str()));
+		}
+		Sleep(3);
 	}
 
 	return true;
@@ -147,23 +165,24 @@ bool CProactor::ProcEvent()
 
 		t_bStatus = GetQueuedCompletionStatus(m_hIOCP, &t_dwBytesTransferred, static_cast<PULONG_PTR>(&t_dwCompletionKey), &t_pOverlapped, INFINITE);
 
-		if (NULL == t_pOverlapped)
-		{
-			g_pLog->myWprintf("t_pOverlapped is NULL in CProactor::ProcEvent( )!!\n");
-			system("pause");
-			exit(1);
-		}
-
 		if (t_bStatus)
 		{
+			if (NULL == t_pOverlapped)
+			{
+				g_pLog->myWprintf("t_pOverlapped is NULL in CProactor::ProcEvent( )!!\n");
+				continue;
+			}
 			CAct *t_pAct = static_cast<CAct*>(t_pOverlapped);
 			t_pAct->Complete(t_dwBytesTransferred);
 		}
 		else
 		{
+			if (NULL != t_pOverlapped)
+			{
+				continue;
+			}
 			g_pLog->myWprintf("t_bStatus (GetQueuedCompletionStatus return value) is false in CProactor::ProcEvent !\n");
-			system("pause");
-			exit(1);
+			continue;
 		}
 	}
 }

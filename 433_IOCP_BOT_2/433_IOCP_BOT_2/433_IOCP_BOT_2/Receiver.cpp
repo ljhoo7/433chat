@@ -12,6 +12,11 @@ bool CreateSuccessFunc(PVOID p_pParam)
 
 	g_pLog->myWprintf("Room Creation Successeded !\n");
 
+	t_pBot->SendJoinMessage(t_pBot->m_nTmpRoomNum, t_pBot->m_szTmpNick);
+
+	t_pBot->SetTmpNickName("");
+	t_pBot->m_nTmpRoomNum = -1;
+
 	return true;
 }
 

@@ -20,6 +20,12 @@ int _tmain(int argc, _TCHAR* argv[])
 	int			t_nBotCnt		= atoi(argv[3]);
 	int			t_nThreadCnt	= atoi(argv[4]);
 
+	if (TOTAL_PLAYER < t_nBotCnt)
+	{
+		g_pLog->myWprintf("The Number of Bots is so big !!!\n");
+		return 1;
+	}
+
 	WSADATA wsaData;
 
 	t_nRetval = WSAStartup(MAKEWORD(2, 2), &wsaData);
