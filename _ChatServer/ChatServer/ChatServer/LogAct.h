@@ -10,10 +10,16 @@ struct CLogFileInfo
 	{
 #ifdef MYDEF
 #else
-		m_hFile = ::CreateFile(p_szFileName, GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_FLAG_OVERLAPPED, NULL);
+		m_hFile = ::CreateFile(p_szFileName,
+			GENERIC_WRITE,
+			0,
+			NULL,
+			CREATE_ALWAYS,
+			0, // | FILE_FLAG_NO_BUFFERING °¡´É
+			NULL);
 		if (INVALID_HANDLE_VALUE == m_hFile)
 		{
-			wprintf_s(L"The OS Can't Create a Logfile !\n");
+			return;
 		}
 
 		ZeroMemory(m_szFileWriteBuf, BUFSIZE);

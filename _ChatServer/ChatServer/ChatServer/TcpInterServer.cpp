@@ -76,7 +76,7 @@ void TcpInterServer::Start()
 		acceptor_->Register(*socket, sizeof(int));
 		//sockets.push_back(socket);
 	}
-	PRINTF("InterSocket start....\n");
+	PRINT("InterSocket start....\n");
 }
 
 InterSocket* TcpInterServer::ConnectSocketCreate(){
@@ -221,17 +221,17 @@ int TcpInterServer::DeleteSocketAndCnt(InterSocket* socket){
 }
 
 void TcpInterServer::ShowConnectServerList(){
-	PRINTF("\n--------------------------server info----------------------\n");
+	PRINT("\n--------------------------server info----------------------\n");
 	EnterCriticalSection(&socketLock);
 	for (std::vector<InterSocket *>::iterator iter = sockets.begin(); iter != sockets.end(); iter++){
-		PRINTF("%d server (accept)\n", (*iter)->serverNum);
+		PRINT("%d server (accept)\n", (*iter)->serverNum);
 	}
 
 	for (std::vector<InterSocket *>::iterator iter = connectSockets.begin(); iter != connectSockets.end(); iter++){
-		PRINTF("%d server (connect)\n", (*iter)->serverNum);
+		PRINT("%d server (connect)\n", (*iter)->serverNum);
 	}
 	LeaveCriticalSection(&socketLock);
-	PRINTF("-----------------------------------------------------------\n\n");
+	PRINT("-----------------------------------------------------------\n\n");
 }
 
 void TcpInterServer::GetServerNums(std::vector<int>& list){
@@ -252,11 +252,11 @@ void TcpInterServer::GetServerNums(std::vector<int>& list){
 void TcpInterServer::DisconnectAllServers(){
 	EnterCriticalSection(&socketLock);
 	for (std::vector<InterSocket *>::iterator iter = sockets.begin(); iter != sockets.end(); iter++){
-		printf("%d try to disconnect\n", (*iter)->serverNum);
+		PRINT("%d try to disconnect\n", (*iter)->serverNum);
 		(*iter)->Disconnect();
 	}
 	for (std::vector<InterSocket *>::iterator iter = connectSockets.begin(); iter != connectSockets.end(); iter++){
-		printf("%d try to disconnect\n", (*iter)->serverNum);
+		PRINT("%d try to disconnect\n", (*iter)->serverNum);
 		(*iter)->Disconnect();
 	}
 	LeaveCriticalSection(&socketLock);
@@ -273,7 +273,7 @@ void TcpInterServer::heartbeatCheck(){
 		beatCheck = false;
 
 		if (isUse){
-			PRINTF("hearth check send!\n");
+			PRINT("hearth check send!\n");
 			ss_heartbeats* msg = (ss_heartbeats *)buf;
 			msg->type = ssType::pkt_heartbeats;
 			socket->Send((char *)msg, sizeof(ss_heartbeats));
@@ -284,7 +284,7 @@ void TcpInterServer::heartbeatCheck(){
 			break;
 		}
 	}
-	PRINTF("connection fail\n");
+	PRINT("connection fail\n");
 	if (isUse) socket->Disconnect();
 }
 */

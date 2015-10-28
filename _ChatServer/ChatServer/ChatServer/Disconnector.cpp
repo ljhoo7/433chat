@@ -8,7 +8,7 @@ void Disconnector::ProcEvent(Act* act, DWORD bytes_transferred)
 	assert(tcpact.tcpSocket_);
 	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
-	//PRINTF("...Disconnector s(%d)\n", tcpsocket.GetSocket());
+	//PRINT("...Disconnector s(%d)\n", tcpsocket.GetSocket());
 
 	assert(tcpsocket.disconnector_);
 
@@ -29,7 +29,7 @@ void Disconnector::ProcError(Act* act, DWORD error)
 
 	tcpsocket.disconnectCall = false;
 
-	PRINTF("...에러처리 Disconnector s(%d) err(%d)\n", tcpsocket.socket_, error);
+	PRINT("Disconnector s(%d) err(%d)\n", tcpsocket.socket_, error);
 
 	tcpsocket.DisconnProcess(true, act, error);
 }

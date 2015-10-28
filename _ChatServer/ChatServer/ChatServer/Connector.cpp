@@ -10,7 +10,7 @@ void Connector::ProcEvent(Act* act, DWORD bytes_transferred)
 
 	assert(proactor_);
 
-	//PRINTF("...Acceptor s(%d)\n", tcpsocket.GetSocket());
+	//PRINT("...Acceptor s(%d)\n", tcpsocket.GetSocket());
 
 	proactor_->Register((HANDLE)(tcpsocket.socket_));
 
@@ -27,7 +27,7 @@ void Connector::ProcError(Act* act, DWORD error)
 
 	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
-	PRINTF("...에러처리 Connector s(%d) err(%d)\n", tcpsocket.socket_, error);
+	PRINT("Connector s(%d) err(%d)\n", tcpsocket.socket_, error);
 
 	tcpsocket.ConnProcess(true, act, error);
 }

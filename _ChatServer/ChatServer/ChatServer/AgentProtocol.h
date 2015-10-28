@@ -22,13 +22,15 @@ enum sag_pkt_type
 */
 
 
-typedef struct{
+typedef struct
+{
 	unsigned short type;
 	unsigned short roomNum;
 	bool isState;
 }sag_room_info_changed;
 
-typedef struct{
+typedef struct
+{
 	unsigned short type;
 	int clientSocket;
 	unsigned short roomNum;
@@ -36,17 +38,13 @@ typedef struct{
 	char isConnected;
 }sag_user_info_changed;
 
-//typedef struct{
-//	unsigned short type;
-//	unsigned short serverNum;
-//	bool isConnected;
-//}sag_server_info_changed;
-
 struct SAGRoomInfo
 {
 	unsigned short roomNum;
 };
-typedef struct{
+
+typedef struct
+{
 	unsigned short type;
 	unsigned short roomCnt;
 	SAGRoomInfo roomInfoList[ROOM_MAX];
@@ -59,43 +57,42 @@ struct SAGUserInfo
 	char userName[NICK_SIZE];
 };
 
-typedef struct{
+typedef struct
+{
 	unsigned short type;
 	unsigned short userCnt;
 	SAGUserInfo userInfoList[TOTAL_PLAYER];
 }sag_total_user_info;
 
 
-typedef struct{
+typedef struct
+{
 	unsigned short type;
 }sag_health_ack;
-//typedef struct{
-//	unsigned short type;
-//	unsigned short serverCnt;
-//	unsigned short serverNumList[MAX_CONNECTED_SERVER];
-//}sag_total_interserver_info;
-
 
 /*
 * Agent -> Server
 */
 
-
-typedef struct{
+typedef struct
+{
 	unsigned short type;
 	int userSocket;
 }ags_user_out;
 
-typedef struct{
+typedef struct
+{
 	unsigned short type;
 	unsigned short roomNum;
 }ags_room_destroy;
 
-typedef struct{
+typedef struct
+{
 	unsigned short type;
 }ags_kill_server;
 
-typedef struct{
+typedef struct
+{
 	unsigned short type;
 }ags_health_check;
 

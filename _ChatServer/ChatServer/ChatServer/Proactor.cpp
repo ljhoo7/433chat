@@ -47,14 +47,14 @@ void Proactor::ProcEvents()
 
 		OVERLAPPED* overlapped = NULL;
 
-	//PRINTF("thread ready\n");
+	//PRINT("thread ready\n");
 		BOOL status = ::GetQueuedCompletionStatus(iocp_, &bytes_transferred, static_cast<PULONG_PTR>(&completionkey), &overlapped, timeOut_);
 
 		if (status == TRUE)
 		{
 			if (overlapped == NULL)
 			{
-				PRINTF("Proactor ProcEvents() Ov NULL Error!!! err(%d)\n", WSAGetLastError());
+				PRINT("Proactor ProcEvents() Ov NULL Error!!! err(%d)\n", WSAGetLastError());
 				continue;
 			}
 			// Async Completion Token 패턴 이용!
@@ -72,7 +72,7 @@ void Proactor::ProcEvents()
 				continue;
 			}
 
-			PRINTF("Proactor ProcEvents() status false Error!!! err(%d)\n", error);
+			PRINT("Proactor ProcEvents() status false Error!!! err(%d)\n", error);
 			continue;
 		}
 

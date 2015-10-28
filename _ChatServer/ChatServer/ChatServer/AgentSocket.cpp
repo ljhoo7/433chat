@@ -4,11 +4,13 @@
 
 extern ChatServer* chatServer;
 
-AgentSocket::AgentSocket(){
+AgentSocket::AgentSocket()
+{
 	this->serverNum = chatServer->serverNum;
 }
 
-AgentSocket::AgentSocket(int serverNum){
+AgentSocket::AgentSocket(int serverNum)
+{
 	this->socket_ = NULL;
 
 	this->serverNum = serverNum;
@@ -20,21 +22,24 @@ AgentSocket::AgentSocket(int serverNum){
 	isConnected = false;
 
 	poolManager = new MemPooler<msg_buffer>(10);
-	if (!poolManager){
-		PRINTF("AgentSocket : MemPooler<msg_buffer> error\n");
+	if (!poolManager)
+	{
+		PRINT("[AgentSocket] MemPooler<msg_buffer> error\n");
 		/* error handling */
 		return;
 	}
 
 	packetPoolManager = new MemPooler<CPacket>(10);
-	if (!packetPoolManager){
-		PRINTF("AgentSocket : MemPooler<CPacket> error\n");
+	if (!packetPoolManager)
+	{
+		PRINT("[AgentSocket] MemPooler<CPacket> error\n");
 		/* error handling */
 		return;
 	}
 
-	if (!LoadMswsock()) {
-		PRINTF("Error loading mswsock functions: %d\n", WSAGetLastError());
+	if (!LoadMswsock()) 
+	{
+		PRINT("[AgentSocket] Error loading mswsock functions: %d\n", WSAGetLastError());
 		return;
 	}
 }
@@ -48,7 +53,6 @@ BOOL AgentSocket::LoadMswsock(void){
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == INVALID_SOCKET)
 		return FALSE;
-
 	{
 		GUID guid = WSAID_CONNECTEX;
 		rc = WSAIoctl(sock, SIO_GET_EXTENSION_FUNCTION_POINTER,
@@ -71,32 +75,36 @@ void AgentSocket::Connect(unsigned int ip, WORD port){
 	sockaddr_in addr;
 	ZeroMemory(&addr, sizeof(addr));
 	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = ip; // google.com
+	addr.sin_addr.s_addr = ip;
 	addr.sin_port = htons(port);
 
 	int ok = mswsock.ConnectEx(socket_, (SOCKADDR*)&addr, sizeof(addr), &chatServer->serverNum, sizeof(serverNum), NULL,
 		static_cast<OVERLAPPED*>(&act_[TcpSocket::ACT_CONNECT]));
-	if (ok) {
+	if (ok) 
+	{
 		isConnected = true;
-		PRINTF("ConnectEx succeeded immediately\n");
+		PRINT("[AgentSocket] ConnectEx succeeded immediately\n");
 		ConnProcess(false, NULL, 0);
 	}
 
 	int error = WSAGetLastError();
-	if (ok == FALSE && WSAGetLastError() != ERROR_IO_PENDING) {
-		PRINTF("ConnectEx Error!!! s(%d), err(%d)\n", socket_, error);
+	if (ok == FALSE && WSAGetLastError() != ERROR_IO_PENDING) 
+	{
+		PRINT("[AgentSocket] ConnectEx Error!!! s(%d), err(%d)\n", socket_, error);
 	}
-	PRINTF("Connect Request..\n");
+	PRINT("[AgentSocket] Connect Request..\n");
 }
 
 
-void AgentSocket::Bind(bool reuse){
-	if (!reuse){
+void AgentSocket::Bind(bool reuse)
+{
+	if (!reuse)
+	{
 		socket_ = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 
 		if (socket_ == INVALID_SOCKET)
 		{
-			PRINTF("WSASocket() Error!!! err(%d)\n", WSAGetLastError());
+			PRINT("[AgentSocket] WSASocket() Error!!! err(%d)\n", WSAGetLastError());
 		}
 
 	}
@@ -107,8 +115,10 @@ void AgentSocket::Bind(bool reuse){
 	addr.sin_addr.s_addr = INADDR_ANY;
 	addr.sin_port = 0;
 	rc = bind(socket_, (SOCKADDR*)&addr, sizeof(addr));
-	if (rc != 0) {
-		PRINTF("bind failed: %d\n", WSAGetLastError());
+
+	if (rc != 0) 
+	{
+		PRINT("[AgentSocket] bind failed: %d\n", WSAGetLastError());
 		return;
 	}
 }
@@ -117,9 +127,10 @@ void AgentSocket::Bind(bool reuse){
 
 
 void AgentSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
-	if (!isError){
-		if (bytes_transferred == 0){
-			//printf("disconnect 4\n");
+	if (!isError)
+	{
+		if (bytes_transferred == 0)
+		{
 			Disconnect();
 		}
 
@@ -128,8 +139,9 @@ void AgentSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 		char* buf = this->recvBuf_;
 
-		if (this->socket_ == NULL){
-			PRINTF("AgentSocket RecvProcess : recv buf socket is not available\n");
+		if (this->socket_ == NULL)
+		{
+			PRINT("[AgentSocket] RecvProcess : recv buf socket is not available\n");
 			/* error handling */
 			return;
 		}
@@ -156,7 +168,7 @@ void AgentSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 					remainBytes = sizeof(ags_health_check)-2;
 					break;
 				default:
-					//printf("disconnect 5\n");
+					//PRINT("[AgentSocket] disconnect 5\n");
 					Disconnect();
 					break;
 				}
@@ -178,7 +190,7 @@ void AgentSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 	}
 	else{
 		/* error handling */
-		PRINTF("AgentSocket RecvProcess : Error : %d\n", WSAGetLastError());
+		PRINT("[AgentSocket] RecvProcess : Error : %d\n", WSAGetLastError());
 
 		Disconnect();
 	}
@@ -190,13 +202,13 @@ void AgentSocket::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 		/* send complete */
 	}
 	else{
-		PRINTF("AgentSocket SendProcess : Error : %d\n", WSAGetLastError());
+		PRINT("[AgentSocket] SendProcess : Error : %d\n", WSAGetLastError());
 	}
 }
 
 void AgentSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-		PRINTF("agent disconnect success\n");
+		PRINT("[AgentSocket] agent disconnect success\n");
 
 		chatServer->agentServer->CreateConnectSocket();
 		isConnected = false;
@@ -207,14 +219,14 @@ void AgentSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 		}
 	}
 	else{
-		PRINTF("AgentSocket DisconnProcess : Error : %d\n", WSAGetLastError());
+		PRINT("[AgentSocket] DisconnProcess : Error : %d\n", WSAGetLastError());
 	}
 }
 
 void AgentSocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		isConnected = true;
-		PRINTF("agent connect success, %d\n", this->socket_);
+		PRINT("[AgentSocket] agent connect success, %d\n", this->socket_);
 		/* inter connection message send */
 		MakeSync();
 
@@ -222,7 +234,7 @@ void AgentSocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	}
 	else{
 		/* error handling */
-		PRINTF("AgentSocket ConnProcess : Error : %d\n", WSAGetLastError());
+		PRINT("[AgentSocket] ConnProcess : Error : %d\n", WSAGetLastError());
 	}
 }
 
@@ -232,13 +244,13 @@ void AgentSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred)
 	}
 	else{
 		/* error handling */
-		PRINTF("AgentSocket AcceptProcess : Error : %d\n", WSAGetLastError());
+		PRINT("[AgentSocket] AcceptProcess : Error : %d\n", WSAGetLastError());
 	}
 }
 
 void AgentSocket::MakeSync(){
 	if (socket_ == NULL){
-		PRINTF("agent socket NULL!\n");
+		PRINT("[AgentSocket] agent socket NULL!\n");
 		return;
 	}
 	UserInfoSend(true, NULL, 0);
@@ -368,7 +380,7 @@ void AgentSocket::PacketHandling(CPacket *packet){
 
 	switch (_type){
 	case sag_pkt_type::pt_user_out:
-		PRINTF("Agent : user out msg was sent!\n");
+		PRINT("[AgentSocket] user out msg was sent!\n");
 
 		msg4 = *((ags_user_out *)(packet->msg));
 		for (std::list<CPlayer*>::iterator iter = chatServer->users.begin();
@@ -387,11 +399,11 @@ void AgentSocket::PacketHandling(CPacket *packet){
 		}
 		break;
 	case sag_pkt_type::pt_room_destroy:
-		PRINTF("Agent : room destroy msg was sent!\n");
+		PRINT("[AgentSocket] room destroy msg was sent!\n");
 
 		msg = *((ags_room_destroy *)(packet->msg));
 		if (chatServer->roomManager.DestroyRoom(msg.roomNum) == -1){
-			PRINTF("success delete\n");
+			PRINT("[AgentSocket] success delete\n");
 
 			ss_destroy msg_;
 			msg_.type = ssType::pkt_destroy;
@@ -403,27 +415,27 @@ void AgentSocket::PacketHandling(CPacket *packet){
 				chatServer->agentServer->socket->RoomInfoSend(false, msg.roomNum, false);
 		}
 		else{
-			PRINTF("fail delete\n");
+			PRINT("[AgentSocket] fail delete\n");
 		}
 		break;
 	case sag_pkt_type::pt_kill_server:
-		PRINTF("Agent : kill_server msg was sent!\n");
+		PRINT("[AgentSocket] kill_server msg was sent!\n");
 		chatServer->isEnd = true;
 		chatServer->EndServer();
 		break;
 	case sag_pkt_type::pt_health_check:
-		PRINTF("Agent : health check msg was sent!\n");
+		PRINT("[AgentSocket] health check msg was sent!\n");
 		sag_health_ack msg;
 		msg.type = sag_pkt_type::pt_health_ack;
 
 		Send((char *)&msg, sizeof(msg));
 		break;
 	default:
-		//printf("disconnect 6\n");
+		//PRINT("[AgentSocket] disconnect 6\n");
 		this->Disconnect();
 		break;
 	}
 
-	if (!poolManager->Free((msg_buffer *)packet->msg)) PRINTF("free error!\n");
-	if (!packetPoolManager->Free(packet)) PRINTF("free error!\n");
+	if (!poolManager->Free((msg_buffer *)packet->msg)) PRINT("[AgentSocket] free error!\n");
+	if (!packetPoolManager->Free(packet)) PRINT("[AgentSocket] free error!\n");
 }

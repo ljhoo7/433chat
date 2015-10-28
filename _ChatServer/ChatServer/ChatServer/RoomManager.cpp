@@ -14,15 +14,15 @@ CRoomManager::~CRoomManager()
 
 void CRoomManager::PrintInfo(){
 	std::list<CRoom*>::iterator iter;
-	PRINTF("< Current Room List >\n");
+	PRINT("< Current Room List >\n");
 
 	EnterCriticalSection(&roomLock);
 	for (iter = rooms.begin(); iter != rooms.end(); iter++){
-		PRINTF("Room %d : %d persons are connecting...\n", (*iter)->roomNumber, (*iter)->GetPlayerSize());
+		PRINT("Room %d : %d persons are connecting...\n", (*iter)->roomNumber, (*iter)->GetPlayerSize());
 	}
 	LeaveCriticalSection(&roomLock);
 
-	PRINTF("\n");
+	PRINT("\n");
 }
 
 int CRoomManager::CreateRoom(int roomNumber){
@@ -65,7 +65,7 @@ CRoom* CRoomManager::FindRoom(int roomNumber){
 
 	CRoom* ret = NULL;
 
-	//printf("find room call!!\n");
+	//PRINT("find room call!!\n");
 	EnterCriticalSection(&roomLock);
 	for (iter = rooms.begin(); iter != rooms.end(); iter++){
 		if ((*iter)->roomNumber == roomNumber){
@@ -75,7 +75,7 @@ CRoom* CRoomManager::FindRoom(int roomNumber){
 	}
 	LeaveCriticalSection(&roomLock);
 
-	//printf("find room call2!!\n");
+	//PRINT("find room call2!!\n");
 	return ret;
 }
 
@@ -128,7 +128,7 @@ bool CRoomManager::LeaveRoom(CPlayer* p, int roomNumber)
 	CRoom* room = FindRoom(roomNumber);
 
 	if (room == NULL){
-		PRINTF("No ROOM!\n");
+		PRINT("[RoomManager] No ROOM!\n");
 		return false;
 	}
 	room->PlayerQuit(p, true);

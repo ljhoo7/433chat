@@ -9,8 +9,9 @@
 #define MAXSERVER 100
 
 #ifdef _DEBUG
-	#define MYDEF
+#define MYDEF
 #else
+
 #endif
 
 class Actor;
@@ -28,7 +29,7 @@ struct ServerInfo;
 class ChatServer;
 
 extern ChatServer* chatServer;
-#define PRINTF chatServer->logWriter->myPRINTF
+#define PRINT chatServer->logWriter->myPRINTF
 
 #include "LogAct.h"
 #include "LogWriter.h"

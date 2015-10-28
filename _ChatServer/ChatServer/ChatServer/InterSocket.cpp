@@ -32,7 +32,7 @@ void InterSocket::HeartbeatCheck() {
 		if (!isUse) return;
 		beatCheck = false;
 
-		PRINTF("*** hearth check send!\n");
+		PRINT("[InterSocket] *** hearth check send!\n");
 		ss_heartbeats msg;
 		msg.type = ssType::pkt_heartbeats;
 		Send((char *)&msg, sizeof(msg));
@@ -47,7 +47,7 @@ void InterSocket::HeartbeatCheck() {
 		}
 	}
 
-	PRINTF("*** hearth thread end!\n");
+	PRINT("[InterSocket] *** hearth thread end!\n");
 }
 
 InterSocket::InterSocket(TcpInterServer* InterServer, bool isConnect){
@@ -73,7 +73,7 @@ InterSocket::InterSocket(TcpInterServer* InterServer, bool isConnect){
 
 	if (isConnect){
 		if (!LoadMswsock()) {
-			PRINTF("Error loading mswsock functions: %d\n", WSAGetLastError());
+			PRINT("[InterSocket] Error loading mswsock functions: %d\n", WSAGetLastError());
 			return;
 		}
 	}
@@ -83,11 +83,11 @@ void InterSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		if (bytes_transferred == 0){
 			Disconnect();
-			//printf("disconnect 8\n");
+			//PRINT("[InterSocket] disconnect 8\n");
 			return;
 		}
 
-		//	PRINTF("interServer recieve complete\n");
+		//	PRINT("[InterSocket] interServer recieve complete\n");
 
 		position += bytes_transferred;
 		remainBytes -= bytes_transferred;
@@ -183,19 +183,19 @@ void InterSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 		}
 	}
 	else{
-		PRINTF("interServer recieve error\n");
+		PRINT("[InterSocket] interServer recieve error\n");
 		/* Error Handling */
 		this->Disconnect();
-		//printf("disconnect 9\n");
+		//PRINT("[InterSocket] disconnect 9\n");
 	}
 }
 
 void InterSocket::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-		//PRINTF("interServer send complete\n");
+		//PRINT("[InterSocket] interServer send complete\n");
 	}
 	else{
-		PRINTF("interServer send error\n");
+		PRINT("[InterSocket] interServer send error\n");
 	}
 }
 
@@ -206,14 +206,14 @@ void InterSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred)
 		isUse = true;
 		interServer_->AddSocket(this, false);
 
-		PRINTF("connect with %d server\n", serverNum);
+		PRINT("[InterSocket] connect with %d server\n", serverNum);
 		
 		Recv(recvBuf_, HEADER_SIZE);
 
 		heartbeatThread = std::thread(&InterSocket::HeartbeatCheck, this);
 	}
 	else{
-		PRINTF("interServer accept error\n");
+		PRINT("[InterSocket] interServer accept error\n");
 	}
 }
 
@@ -228,11 +228,11 @@ void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 
 		serverNum = -1;
 		if (heartbeatThread.joinable()) heartbeatThread.join();
-		PRINTF("closed the other server.\n");
+		PRINT("[InterSocket] closed the other server.\n");
 
 		int cnt = interServer_->DeleteSocketAndCnt(this);
 		if (chatServer->isEnd){
-			PRINTF("server cnt %d\n", cnt);
+			PRINT("[InterSocket] server cnt %d\n", cnt);
 			if (cnt == 0){
 				chatServer->EndServer();
 			}
@@ -244,7 +244,7 @@ void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 		}
 	}
 	else{
-		PRINTF("interServer disconnect error\n");
+		PRINT("[InterSocket] interServer disconnect error\n");
 	}
 }
 
@@ -255,7 +255,7 @@ void InterSocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 		isUse = true;
 		interServer_->AddSocket(this,true);
-		PRINTF("connect with %d server\n", serverNum);
+		PRINT("[InterSocket] connect with %d server\n", serverNum);
 
 
 		if (interServer_->ServerCnt() == 1){
@@ -270,18 +270,18 @@ void InterSocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
 	}
 	else{
 		serverNum = -1;
-		PRINTF("interServer connect error\n");
+		PRINT("[InterSocket] interServer connect error\n");
 	}
 
 	if (chatServer->DecreaseConnectServerAndCnt() == 0){
-		PRINTF("all server connect try end\n");
+		PRINT("[InterSocket] all server connect try end\n");
 		chatServer->agentServer->Connect("127.0.0.1", chatServer->agentPort);
 	}
 }
 
 void  InterSocket::Bind(bool reuse){
 	if (!isConnect){
-		PRINTF("only for connection socket\n");
+		PRINT("[InterSocket] only for connection socket\n");
 		return;
 	}
 
@@ -290,7 +290,7 @@ void  InterSocket::Bind(bool reuse){
 
 		if (socket_ == INVALID_SOCKET)
 		{
-			PRINTF("WSASocket() Error!!! err(%d)\n", WSAGetLastError());
+			PRINT("[InterSocket] WSASocket() Error!!! err(%d)\n", WSAGetLastError());
 		}
 
 	}
@@ -302,7 +302,7 @@ void  InterSocket::Bind(bool reuse){
 	addr.sin_port = 0;
 	rc = bind(socket_, (SOCKADDR*)&addr, sizeof(addr));
 	if (rc != 0) {
-		PRINTF("bind failed: %d\n", WSAGetLastError());
+		PRINT("[InterSocket] bind failed: %d\n", WSAGetLastError());
 		return;
 	}
 }
@@ -310,7 +310,7 @@ void  InterSocket::Bind(bool reuse){
 
 void InterSocket::Connect(unsigned int ip, WORD port, int serverNum){
 	if (!isConnect){
-		PRINTF("only for connection socket\n");
+		PRINT("[InterSocket] only for connection socket\n");
 		return;
 	}
 	this->serverNum = serverNum;
@@ -324,14 +324,14 @@ void InterSocket::Connect(unsigned int ip, WORD port, int serverNum){
 	int ok = mswsock.ConnectEx(socket_, (SOCKADDR*)&addr, sizeof(addr), &chatServer->serverNum, sizeof(serverNum), NULL,
 		static_cast<OVERLAPPED*>(&act_[TcpSocket::ACT_CONNECT]));
 	if (ok) {
-		PRINTF("ConnectEx succeeded immediately\n");
+		PRINT("[InterSocket] ConnectEx succeeded immediately\n");
 	}
 
 	int error = WSAGetLastError();
 	if (ok == FALSE && WSAGetLastError() != ERROR_IO_PENDING) {
-		PRINTF("ConnectEx Error!!! s(%d), err(%d)\n", socket_, error);
+		PRINT("[InterSocket] ConnectEx Error!!! s(%d), err(%d)\n", socket_, error);
 	}
-	PRINTF("Connect Request..\n");
+	PRINT("[InterSocket] Connect Request..\n");
 }
 
 void InterSocket::MakeSync()
@@ -339,7 +339,7 @@ void InterSocket::MakeSync()
 	SendPlayerInfo();
 	SendRoomInfo();
 
-	PRINTF("inter server sync...\n");
+	PRINT("[InterSocket] inter server sync...\n");
 }
 
 void InterSocket::SendPlayerInfo()
@@ -382,8 +382,8 @@ void InterSocket::SendPlayerInfo()
 
 	this->Send(msgBuf, msgPosition);
 
-	if (!poolManager->Free((msg_buffer *)buf)) PRINTF("free error!\n");
-	if (!poolManager->Free((msg_buffer *)msgBuf)) PRINTF("free error!\n");
+	if (!poolManager->Free((msg_buffer *)buf)) PRINT("[InterSocket] free error!\n");
+	if (!poolManager->Free((msg_buffer *)msgBuf)) PRINT("[InterSocket] free error!\n");
 }
 
 void InterSocket::SendRoomInfo()
@@ -421,8 +421,8 @@ void InterSocket::SendRoomInfo()
 	msgPosition += position;
 
 	this->Send(msgBuf, msgPosition);
-	if (!poolManager->Free((msg_buffer *)buf)) PRINTF("free error!\n");
-	if (!poolManager->Free((msg_buffer *)msgBuf)) PRINTF("free error!\n");
+	if (!poolManager->Free((msg_buffer *)buf)) PRINT("[InterSocket] free error!\n");
+	if (!poolManager->Free((msg_buffer *)msgBuf)) PRINT("[InterSocket] free error!\n");
 }
 
 
@@ -440,7 +440,7 @@ void InterSocket::packetHandling(CPacket *packet){
 	{
 		case ssType::pkt_heartbeats:
 		{
-			PRINTF("*** recieve heartbeat check. send response\n");
+			PRINT("[InterSocket] *** recieve heartbeat check. send response\n");
 			ss_heartbeats_response msg;
 			msg.type = ssType::pkt_heartbeats_response;
 			Send((char *)&msg, sizeof(msg));
@@ -448,13 +448,13 @@ void InterSocket::packetHandling(CPacket *packet){
 		}
 		case ssType::pkt_heartbeats_response:
 		{
-			PRINTF("*** recieve heartbeat response\n");
+			PRINT("[InterSocket] *** recieve heartbeat response\n");
 			beatCheck = true;
 			break;
 		}
 		case ssType::pkt_connect:
 		{
-			PRINTF("connect request!\n");
+			PRINT("[InterSocket] connect request!\n");
 			ss_connect msg;
 			memcpy(&msg, packet->msg, sizeof(msg));
 
@@ -462,23 +462,23 @@ void InterSocket::packetHandling(CPacket *packet){
 			chatServer->AddUser(p);
 			p->socket_ = (SOCKET)msg.client_socket;
 
-			//PRINTF("%d\n", g_vPlayers.size());
+			//PRINT("[InterSocket] %d\n", g_vPlayers.size());
 			break;
 		}
 		case ssType::pkt_disconnect:
 		{
-			PRINTF("disconnect request!\n");
+			PRINT("[InterSocket] disconnect request!\n");
 			ss_disconnect msg;
 			memcpy(&msg, packet->msg, sizeof(msg));
 
 			chatServer->DeleteUser(chatServer->FindUser(msg.client_socket, msg.server_num));
 
-			//PRINTF("%d\n", g_vPlayers.size());
+			//PRINT("[InterSocket] %d\n", g_vPlayers.size());
 			break;
 		}
 		case ssType::pkt_player_info_send:
 		{
-			PRINTF("player_info_send recieve!\n");
+			PRINT("[InterSocket] player_info_send recieve!\n");
 			ss_player_info_send msg = *((ss_player_info_send *)packet->msg);
 
 			if (msg.player_cnt + chatServer->GetUserCnt() <= TOTAL_PLAYER)
@@ -499,19 +499,19 @@ void InterSocket::packetHandling(CPacket *packet){
 					p->roomNum = info->room_num;
 					p->nickname = info->nickname;
 
-					PRINTF("player socket : %d\n", info->client_socket);
+					PRINT("[InterSocket] player socket : %d\n", info->client_socket);
 					position += sizeof(player_info);
 				}
 
 				ss_player_info_success msg;
 				msg.type = ssType::pkt_player_info_success;
-				PRINTF("player info success msg send!!\n");
+				PRINT("[InterSocket] player info success msg send!!\n");
 				this->Send((char *)&msg, sizeof(msg));
 
-				if (!poolManager->Free((msg_buffer *)buf)) PRINTF("free error!\n");;
+				if (!poolManager->Free((msg_buffer *)buf)) PRINT("[InterSocket] free error!\n");;
 			}
 			else{
-				PRINTF("max player error!\n");
+				PRINT("[InterSocket] max player error!\n");
 				ss_player_info_failure msg;
 				msg.type = ssType::pkt_player_info_failure;
 				this->Send((char *)&msg, sizeof(msg));
@@ -521,7 +521,7 @@ void InterSocket::packetHandling(CPacket *packet){
 		}
 		case ssType::pkt_room_info_send:
 		{
-			PRINTF("room_info_send recieve!\n");
+			PRINT("[InterSocket] room_info_send recieve!\n");
 			ss_room_info_send msg = *((ss_room_info_send *)packet->msg);
 
 			EnterCriticalSection(&chatServer->roomManager.roomLock);
@@ -538,7 +538,7 @@ void InterSocket::packetHandling(CPacket *packet){
 				for (int i = 0; i < msg.room_cnt; i++)
 				{
 					info = (room_info *)(buf + position);
-					PRINTF("create room number : %d\n", info->room_num);
+					PRINT("[InterSocket] create room number : %d\n", info->room_num);
 					chatServer->roomManager.CreateRoom(info->room_num);
 
 					position += sizeof(room_info);
@@ -551,21 +551,21 @@ void InterSocket::packetHandling(CPacket *packet){
 				{
 					ss_room_info_success msg;
 					msg.type = ssType::pkt_room_info_success;
-					PRINTF("room info success msg send!!\n");
+					PRINT("[InterSocket] room info success msg send!!\n");
 					this->Send((char *)&msg, sizeof(msg));
 				}
 				else
 				{
-					PRINTF("enter room error!\n");
+					PRINT("[InterSocket] enter room error!\n");
 					ss_room_info_failure msg;
 					msg.type = ssType::pkt_room_info_failure;
 					this->Send((char *)&msg, sizeof(msg));
 				}
-				if (!poolManager->Free((msg_buffer *)buf)) PRINTF("free error!\n");;
+				if (!poolManager->Free((msg_buffer *)buf)) PRINT("[InterSocket] free error!\n");;
 			}
 			else
 			{
-				PRINTF("max room error!\n");
+				PRINT("[InterSocket] max room error!\n");
 				ss_room_info_failure msg;
 				msg.type = ssType::pkt_room_info_failure;
 				this->Send((char *)&msg, sizeof(msg));
@@ -575,27 +575,27 @@ void InterSocket::packetHandling(CPacket *packet){
 		}
 
 		case ssType::pkt_room_info_success:
-			PRINTF("initial room sync success!\n");
+			PRINT("[InterSocket] initial room sync success!\n");
 			break;
 		case ssType::pkt_player_info_success:
-			PRINTF("initial player info sync success!\n");
+			PRINT("[InterSocket] initial player info sync success!\n");
 			break;
 
 		case ssType::pkt_room_info_failure:
 		case ssType::pkt_player_info_failure:
-			PRINTF("recieve fail msg!\n");
+			PRINT("[InterSocket] recieve fail msg!\n");
 			this->Disconnect();
-			//printf("disconnect 7\n");
+			//PRINT("[InterSocket] disconnect 7\n");
 			break;
 
 		case ssType::pkt_create:
 		{
-			PRINTF("create call by other server\n");
+			PRINT("[InterSocket] create call by other server\n");
 			ss_create msg = *((ss_create *)packet->msg);
 			/*CPlayer* p = FindPlayerBySocket(msg.client_socket);
 			if (p == NULL)
 			{
-				PRINTF("not available!\n");
+				PRINT("[InterSocket] not available!\n");
 				break;
 			}*/
 			if ((chatServer->roomManager.CreateRoom(msg.room_num)) == -1){
@@ -606,12 +606,12 @@ void InterSocket::packetHandling(CPacket *packet){
 		}
 		case ssType::pkt_destroy:
 		{
-			PRINTF("destroy call by other server\n");
+			PRINT("[InterSocket] destroy call by other server\n");
 			ss_destroy msg = *((ss_destroy *)packet->msg);
 			/*CPlayer* p = FindPlayerBySocket(msg.client_socket);
 			if (p == NULL)
 			{
-				PRINTF("not available!\n");
+				PRINT("[InterSocket] not available!\n");
 				break;
 			}*/
 			if ((chatServer->roomManager.DestroyRoom(msg.room_num)) == -1){
@@ -622,13 +622,13 @@ void InterSocket::packetHandling(CPacket *packet){
 		}
 		case ssType::pkt_join:
 		{
-			PRINTF("join call by other server\n");
+			PRINT("[InterSocket] join call by other server\n");
 			ss_join msg = *((ss_join *)packet->msg);
 			CPlayer* p = FindPlayerBySocket(msg.client_socket);
 
 			if (p == NULL)
 			{
-				PRINTF("not available!\n");
+				PRINT("[InterSocket] not available!\n");
 				break;
 			}
 			p->nickname = msg.nickname;
@@ -637,13 +637,13 @@ void InterSocket::packetHandling(CPacket *packet){
 		}
 		case ssType::pkt_leave:
 		{
-			PRINTF("leave call by other server\n");
+			PRINT("[InterSocket] leave call by other server\n");
 			ss_leave msg = *((ss_leave *)packet->msg);
 			CPlayer* p = FindPlayerBySocket(msg.client_socket);
 
 			if (p == NULL)
 			{
-				PRINTF("%d not available!\n", msg.client_socket);
+				PRINT("[InterSocket] %d not available!\n", msg.client_socket);
 				break;
 			}
 			p->nickname = msg.nickname;
@@ -652,7 +652,7 @@ void InterSocket::packetHandling(CPacket *packet){
 		}
 		case ssType::pkt_chat:
 		{
-			PRINTF("chat call by other server\n");
+			PRINT("[InterSocket] chat call by other server\n");
 			ss_chat msg = *((ss_chat *)packet->msg);
 			pkt_type type = pkt_type::pt_chat_alarm;
 			memcpy(packet->msg, &type, sizeof(short));
@@ -669,6 +669,6 @@ void InterSocket::packetHandling(CPacket *packet){
 			break;
 	}
 
-	if (!this->poolManager->Free((msg_buffer *)packet->msg)) PRINTF("free error!\n");;
-	if (!this->packetPoolManager->Free(packet)) PRINTF("free error!\n");;
+	if (!this->poolManager->Free((msg_buffer *)packet->msg)) PRINT("[InterSocket] free error!\n");;
+	if (!this->packetPoolManager->Free(packet)) PRINT("[InterSocket] free error!\n");;
 }

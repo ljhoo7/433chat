@@ -85,26 +85,26 @@ void ChatServer::Process(){
 
 		/*	if (input == "connect")
 		{
-		printf("Enter server number : ");
+		PRINT("Enter server number : ");
 		std::string temp;
 		std::getline(std::cin, temp);
 		unsigned int num = atoi(temp.c_str());
 
 		if (num >= serverInfo.size()){
-		printf("wrong input\n");
+		PRINT("wrong input\n");
 		continue;
 		}
 		interServer->Connect(num);
 		}
 		else if (input == "disconnect")
 		{
-		printf("Enter server number : ");
+		PRINT("Enter server number : ");
 		std::string temp;
 		std::getline(std::cin, temp);
 		unsigned int num = atoi(temp.c_str());
 
 		if (num >= serverInfo.size()){
-		printf("wrong input\n");
+		PRINT("wrong input\n");
 		continue;
 		}
 
@@ -116,15 +116,15 @@ void ChatServer::Process(){
 			interServer->ShowConnectServerList();
 
 			std::list<CPlayer*>::iterator iter;
-			PRINTF("\n--------------------------player info----------------------\n");
-			PRINTF("\n----------------------player cnt %d, %d----------------------\n", GetUserCnt(), GetUserCnt(serverNum));
+			PRINT("\n--------------------------player info----------------------\n");
+			PRINT("\n----------------------player cnt %d, %d----------------------\n", GetUserCnt(), GetUserCnt(serverNum));
 			for (iter = users.begin(); iter != users.end(); iter++)
 			{
 				CPlayer *p = (*iter);
-				PRINTF("is Mine : %d, client socket : %d, room Num : %d, nickname : %s\n",
+				PRINT("ServerNum : %d, client socket : %d, room Num : %d, nickname : %s\n",
 					p->serverNum, p->socket_, p->roomNum, p->nickname.c_str());
 			}
-			PRINTF("-----------------------------------------------------------\n");
+			PRINT("-----------------------------------------------------------\n");
 		}
 		else if (input == "quit")
 		{
@@ -227,19 +227,21 @@ void ChatServer::Start(){
 		interServer->Connect(i);
 	}
 	/*if (interServer->sockets.size() != 0){
-		PRINTF("%d server on!", interServer->sockets.size());
+		PRINT("%d server on!", interServer->sockets.size());
 		
 	}
 	else{
-		PRINTF("first server on!\n");
+		PRINT("first server on!\n");
 	}*/
 
+#ifdef MYDEF
 	Process();
+#endif
 	
 	logic_thread.join();
 	//new_thread.join();
 
-	PRINTF("end process..\n");
+	PRINT("end process..\n");
 	return;
 }
 
@@ -248,27 +250,27 @@ void ChatServer::EndServer(){
 		EscapingAllUsers();
 	}
 	else if (interServer->ServerCnt() > 0){
-		PRINTF("disconnect all user success!\n");
+		PRINT("disconnect all user success!\n");
 		Sleep(5000);
-		PRINTF("starting interserver disconnect...\n");
+		PRINT("starting interserver disconnect...\n");
 		interServer->DisconnectAllServers();
 	}
 	else if (agentServer->socket->isConnected){
-		PRINTF("disconnect all interserver success!\n");
+		PRINT("disconnect all interserver success!\n");
 		Sleep(5000);
-		PRINTF("starting agentserver disconnect...\n");
+		PRINT("starting agentserver disconnect...\n");
 		chatServer->agentServer->socket->Disconnect();
 	}
 	else{
 		Sleep(5000);
 		chatServer->logicHandle.isEnd = true;
-		PRINTF("all disconnect success!!\n real end complete\n");
+		PRINT("all disconnect success!!\n real end complete\n");
 	}
 	
 }
 
 void ChatServer::EscapingAllUsers(){
-	PRINTF("Escaping All Users to other Server...\n");
+	PRINT("Escaping All Users to other Server...\n");
 
 	int i = 0;
 	for (std::list<CPlayer*>::iterator iter = chatServer->users.begin();
@@ -367,7 +369,7 @@ void ChatServer::RemoveOtherServerUsers(int serverNum){
 			{
 				chatServer->roomManager.LeaveRoom((*iter), (*iter)->roomNum);
 			}
-			PRINTF("delete other server's user : %d\n", (*iter)->socket_);
+			PRINT("delete other server's user : %d\n", (*iter)->socket_);
 			iter = chatServer->users.erase(iter);
 		}
 		else

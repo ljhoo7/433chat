@@ -13,7 +13,7 @@ void TcpSocket::Init()
 
 	if (socket_ == INVALID_SOCKET)
 	{
-		PRINTF("WSASocket() Error!!! err(%d)\n", WSAGetLastError());
+		PRINT("WSASocket() Error!!! err(%d)\n", WSAGetLastError());
 	}
 
 	disconnectCall = false;
@@ -65,7 +65,7 @@ void TcpSocket::Recv()
 
 		if (error != ERROR_IO_PENDING)
 		{
-			PRINTF("WSARecv() Error!!! s(%d) err(%d)\n", socket_, error);
+			PRINT("WSARecv() Error!!! s(%d) err(%d)\n", socket_, error);
 			//Disconnect();
 		}
 	}
@@ -88,7 +88,7 @@ void TcpSocket::Recv(char* buf, int buflen)
 
 		if (error != ERROR_IO_PENDING)
 		{
-			PRINTF("WSARecv() Error!!! s(%d) err(%d)\n", socket_, error);
+			PRINT("WSARecv() Error!!! s(%d) err(%d)\n", socket_, error);
 			//Disconnect();
 		}
 	}
@@ -109,7 +109,7 @@ void TcpSocket::Send(char* buf, int buflen)
 
 		if (error != ERROR_IO_PENDING)
 		{
-			PRINTF("WSASend() Error!!! s(%d) err(%d)\n", socket_, error);
+			PRINT("WSASend() Error!!! s(%d) err(%d)\n", socket_, error);
 			//Disconnect();
 		}
 	}
@@ -125,7 +125,7 @@ void TcpSocket::Disconnect()
 {
 	if (disconnectCall) return;
 
-	//PRINTF("real disconnect call!\n");
+	//PRINT("real disconnect call!\n");
 	disconnectCall = true;
 
 	BOOL ret = TransmitFile(
@@ -144,7 +144,7 @@ void TcpSocket::Disconnect()
 
 		if (error != ERROR_IO_PENDING)
 		{
-			PRINTF("already disconnected, DisconnectEx Error!!! s(%d), err(%d)\n", socket_, error);
+			PRINT("already disconnected, DisconnectEx Error!!! s(%d), err(%d)\n", socket_, error);
 		}
 	}
 }

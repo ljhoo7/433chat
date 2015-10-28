@@ -27,7 +27,7 @@ void CRoom::PlayerEnter(CPlayer* player)
 	tmpJoinAlarm.type = pkt_type::pt_join_alarm;
 
 	this->BroadcastMsg((char*)&tmpJoinAlarm, sizeof(t_join_alarm));
-	PRINTF("join alarm message has been sent.\n");
+	PRINT("[Room] join alarm message has been sent.\n");
 
 	/* informing the entered */
 	EnterCriticalSection(&playerLock);
@@ -72,7 +72,7 @@ void CRoom::PlayerQuit(CPlayer* player, bool msg)
 
 	/* informing the exited */
 	if (msg) this->BroadcastMsg((char*)&tmpLeaveAlarm, sizeof(t_leave_alarm));
-	PRINTF("leave alarm message has been sent.\n");
+	PRINT("[Room] leave alarm message has been sent.\n");
 }
 
 void CRoom::BroadcastMsg(char* msg, int size)
@@ -84,7 +84,7 @@ void CRoom::BroadcastMsg(char* msg, int size)
 	}
 
 	std::list<CPlayer*>::iterator iter;
-	//PRINTF("CRoom %d : %d persons are connecting...\n", roomNumber, players.size());
+	//PRINT("[Room] CRoom %d : %d persons are connecting...\n", roomNumber, players.size());
 	for (iter = players.begin(); iter != players.end(); iter++)
 	{
 		if ((*iter)->serverNum == chatServer->serverNum) (*iter)->Send(msg, size);

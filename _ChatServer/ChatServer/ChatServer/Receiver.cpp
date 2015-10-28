@@ -8,7 +8,7 @@ void Receiver::ProcEvent(Act* act, DWORD bytes_transferred)
 	assert(tcpact.tcpSocket_);
 	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
-	//PRINTF("...Receiver (%d byte) s(%d)\n", bytes_transferred, tcpsocket.GetSocket() );
+	//PRINT("...Receiver (%d byte) s(%d)\n", bytes_transferred, tcpsocket.GetSocket() );
 
 	// passive ¿¬°á²÷±è
 	tcpsocket.RecvProcess(false, act, bytes_transferred);
@@ -25,7 +25,7 @@ void Receiver::ProcError(Act* act, DWORD error)
 
 	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
-	//PRINTF("...¿¡·¯Ã³¸® Receiver s(%d) err(%d)\n", tcpsocket.GetSocket(), error );
+	PRINT("Receiver s(%d) err(%d)\n", tcpsocket.socket_, error );
 
 	tcpsocket.RecvProcess(true, act, error);
 

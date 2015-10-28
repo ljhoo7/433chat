@@ -42,7 +42,8 @@ public:
 
 
 private:
-	struct mswsock_s {
+	struct mswsock_s 
+	{
 		LPFN_CONNECTEX ConnectEx;
 	} mswsock;
 

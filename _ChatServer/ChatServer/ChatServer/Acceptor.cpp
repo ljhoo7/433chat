@@ -9,7 +9,7 @@ void Acceptor::ProcEvent(Act* act, DWORD bytes_transferred)
 
 	assert(proactor_);
 
-	//PRINTF("...Acceptor s(%d)\n", tcpsocket.GetSocket());
+	//PRINT("...Acceptor s(%d)\n", tcpsocket.GetSocket());
 
 	proactor_->Register((HANDLE)(tcpsocket.socket_));
 
@@ -26,7 +26,7 @@ void Acceptor::ProcError(Act* act, DWORD error)
 
 	TcpSocket& tcpsocket = *tcpact.tcpSocket_;
 
-	PRINTF("...에러처리 Acceptor s(%d) err(%d)\n", tcpsocket.socket_, error);
+	PRINT("Acceptor s(%d) err(%d)\n", tcpsocket.socket_, error);
 
 	tcpsocket.AcceptProcess(true, act, error);
 }
@@ -55,6 +55,6 @@ void Acceptor::Register(TcpSocket& acceptsocket, int size)
 
 	if (ret == FALSE && error != ERROR_IO_PENDING)
 	{
-		PRINTF("AcceptEx Error!!! s(%d), err(%d)\n", acceptsocket.socket_, error);
+		PRINT("AcceptEx Error!!! s(%d), err(%d)\n", acceptsocket.socket_, error);
 	}
 }

@@ -25,14 +25,14 @@ CPlayer::CPlayer(int serverNum)
 
 	poolManager = new MemPooler<msg_buffer>(10);
 	if (!poolManager){
-		PRINTF("CPlayer : MemPooler<msg_buffer> error\n");
+		PRINT("[PlayerSocket] MemPooler<msg_buffer> error\n");
 		/* error handling */
 		return;
 	}
 
 	packetPoolManager = new MemPooler<CPacket>(10);
 	if (!packetPoolManager){
-		PRINTF("CPlayer : MemPooler<CPacket> error\n");
+		PRINT("[PlayerSocket] MemPooler<CPacket> error\n");
 		/* error handling */
 		return;
 	}
@@ -45,7 +45,7 @@ CPlayer::~CPlayer(){
 void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		if (bytes_transferred == 0){
-			//printf("disconnect 1\n");
+			//PRINT("[PlayerSocket] disconnect 1\n");
 			Disconnect();
 		}
 
@@ -54,7 +54,7 @@ void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 		this->remainBytes -= bytes_transferred;
 
 		if (this->socket_ == NULL){
-			PRINTF("CPlayer RecvProcess : recv buf socket is not available\n");
+			PRINT("[PlayerSocket] RecvProcess : recv buf socket is not available\n");
 			/* error handling */
 		}
 		else{
@@ -95,7 +95,7 @@ void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 							remainBytes = sizeof(short);
 							break;
 						default:
-							//printf("disconnect 2\n");
+							//PRINT("[PlayerSocket] disconnect 2\n");
 							Disconnect();
 					}
 				}
@@ -131,8 +131,8 @@ void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 	}
 	else{
 		/* error handling */
-		PRINTF("CPlayer RecvProcess : Error : %d\n", WSAGetLastError());
-		//printf("disconnect 3\n");
+		PRINT("[PlayerSocket] RecvProcess : Error : %d\n", WSAGetLastError());
+		//PRINT("[PlayerSocket] disconnect 3\n");
 		Disconnect();
 	}
 	
@@ -143,13 +143,13 @@ void CPlayer::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 		/* send complete */
 	}
 	else{
-		PRINTF("CPlayer SendProcess : Error : %d\n", WSAGetLastError());
+		PRINT("[PlayerSocket] SendProcess : Error : %d\n", WSAGetLastError());
 	}
 }
 
 void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
-		PRINTF("connect success, %d\n", this->socket_);
+		PRINT("[PlayerSocket] connect success, %d\n", this->socket_);
 		this->identifier = chatServer->identifierSeed++;
 		chatServer->AddUser(this);
 
@@ -179,7 +179,7 @@ void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 	}
 	else{
 		/* error handling */
-		PRINTF("CPlayer AcceptProcess : Error : %d\n", WSAGetLastError());
+		PRINT("[PlayerSocket] AcceptProcess : Error : %d\n", WSAGetLastError());
 	}
 }
 
@@ -190,7 +190,7 @@ void CPlayer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 		/* remove in list */
 		int cnt = chatServer->DeleteUserAndCnt(this);
-		printf("player count %d\n", cnt);
+		PRINT("[PlayerSocket] player count %d\n", cnt);
 
 		if (chatServer->isEnd){
 			if (cnt == 0){
@@ -209,7 +209,7 @@ void CPlayer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 }
 
 void CPlayer::RemovePlayer(){
-	PRINTF("disconnect success, %d\n", this->socket_);
+	PRINT("[PlayerSocket] disconnect success, %d\n", this->socket_);
 	CRoom* room = chatServer->roomManager.FindRoom(this->roomNum);
 
 	if (room != NULL)
@@ -223,7 +223,7 @@ void CPlayer::RemovePlayer(){
 		PlayerSync((char *)&msg, sizeof(ss_leave));
 
 		chatServer->roomManager.LeaveRoom(this, this->roomNum);
-		PRINTF("remove in room..\n");
+		PRINT("[PlayerSocket] remove in room..\n");
 	}
 
 	if (this->socket_ != NULL){
@@ -249,7 +249,7 @@ void CPlayer::EscapePlayer(bool first, int i){
 	if (n == 0){
 		if (serverNum == chatServer->serverNum)
 		{
-			PRINTF("send user out!\n");
+			PRINT("[PlayerSocket] send user out!\n");
 			t_user_out tmpUserOut;
 			tmpUserOut.type = pkt_type::pt_user_out_client;
 			tmpUserOut.client_socket = socket_;
@@ -262,7 +262,7 @@ void CPlayer::EscapePlayer(bool first, int i){
 
 		if (serverNum == chatServer->serverNum)
 		{
-			PRINTF("%d client escape to server %d\n", socket_, escapingList[i%n]);
+			PRINT("[PlayerSocket] %d client escape to server %d\n", socket_, escapingList[i%n]);
 
 			tmpEscape.dest_ip = chatServer->serverInfo[escapingList[i%n]].ip;
 			tmpEscape.port = chatServer->serverInfo[escapingList[i%n]].client_port;
@@ -337,7 +337,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 	}
 
 	if (!ValidPacket(packet)){
-		PRINTF("Not Valid Packet!\n");
+		PRINT("[PlayerSocket] Not Valid Packet!\n");
 		return;
 	}
 
@@ -369,7 +369,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 	{
 	case pkt_type::pt_escape_success:
 	{
-		PRINTF("userout success %d\n", socket_);
+		PRINT("[PlayerSocket] userout success %d\n", socket_);
 		tmpEscapeSuccess = (t_escape_success*)packet->msg;
 
 		t_user_out tmpUserOut;
@@ -381,7 +381,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 	}
 	case pkt_type::pt_escape_failure:
 		tmpEscapeFailure = (t_escape_failure*)packet->msg;
-		PRINTF("escaping fail! retry... %d\n", socket_);
+		PRINT("[PlayerSocket] escaping fail! retry... %d\n", socket_);
 		EscapePlayer(false, 0);
 		break;
 	case pkt_type::pt_create:
@@ -394,13 +394,13 @@ void CPlayer::PacketHandling(CPacket *packet){
 			msg.client_socket = this->socket_;
 			msg.room_num = tmpCreate->room_num;
 			PlayerSync((char *)&msg, sizeof(msg));
-			PRINTF("create has been sent.\n");
+			PRINT("[PlayerSocket] create has been sent.\n");
 
 			//------------------------------------------------------------------------
 
 			tmpCreateSuccess.type = pkt_type::pt_create_success;
 			Send((char *)&tmpCreateSuccess, sizeof(t_create_success));
-			PRINTF("create message has been sent.\n");
+			PRINT("[PlayerSocket] create message has been sent.\n");
 
 			if (chatServer->agentServer->socket->isConnected)
 				chatServer->agentServer->socket->RoomInfoSend(false, tmpCreate->room_num, true);
@@ -413,7 +413,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpCreateFailure.fail_signal = fail_signal::fs_overflow;
 
 			Send((char *)&tmpCreateFailure, sizeof(t_create_failure));
-			PRINTF("create overflow message has been sent.\n");
+			PRINT("[PlayerSocket] create overflow message has been sent.\n");
 		}
 		else if (result == fail_signal::fs_alreadyexist)
 		{
@@ -421,7 +421,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpCreateFailure.fail_signal = fail_signal::fs_alreadyexist;
 
 			Send((char *)&tmpCreateFailure, sizeof(t_create_failure));
-			PRINTF("create already exist message has been sent.\n");
+			PRINT("[PlayerSocket] create already exist message has been sent.\n");
 		}
 		break;
 	case pkt_type::pt_destroy:
@@ -439,7 +439,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 
 			tmpDestroySuccess.type = pkt_type::pt_destroy_success;
 			Send((char *)&tmpDestroySuccess, sizeof(t_destroy_success));
-			PRINTF("destroy success message has been sent.\n");
+			PRINT("[PlayerSocket] destroy success message has been sent.\n");
 
 			if (chatServer->agentServer->socket->isConnected)
 				chatServer->agentServer->socket->RoomInfoSend(false, tmpDestroy->room_num, false);
@@ -450,7 +450,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpDestroyFailure.fail_signal = fail_signal::fs_no_exist;
 
 			Send((char *)&tmpDestroyFailure, sizeof(t_destroy_failure));
-			PRINTF("destroy no exist message has been sent.\n");
+			PRINT("[PlayerSocket] destroy no exist message has been sent.\n");
 		}
 		break;
 
@@ -467,7 +467,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			memcpy(msg.nickname, tmpJoin->nickname, sizeof(msg.nickname));
 			PlayerSync((char *)&msg, sizeof(msg));
 
-			PRINTF("join message has been sent.\n");
+			PRINT("[PlayerSocket] join message has been sent.\n");
 
 			//------------------------------------------------------------------------
 
@@ -475,7 +475,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpJoinSuccess.token = this->identifier;
 
 			Send((char *)&tmpJoinSuccess, sizeof(t_join_success));
-			PRINTF("join success message has been sent.\n");
+			PRINT("[PlayerSocket] join success message has been sent.\n");
 
 			if (chatServer->agentServer->socket->isConnected)
 				chatServer->agentServer->socket->UserInfoSend(false, this, 2);
@@ -486,7 +486,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpJoinFailure.fail_signal = fail_signal::fs_overflow;
 
 			Send((char *)&tmpJoinFailure, sizeof(t_join_failure));
-			PRINTF("join overflow message has been sent.\n");
+			PRINT("[PlayerSocket] join overflow message has been sent.\n");
 		}
 		else if (result == fail_signal::fs_alreadyexist)
 		{
@@ -494,7 +494,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpJoinFailure.fail_signal = fail_signal::fs_alreadyexist;
 
 			Send((char *)&tmpJoinFailure, sizeof(t_join_failure));
-			PRINTF("join alreadyexist message has been sent.\n");
+			PRINT("[PlayerSocket] join alreadyexist message has been sent.\n");
 		}
 		else if (result == fail_signal::fs_no_exist)
 		{
@@ -502,7 +502,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpJoinFailure.fail_signal = fail_signal::fs_no_exist;
 
 			Send((char *)&tmpJoinFailure, sizeof(t_join_failure));
-			PRINTF("join no exist message has been sent.\n");
+			PRINT("[PlayerSocket] join no exist message has been sent.\n");
 		}
 		break;
 
@@ -525,7 +525,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpLeaveSuccess.type = pkt_type::pt_leave_success;
 			Send((char *)&tmpLeaveSuccess, sizeof(t_leave_success));
 
-			PRINTF("leave success message has been sent.\n");
+			PRINT("[PlayerSocket] leave success message has been sent.\n");
 
 
 			if (chatServer->agentServer->socket->isConnected)
@@ -533,7 +533,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 		}
 		else
 		{
-			PRINTF("The Leave Command has been failed. This is very extra ordinary event !\n");
+			PRINT("[PlayerSocket] The Leave Command has been failed. This is very extra ordinary event !\n");
 		}
 		break;
 
@@ -551,9 +551,9 @@ void CPlayer::PacketHandling(CPacket *packet){
 
 		PlayerSync((char *)packet->msg, size);
 
-		PRINTF("chat alarm message has been sent.\n");		break;
+		PRINT("[PlayerSocket] chat alarm message has been sent.\n");		break;
 	}
 
-	if (!poolManager->Free((msg_buffer *)packet->msg)) PRINTF("free error!\n");
-	if (!packetPoolManager->Free(packet)) PRINTF("free error!\n");
+	if (!poolManager->Free((msg_buffer *)packet->msg)) PRINT("[PlayerSocket] free error!\n");
+	if (!packetPoolManager->Free(packet)) PRINT("[PlayerSocket] free error!\n");
 }

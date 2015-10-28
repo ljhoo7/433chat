@@ -24,7 +24,9 @@ CLogWriter::CLogWriter(PTCH p_szStr, int p_nNumOfThreads)
 {
 #ifdef MYDEF
 #else
-	m_hLogIOCP = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, NULL, m_nNumOfThreads);
+	m_pLogAct = new CLogAct(p_szStr);
+
+	/*m_hLogIOCP = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, NULL, m_nNumOfThreads);
 
 	if (NULL == m_hLogIOCP)
 	{
@@ -40,29 +42,12 @@ CLogWriter::CLogWriter(PTCH p_szStr, int p_nNumOfThreads)
 		}
 	}
 
-	m_pLogAct = new CLogAct(p_szStr);
-
 	ULONG_PTR t_pulData = 0;
 
 	if (NULL == ::CreateIoCompletionPort(m_pLogAct->m_cFile.m_hFile, m_hLogIOCP, t_pulData, 0))
 	{
 		BeforeMakingIOCPMessage("The OS has failed to assign the log file to the IOCP !\n");
-	}
-
-	unsigned short	t_usMark = 0xFEFF;
-	DWORD			t_dwNumberOfBytesWritten;
-	int t_nResult;
-
-	// For Writing the Unicode Mark
-	t_nResult = ::WriteFile(m_pLogAct->m_cFile.m_hFile, &t_usMark, sizeof(t_usMark), &t_dwNumberOfBytesWritten, m_pLogAct);
-
-	if (!t_nResult)
-	{
-		if (GetLastError() != ERROR_IO_PENDING)
-		{
-			BeforeMakingIOCPMessage("The OS has failed to write the unicode mark on the log file !\n");
-		}
-	}
+	}*/
 #endif
 }
 
@@ -77,7 +62,32 @@ CLogWriter::~CLogWriter()
 
 UINT WINAPI CLogWriter::ThreadProc(PVOID p_pRaram)
 {
-	// Check The Finish of a Writing
+	while (true){
+		DWORD bytes_transferred;
+		DWORD completionkey;
+
+		OVERLAPPED* overlapped = NULL;
+
+
+		//PRINT("thread ready\n");
+		BOOL status = ::GetQueuedCompletionStatus(static_cast<CLogWriter*>(p_pRaram)->m_hLogIOCP, &bytes_transferred, static_cast<PULONG_PTR>(&completionkey), &overlapped, INFINITE);
+		// Check The Finish of a Writing
+
+
+		if (status == TRUE)
+		{
+			if (overlapped == NULL)
+			{
+				continue;
+			}
+		}
+		else
+		{
+			BeforeMakingIOCPMessage("Proactor ProcEvents() status false Error!!! err\n");
+			continue;
+		}
+	}
+	
 	return 0;
 }
 
@@ -101,7 +111,8 @@ int CLogWriter::myPRINTF(LPTCH p_szStr, ...)
 	int t_nResult;
 
 	// For Writing the Unicode Mark
-	t_nResult = ::WriteFile(m_pLogAct->m_cFile.m_hFile, buf, strlen(buf) * sizeof(char), &t_dwNumberOfBytesWritten, m_pLogAct);
+	t_nResult = ::WriteFile(m_pLogAct->m_cFile.m_hFile, buf, strlen(buf), &t_dwNumberOfBytesWritten, NULL);
+
 
 	if (!t_nResult)
 	{
