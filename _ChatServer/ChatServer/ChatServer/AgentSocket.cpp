@@ -262,17 +262,17 @@ void AgentSocket::UserInfoSend(bool isTotal, CPlayer* player, char connect){
 	if (isTotal){
 		sag_total_user_info msg;
 		msg.type = sag_pkt_type::pt_total_user_info;
-		EnterCriticalSection(&chatServer->userLock);
+		
+		EnterCriticalSection(&chatServer->clientServer->playerLock);
 		
 
 		int size = sizeof(msg.type) + sizeof(msg.userCnt);
 		int i = 0;
 		std::list<CPlayer*>::iterator iter;
-		for (iter = chatServer->users.begin(); iter != chatServer->users.end(); iter++)
+		for (iter = chatServer->clientServer->playerlist.begin(); iter != chatServer->clientServer->playerlist.end(); iter++)
 		{
 			
 			CPlayer *p = (*iter);
-			if (chatServer->serverNum != p->serverNum) continue;
 			msg.userInfoList[i].roomNum = p->roomNum;
 			memcpy(msg.userInfoList[i].userName, p->nickname.c_str(), sizeof(p->nickname));
 			msg.userInfoList[i].userSocket = (int)p->socket_;
@@ -282,7 +282,7 @@ void AgentSocket::UserInfoSend(bool isTotal, CPlayer* player, char connect){
 			size += sizeof(SAGUserInfo);
 		}
 		msg.userCnt = i;
-		LeaveCriticalSection(&chatServer->userLock);
+		LeaveCriticalSection(&chatServer->clientServer->playerLock);
 
 		Send((char*)&msg, size);
 	}
@@ -424,7 +424,9 @@ void AgentSocket::PacketHandling(CPacket *packet){
 		chatServer->EndServer();
 		break;
 	case sag_pkt_type::pt_health_check:
+#ifdef HEARTBEAT
 		PRINT("[AgentSocket] health check msg was sent!\n");
+#endif
 		sag_health_ack msg;
 		msg.type = sag_pkt_type::pt_health_ack;
 

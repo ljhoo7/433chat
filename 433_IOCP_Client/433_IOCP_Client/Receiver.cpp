@@ -327,6 +327,13 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 				p_pAct->m_eType = pkt_type::pt_escape_server;
 				//g_pClient->m_hOldSock = p_pAct->m_pSock->m_hSock;
 			}
+			else if (pkt_type::pt_cs_health_check == t_eType)
+			{
+				g_pLog->myWprintf(L"pt_health_check\n");
+				t_nRemain = sizeof(t_health_check)-HEADER_SIZE;
+				p_pAct->m_eType = pkt_type::pt_cs_health_check;
+				//g_pClient->m_hOldSock = p_pAct->m_pSock->m_hSock;
+			}
 			else if (CCreate_Response_Wait::Instance() == t_pState)
 			{
 				switch (t_eType)
@@ -468,6 +475,12 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 					if (pkt_type::pt_escape_server == p_pAct->m_eType)
 					{
 						PacketHandlingFunc[p_pAct->m_eType]((PVOID)p_pAct);
+					}
+					else if (pkt_type::pt_cs_health_check == p_pAct->m_eType)
+					{
+						t_health_ack msg;
+						msg.type = pkt_type::pt_cs_health_ack;
+						g_pClient->m_pSock->Send((char*)&msg, sizeof(msg));
 					}
 					else
 					{

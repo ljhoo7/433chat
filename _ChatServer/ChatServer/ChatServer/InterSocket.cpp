@@ -32,22 +32,28 @@ void InterSocket::HeartbeatCheck() {
 		if (!isUse) return;
 		beatCheck = false;
 
+#ifdef HEARTBEAT
 		PRINT("[InterSocket] *** hearth check send!\n");
+#endif
 		ss_heartbeats msg;
 		msg.type = ssType::pkt_heartbeats;
 		Send((char *)&msg, sizeof(msg));
 		
 		std::this_thread::sleep_for(std::chrono::seconds(chatServer->heartbeatTime));
 
-
+		if (chatServer->isEnd) return;
 		if (!isUse) return;
+
 		if (beatCheck == false){
 			Disconnect();
 			break;
 		}
 	}
 
+#ifdef HEARTBEAT
 	PRINT("[InterSocket] *** hearth thread end!\n");
+#endif
+
 }
 
 InterSocket::InterSocket(TcpInterServer* InterServer, bool isConnect){
@@ -440,7 +446,9 @@ void InterSocket::packetHandling(CPacket *packet){
 	{
 		case ssType::pkt_heartbeats:
 		{
+#ifdef HEARTBEAT
 			PRINT("[InterSocket] *** recieve heartbeat check. send response\n");
+#endif
 			ss_heartbeats_response msg;
 			msg.type = ssType::pkt_heartbeats_response;
 			Send((char *)&msg, sizeof(msg));
@@ -448,7 +456,9 @@ void InterSocket::packetHandling(CPacket *packet){
 		}
 		case ssType::pkt_heartbeats_response:
 		{
+#ifdef HEARTBEAT
 			PRINT("[InterSocket] *** recieve heartbeat response\n");
+#endif
 			beatCheck = true;
 			break;
 		}
@@ -544,7 +554,7 @@ void InterSocket::packetHandling(CPacket *packet){
 					position += sizeof(room_info);
 				}
 
-				bool check = chatServer->EnterOtherServerUsers(serverNum);
+				bool check = chatServer->EnterOtherServerUsers();
 
 
 				if (check)

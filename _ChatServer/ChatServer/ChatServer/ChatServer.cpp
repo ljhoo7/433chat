@@ -238,7 +238,8 @@ void ChatServer::Start(){
 	Process();
 #endif
 	
-	logic_thread.join();
+	if (clientServer->heartbeatThread.joinable()) clientServer->heartbeatThread.join();
+	if (logic_thread.joinable()) logic_thread.join();
 	//new_thread.join();
 
 	PRINT("end process..\n");
@@ -247,7 +248,8 @@ void ChatServer::Start(){
 
 void ChatServer::EndServer(){
 	if (GetUserCnt(serverNum) > 0){
-		EscapingAllUsers();
+		PRINT("Escaping All Users to other Server...\n");
+		clientServer->EscapingAllUsers();
 	}
 	else if (interServer->ServerCnt() > 0){
 		PRINT("disconnect all user success!\n");
@@ -269,6 +271,7 @@ void ChatServer::EndServer(){
 	
 }
 
+/*
 void ChatServer::EscapingAllUsers(){
 	PRINT("Escaping All Users to other Server...\n");
 
@@ -280,7 +283,7 @@ void ChatServer::EscapingAllUsers(){
 		i++;
 	}
 			
-}
+}*/
 
 void ChatServer::AddUser(CPlayer* player){
 	EnterCriticalSection(&userLock);
@@ -294,6 +297,7 @@ void ChatServer::DeleteUser(CPlayer* player){
 	LeaveCriticalSection(&userLock);
 }
 
+/*
 int ChatServer::DeleteUserAndCnt(CPlayer* player){
 	int ret = 0;
 	EnterCriticalSection(&userLock);
@@ -312,7 +316,7 @@ int ChatServer::DeleteUserAndCnt(CPlayer* player){
 	LeaveCriticalSection(&userLock);
 
 	return ret;
-}
+}*/
 
 CPlayer* ChatServer::FindUser(SOCKET socket, int serverNum){
 	EnterCriticalSection(&userLock);
@@ -380,14 +384,14 @@ void ChatServer::RemoveOtherServerUsers(int serverNum){
 	LeaveCriticalSection(&chatServer->userLock);
 }
 
-bool ChatServer::EnterOtherServerUsers(int serverNum){
+bool ChatServer::EnterOtherServerUsers(){
 	bool check = true;
 	EnterCriticalSection(&userLock);
 	std::list<CPlayer*>::iterator iter;
 	for (iter = users.begin(); iter != users.end(); iter++)
 	{
 		CPlayer* p = (*iter);
-		if (p->serverNum==serverNum && p->roomNum != -1)
+		if (p->roomNum != -1)
 		{
 			int ret = roomManager.EnterRoom(p, p->roomNum);
 			if (ret != -1){

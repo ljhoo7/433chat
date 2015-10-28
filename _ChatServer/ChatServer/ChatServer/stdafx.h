@@ -14,6 +14,8 @@
 
 #endif
 
+#define HEARTBEAT
+
 class Actor;
 class Proactor;
 class TcpAct;

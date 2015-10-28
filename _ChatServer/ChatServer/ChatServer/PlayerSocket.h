@@ -29,6 +29,8 @@ public:
 	std::vector<int> escapingList;
 
 	CRITICAL_SECTION disconnectLock;
+
+	bool beatCheck;
 	
 public:
 	bool ValidPacket(CPacket *packet);

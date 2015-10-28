@@ -90,6 +90,9 @@ void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 						case pkt_type::pt_escape_failure:
 							remainBytes = sizeof(t_destroy_success)-2;
 							break;
+						case pkt_type::pt_cs_health_ack:
+							remainBytes = sizeof(t_health_ack)-2;
+							break;
 						case pkt_type::pt_chat:
 							isVar = true;
 							remainBytes = sizeof(short);
@@ -152,6 +155,7 @@ void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 		PRINT("[PlayerSocket] connect success, %d\n", this->socket_);
 		this->identifier = chatServer->identifierSeed++;
 		chatServer->AddUser(this);
+		chatServer->clientServer->AddUser(this);
 
 		/* inter connection message send */
 		ss_connect tmpConnect;
@@ -168,7 +172,7 @@ void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 		this->nickname = "";
 		this->roomNum = -1;
 		this->identifier = -1;
-
+		this->beatCheck = true;
 		this->position = 0;
 		this->remainBytes = HEADER_SIZE;
 		this->isVar = false;
@@ -189,7 +193,8 @@ void CPlayer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 		RemovePlayer();
 
 		/* remove in list */
-		int cnt = chatServer->DeleteUserAndCnt(this);
+		chatServer->DeleteUser(this);
+		int cnt = chatServer->clientServer->DeleteUserAndCnt(this);
 		PRINT("[PlayerSocket] player count %d\n", cnt);
 
 		if (chatServer->isEnd){
@@ -203,9 +208,8 @@ void CPlayer::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 	}
 	else{
-
+		PRINT("[PlayerSocket] DisconnProcess : Error : %d\n", WSAGetLastError());
 	}
-	
 }
 
 void CPlayer::RemovePlayer(){
@@ -552,6 +556,10 @@ void CPlayer::PacketHandling(CPacket *packet){
 		PlayerSync((char *)packet->msg, size);
 
 		PRINT("[PlayerSocket] chat alarm message has been sent.\n");		break;
+	
+	case pkt_type::pt_cs_health_ack:
+		beatCheck = true;
+		break;
 	}
 
 	if (!poolManager->Free((msg_buffer *)packet->msg)) PRINT("[PlayerSocket] free error!\n");

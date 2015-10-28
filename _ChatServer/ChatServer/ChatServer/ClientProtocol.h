@@ -23,6 +23,8 @@ enum pkt_type {
 	pt_escape_server,
 	pt_escape_success,
 	pt_escape_failure,
+	pt_cs_health_check,
+	pt_cs_health_ack,
 	pt_default
 };
 
@@ -32,6 +34,14 @@ enum fail_signal
 	fs_overflow,
 	fs_no_exist
 };
+
+typedef struct{
+	unsigned short type;
+}t_health_check;
+
+typedef struct{
+	unsigned short type;
+}t_health_ack;
 
 typedef struct{
 	unsigned short type;
