@@ -673,7 +673,7 @@ void AgentApp::GenerateTimeWait(int serverNum)
 			break;
 		}
 
-		if (sec.count() >= 10.0)
+		if (sec.count() >= 60.0)
 		{
 			agms_generate_server_fail pkt;
 			pkt.type = msag_pkt_type::pkt_generate_server_fail;
