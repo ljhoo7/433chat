@@ -92,30 +92,8 @@ bool CSockInfo::Connect(DWORD ip, int port)
 
 bool CSockInfo::Disconnect()
 {
-	/*BOOL ret = true;
-	ret = TransmitFile(
-			g_pClient->m_pSock->m_hSock,
-			NULL,
-			0,
-			0,
-			static_cast<OVERLAPPED*>(m_vAct[ACT_DISCONNECT]),
-			NULL,
-			TF_DISCONNECT
-			);*/
 	closesocket(m_hSock);
 	g_pClient->m_pSock->m_hSock = NULL;
-
-	/*if (!ret)
-	{
-		int error = WSAGetLastError();
-
-		if (error != ERROR_IO_PENDING)
-		{
-			g_pLog->myWprintf(L"already disconnected, DisconnectEx Error!!!\n");
-
-			return false;
-		}
-	}*/
 
 	if (g_pClient->m_hNewSock != NULL){
 		g_pClient->m_pSock->m_hSock = g_pClient->m_hNewSock;

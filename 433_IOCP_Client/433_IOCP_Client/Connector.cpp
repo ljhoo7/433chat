@@ -22,8 +22,7 @@ CConnector::~CConnector()
 
 void CConnector::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 {
-	//if (CEscaping::Instance() != g_pClient->GetStateMachine()->CurrentState())
-	if (!g_pClient->m_bIsEscaping)
+	if (CEscaping::Instance() != g_pClient->GetStateMachine()->CurrentState())
 	{
 		CSockInfo &t_sMysock = *p_pAct->m_pSock;
 
@@ -34,28 +33,15 @@ void CConnector::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 	}
 	else
 	{
-		//g_pClient->m_pNewSock = p_pAct->m_pSock;
-
 		g_pLog->myWprintf(L"The Escaping Connection has been made successfully !\n");
 
 		g_pClient->SendEscapeSuccessMessage();
 
-		g_pClient->m_bIsEscaping = false;
-
-		
-
-		//t_sMysock.Disconnect();
+		g_pClient->GetStateMachine()->SetCurrentState(CEscaping::Instance());
 	}
 }
 
 void CConnector::ProcError(CAct *p_pAct, DWORD p_dwError)
 {
-	CSockInfo &t_sMysock = *p_pAct->m_pSock;
-
-	//if (CEscaping::Instance() == g_pClient->GetStateMachine()->CurrentState())
-	{
-		g_pLog->myWprintf(L"The Escaping Connection has been failed !\n");
-
-		//g_pClient->SendEscapeFailureMessage();
-	}
+	g_pLog->myWprintf(L"The Escaping Connection has been failed !\n");
 }

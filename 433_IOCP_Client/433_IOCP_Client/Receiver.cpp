@@ -209,7 +209,7 @@ bool EscapeServerFunc(PVOID p_pParam)
 
 	CSockInfo &t_sMysock = *t_pAct->m_pSock;
 
-	g_pClient->m_bIsEscaping = true;
+	g_pClient->GetStateMachine()->ChangeState(CEscaping::Instance());
 
 	t_escape_server *t_sEscapingServer = (t_escape_server*)t_pAct->m_pSock->m_szReceiveBuf;
 
@@ -279,8 +279,14 @@ CReceiver::CReceiver(CProactor *p_pProactor)
 	// escape success
 	PacketHandlingFunc[18] = NULL;
 
-	// escape failure
+	// escape failur
 	PacketHandlingFunc[19] = NULL;
+
+	// health check
+	PacketHandlingFunc[20] = NULL;
+
+	// health check ack
+	PacketHandlingFunc[21] = NULL;
 }
 
 
@@ -470,22 +476,15 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 				}
 				
 				// decoding the packet !!
-				if (NULL != PacketHandlingFunc[p_pAct->m_eType])
+				if (pkt_type::pt_cs_health_check == p_pAct->m_eType)
 				{
-					if (pkt_type::pt_escape_server == p_pAct->m_eType)
-					{
-						PacketHandlingFunc[p_pAct->m_eType]((PVOID)p_pAct);
-					}
-					else if (pkt_type::pt_cs_health_check == p_pAct->m_eType)
-					{
-						t_health_ack msg;
-						msg.type = pkt_type::pt_cs_health_ack;
-						g_pClient->m_pSock->Send((char*)&msg, sizeof(msg));
-					}
-					else
-					{
-						PacketHandlingFunc[p_pAct->m_eType]((PVOID)&t_hSock);
-					}
+					t_health_ack msg;
+					msg.type = pkt_type::pt_cs_health_ack;
+					g_pClient->m_pSock->Send((char*)&msg, sizeof(msg));
+				}
+				else if (NULL != PacketHandlingFunc[p_pAct->m_eType])
+				{
+					PacketHandlingFunc[p_pAct->m_eType]((PVOID)p_pAct);
 
 					t_hSock.m_nRecvRemain = HEADER_SIZE;
 					t_hSock.m_nRecvPosition = 0;
