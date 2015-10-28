@@ -38,6 +38,8 @@ public:
 	int DecreaseConnectServerAndCnt();
 	CRITICAL_SECTION connectServerLock;
 
+	int heartbeatTime;
+
 public:
 	ChatServer(int serverNum, WORD port);
 	void Init();

@@ -36,6 +36,11 @@ public:
 
 	CPlayer* FindPlayerBySocket(SOCKET socket);
 
+public:
+	std::thread heartbeatThread;
+	bool beatCheck;
+	void HeartbeatCheck();
+
 private:
 	struct mswsock_s {
 		LPFN_CONNECTEX ConnectEx;

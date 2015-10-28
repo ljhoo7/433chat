@@ -27,6 +27,29 @@ BOOL InterSocket::LoadMswsock(void){
 	return TRUE;
 }
 
+void InterSocket::HeartbeatCheck() {
+	while (true){
+		if (!isUse) return;
+		beatCheck = false;
+
+		PRINTF("*** hearth check send!\n");
+		ss_heartbeats msg;
+		msg.type = ssType::pkt_heartbeats;
+		Send((char *)&msg, sizeof(msg));
+		
+		std::this_thread::sleep_for(std::chrono::seconds(chatServer->heartbeatTime));
+
+
+		if (!isUse) return;
+		if (beatCheck == false){
+			Disconnect();
+			break;
+		}
+	}
+
+	PRINTF("*** hearth thread end!\n");
+}
+
 InterSocket::InterSocket(TcpInterServer* InterServer, bool isConnect){
 	this->isConnect = isConnect;
 	interServer_ = InterServer;
@@ -83,43 +106,33 @@ void InterSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 				switch (_type){
 
 				case ssType::pkt_create:
-					PRINTF("interserver create packet\n");
 					remainBytes = sizeof(ss_create)-2;
 					break;
 				case ssType::pkt_destroy:
-					PRINTF("interserver destroy packet\n");
 					remainBytes = sizeof(ss_destroy)-2;
 					break;
 				case ssType::pkt_join:
-					PRINTF("interserver join packet\n");
 					remainBytes = sizeof(ss_join)-2;
 					break;
 				case ssType::pkt_leave:
-					PRINTF("interserver leave packet\n");
 					remainBytes = sizeof(ss_leave)-2;
 					break;
 				case ssType::pkt_connect:
-					PRINTF("interserver connect packet\n");
 					remainBytes = sizeof(ss_connect)-2;
 					break;
 				case ssType::pkt_disconnect:
-					PRINTF("interserver disconnect packet\n");
 					remainBytes = sizeof(ss_disconnect)-2;
 					break;
 				case ssType::pkt_heartbeats:
-					PRINTF("interserver heartbeats packet\n");
 					remainBytes = sizeof(ss_heartbeats)-2;
 					break;
 				case ssType::pkt_heartbeats_response:
-					PRINTF("interserver heartbeats response packet\n");
 					remainBytes = sizeof(ss_heartbeats_response)-2;
 					break;
 				case ssType::pkt_room_info_success:
-					PRINTF("interserver room info success packet\n");
 					remainBytes = sizeof(ss_room_info_success)-2;
 					break;
 				case ssType::pkt_player_info_success:
-					PRINTF("interserver player info success packet\n");
 					remainBytes = sizeof(ss_player_info_success)-2;
 					break;
 				case ssType::pkt_room_info_failure:
@@ -129,7 +142,6 @@ void InterSocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){
 					remainBytes = sizeof(ss_player_info_failure)-2;
 					break;
 				case ssType::pkt_sync_req:
-					PRINTF("interserver sync req packet\n");
 					remainBytes = sizeof(ss_sync_req)-2;
 					break;
 
@@ -190,24 +202,15 @@ void InterSocket::SendProcess(bool isError, Act* act, DWORD bytes_transferred){
 void InterSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 	if (!isError){
 		memcpy(&serverNum, acceptBuf_, sizeof(serverNum));
-		/*if (!chatServer->ConnectServer(chatServer->serverNum, serverNum, true)){
-			Disconnect();
-			return;
-		}*/
-
-	/*	if (chatServer->agentServer->socket->isConnected)
-			chatServer->agentServer->socket->InterServerInfoSend(false, serverNum, true);*/
 		
 		isUse = true;
 		interServer_->AddSocket(this, false);
 
 		PRINTF("connect with %d server\n", serverNum);
-
-		//MakeSync();
 		
 		Recv(recvBuf_, HEADER_SIZE);
 
-		//	heartThread = std::thread(&TcpInterServer::heartbeatCheck, this);
+		heartbeatThread = std::thread(&InterSocket::HeartbeatCheck, this);
 	}
 	else{
 		PRINTF("interServer accept error\n");
@@ -224,15 +227,10 @@ void InterSocket::DisconnProcess(bool isError, Act* act, DWORD bytes_transferred
 			chatServer->agentServer->socket->InterServerInfoSend(false, serverNum, false);*/
 
 		serverNum = -1;
-		
+		if (heartbeatThread.joinable()) heartbeatThread.join();
 		PRINTF("closed the other server.\n");
 
-		//if (heartThread.joinable()) heartThread.join();
-		
-		
 		int cnt = interServer_->DeleteSocketAndCnt(this);
-		
-
 		if (chatServer->isEnd){
 			PRINTF("server cnt %d\n", cnt);
 			if (cnt == 0){
@@ -267,9 +265,9 @@ void InterSocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 			Send((char *)&msg, sizeof(msg));
 		}
-		//MakeSync();
 		Recv(recvBuf_, HEADER_SIZE);
-		//	heartThread = std::thread(&TcpInterServer::heartbeatCheck, this);
+
+		heartbeatThread = std::thread(&InterSocket::HeartbeatCheck, this);
 	}
 	else{
 		serverNum = -1;
@@ -443,235 +441,233 @@ void InterSocket::packetHandling(CPacket *packet){
 	{
 		case ssType::pkt_heartbeats:
 		{
-			PRINTF("recieve heartbeat check. send response\n");
-			char* sendMsg = poolManager->Alloc()->buf;
-			ss_heartbeats_response* msg = (ss_heartbeats_response *)sendMsg;
-			msg->type = ssType::pkt_heartbeats_response;
-			Send((char *)msg, sizeof(*msg));
-			if (!poolManager->Free((msg_buffer *)sendMsg)) PRINTF("free error!\n");
+			PRINTF("*** recieve heartbeat check. send response\n");
+			ss_heartbeats_response msg;
+			msg.type = ssType::pkt_heartbeats_response;
+			Send((char *)&msg, sizeof(msg));
 			break;
 		}
-	case ssType::pkt_heartbeats_response:
-	{
-		PRINTF("recieve heartbeat response\n");
-		//beatCheck = true;
-		break;
-	}
-	case ssType::pkt_connect:
-	{
-		PRINTF("connect request!\n");
-		ss_connect msg;
-		memcpy(&msg, packet->msg, sizeof(msg));
-
-		CPlayer* p = new CPlayer(msg.server_num);
-		chatServer->AddUser(p);
-		p->socket_ = (SOCKET)msg.client_socket;
-
-		//PRINTF("%d\n", g_vPlayers.size());
-		break;
-	}
-	case ssType::pkt_disconnect:
-	{
-		PRINTF("disconnect request!\n");
-		ss_disconnect msg;
-		memcpy(&msg, packet->msg, sizeof(msg));
-
-		chatServer->DeleteUser(chatServer->FindUser(msg.client_socket, msg.server_num));
-
-		//PRINTF("%d\n", g_vPlayers.size());
-		break;
-	}
-	case ssType::pkt_player_info_send:
-	{
-		PRINTF("player_info_send recieve!\n");
-		ss_player_info_send msg = *((ss_player_info_send *)packet->msg);
-
-		if (msg.player_cnt + chatServer->GetUserCnt() <= TOTAL_PLAYER)
+		case ssType::pkt_heartbeats_response:
 		{
-			char* buf = poolManager->Alloc()->buf;
-			int position = 0;
-			buf = packet->msg + sizeof(msg);
-
-			player_info* info;
-			for (int i = 0; i < msg.player_cnt; i++)
-			{
-				info = (player_info*)(buf + position);
-
-				CPlayer* p = new CPlayer(info->server_num);
-				chatServer->AddUser(p);
-				p->socket_ = (SOCKET)info->client_socket;
-				p->identifier = info->token;
-				p->roomNum = info->room_num;
-				p->nickname = info->nickname;
-
-				PRINTF("player socket : %d\n", info->client_socket);
-				position += sizeof(player_info);
-			}
-
-			ss_player_info_success msg;
-			msg.type = ssType::pkt_player_info_success;
-			PRINTF("player info success msg send!!\n");
-			this->Send((char *)&msg, sizeof(msg));
-
-			if (!poolManager->Free((msg_buffer *)buf)) PRINTF("free error!\n");;
+			PRINTF("*** recieve heartbeat response\n");
+			beatCheck = true;
+			break;
 		}
-		else{
-			PRINTF("max player error!\n");
-			ss_player_info_failure msg;
-			msg.type = ssType::pkt_player_info_failure;
-			this->Send((char *)&msg, sizeof(msg));
-		}
-
-		break;
-	}
-	case ssType::pkt_room_info_send:
-	{
-		PRINTF("room_info_send recieve!\n");
-		ss_room_info_send msg = *((ss_room_info_send *)packet->msg);
-
-		EnterCriticalSection(&chatServer->roomManager.roomLock);
-		int size = chatServer->roomManager.rooms.size();
-		LeaveCriticalSection(&chatServer->roomManager.roomLock);
-
-		if (msg.room_cnt + size <= ROOM_MAX)
+		case ssType::pkt_connect:
 		{
-			char* buf = poolManager->Alloc()->buf;
-			int position = 0;
-			buf = packet->msg + sizeof(msg);
+			PRINTF("connect request!\n");
+			ss_connect msg;
+			memcpy(&msg, packet->msg, sizeof(msg));
 
-			room_info* info;
-			for (int i = 0; i < msg.room_cnt; i++)
+			CPlayer* p = new CPlayer(msg.server_num);
+			chatServer->AddUser(p);
+			p->socket_ = (SOCKET)msg.client_socket;
+
+			//PRINTF("%d\n", g_vPlayers.size());
+			break;
+		}
+		case ssType::pkt_disconnect:
+		{
+			PRINTF("disconnect request!\n");
+			ss_disconnect msg;
+			memcpy(&msg, packet->msg, sizeof(msg));
+
+			chatServer->DeleteUser(chatServer->FindUser(msg.client_socket, msg.server_num));
+
+			//PRINTF("%d\n", g_vPlayers.size());
+			break;
+		}
+		case ssType::pkt_player_info_send:
+		{
+			PRINTF("player_info_send recieve!\n");
+			ss_player_info_send msg = *((ss_player_info_send *)packet->msg);
+
+			if (msg.player_cnt + chatServer->GetUserCnt() <= TOTAL_PLAYER)
 			{
-				info = (room_info *)(buf + position);
-				PRINTF("create room number : %d\n", info->room_num);
-				chatServer->roomManager.CreateRoom(info->room_num);
+				char* buf = poolManager->Alloc()->buf;
+				int position = 0;
+				buf = packet->msg + sizeof(msg);
 
-				position += sizeof(room_info);
-			}
+				player_info* info;
+				for (int i = 0; i < msg.player_cnt; i++)
+				{
+					info = (player_info*)(buf + position);
 
-			bool check = chatServer->EnterOtherServerUsers(serverNum);
+					CPlayer* p = new CPlayer(info->server_num);
+					chatServer->AddUser(p);
+					p->socket_ = (SOCKET)info->client_socket;
+					p->identifier = info->token;
+					p->roomNum = info->room_num;
+					p->nickname = info->nickname;
 
+					PRINTF("player socket : %d\n", info->client_socket);
+					position += sizeof(player_info);
+				}
 
-			if (check)
-			{
-				ss_room_info_success msg;
-				msg.type = ssType::pkt_room_info_success;
-				PRINTF("room info success msg send!!\n");
+				ss_player_info_success msg;
+				msg.type = ssType::pkt_player_info_success;
+				PRINTF("player info success msg send!!\n");
 				this->Send((char *)&msg, sizeof(msg));
+
+				if (!poolManager->Free((msg_buffer *)buf)) PRINTF("free error!\n");;
+			}
+			else{
+				PRINTF("max player error!\n");
+				ss_player_info_failure msg;
+				msg.type = ssType::pkt_player_info_failure;
+				this->Send((char *)&msg, sizeof(msg));
+			}
+
+			break;
+		}
+		case ssType::pkt_room_info_send:
+		{
+			PRINTF("room_info_send recieve!\n");
+			ss_room_info_send msg = *((ss_room_info_send *)packet->msg);
+
+			EnterCriticalSection(&chatServer->roomManager.roomLock);
+			int size = chatServer->roomManager.rooms.size();
+			LeaveCriticalSection(&chatServer->roomManager.roomLock);
+
+			if (msg.room_cnt + size <= ROOM_MAX)
+			{
+				char* buf = poolManager->Alloc()->buf;
+				int position = 0;
+				buf = packet->msg + sizeof(msg);
+
+				room_info* info;
+				for (int i = 0; i < msg.room_cnt; i++)
+				{
+					info = (room_info *)(buf + position);
+					PRINTF("create room number : %d\n", info->room_num);
+					chatServer->roomManager.CreateRoom(info->room_num);
+
+					position += sizeof(room_info);
+				}
+
+				bool check = chatServer->EnterOtherServerUsers(serverNum);
+
+
+				if (check)
+				{
+					ss_room_info_success msg;
+					msg.type = ssType::pkt_room_info_success;
+					PRINTF("room info success msg send!!\n");
+					this->Send((char *)&msg, sizeof(msg));
+				}
+				else
+				{
+					PRINTF("enter room error!\n");
+					ss_room_info_failure msg;
+					msg.type = ssType::pkt_room_info_failure;
+					this->Send((char *)&msg, sizeof(msg));
+				}
+				if (!poolManager->Free((msg_buffer *)buf)) PRINTF("free error!\n");;
 			}
 			else
 			{
-				PRINTF("enter room error!\n");
+				PRINTF("max room error!\n");
 				ss_room_info_failure msg;
 				msg.type = ssType::pkt_room_info_failure;
 				this->Send((char *)&msg, sizeof(msg));
 			}
-			if (!poolManager->Free((msg_buffer *)buf)) PRINTF("free error!\n");;
-		}
-		else
-		{
-			PRINTF("max room error!\n");
-			ss_room_info_failure msg;
-			msg.type = ssType::pkt_room_info_failure;
-			this->Send((char *)&msg, sizeof(msg));
-		}
 
-		break;
-	}
-
-	case ssType::pkt_room_info_success:
-		PRINTF("initial room sync success!\n");
-		break;
-	case ssType::pkt_player_info_success:
-		PRINTF("initial player info sync success!\n");
-		break;
-
-	case ssType::pkt_room_info_failure:
-	case ssType::pkt_player_info_failure:
-		PRINTF("recieve fail msg!\n");
-		this->Disconnect();
-		//printf("disconnect 7\n");
-		break;
-
-	case ssType::pkt_create:
-	{
-		PRINTF("create call by other server\n");
-		ss_create msg = *((ss_create *)packet->msg);
-		/*CPlayer* p = FindPlayerBySocket(msg.client_socket);
-		if (p == NULL)
-		{
-			PRINTF("not available!\n");
-			break;
-		}*/
-		if ((chatServer->roomManager.CreateRoom(msg.room_num)) == -1){
-			if (chatServer->agentServer->socket->isConnected)
-				chatServer->agentServer->socket->RoomInfoSend(false, msg.room_num, true);
-		}
-		break;
-	}
-	case ssType::pkt_destroy:
-	{
-		PRINTF("destroy call by other server\n");
-		ss_destroy msg = *((ss_destroy *)packet->msg);
-		/*CPlayer* p = FindPlayerBySocket(msg.client_socket);
-		if (p == NULL)
-		{
-			PRINTF("not available!\n");
-			break;
-		}*/
-		if ((chatServer->roomManager.DestroyRoom(msg.room_num)) == -1){
-			if (chatServer->agentServer->socket->isConnected)
-				chatServer->agentServer->socket->RoomInfoSend(false, msg.room_num, false);
-		}
-		break;
-	}
-	case ssType::pkt_join:
-	{
-		PRINTF("join call by other server\n");
-		ss_join msg = *((ss_join *)packet->msg);
-		CPlayer* p = FindPlayerBySocket(msg.client_socket);
-
-		if (p == NULL)
-		{
-			PRINTF("not available!\n");
 			break;
 		}
-		p->nickname = msg.nickname;
-		chatServer->roomManager.EnterRoom(p, msg.room_num);
-		break;
-	}
-	case ssType::pkt_leave:
-	{
-		PRINTF("leave call by other server\n");
-		ss_leave msg = *((ss_leave *)packet->msg);
-		CPlayer* p = FindPlayerBySocket(msg.client_socket);
 
-		if (p == NULL)
+		case ssType::pkt_room_info_success:
+			PRINTF("initial room sync success!\n");
+			break;
+		case ssType::pkt_player_info_success:
+			PRINTF("initial player info sync success!\n");
+			break;
+
+		case ssType::pkt_room_info_failure:
+		case ssType::pkt_player_info_failure:
+			PRINTF("recieve fail msg!\n");
+			this->Disconnect();
+			//printf("disconnect 7\n");
+			break;
+
+		case ssType::pkt_create:
 		{
-			PRINTF("%d not available!\n", msg.client_socket);
+			PRINTF("create call by other server\n");
+			ss_create msg = *((ss_create *)packet->msg);
+			/*CPlayer* p = FindPlayerBySocket(msg.client_socket);
+			if (p == NULL)
+			{
+				PRINTF("not available!\n");
+				break;
+			}*/
+			if ((chatServer->roomManager.CreateRoom(msg.room_num)) == -1){
+				if (chatServer->agentServer->socket->isConnected)
+					chatServer->agentServer->socket->RoomInfoSend(false, msg.room_num, true);
+			}
 			break;
 		}
-		p->nickname = msg.nickname;
-		chatServer->roomManager.LeaveRoom(p, msg.room_num);
-		break;
-	}
-	case ssType::pkt_chat:
-	{
-		PRINTF("chat call by other server\n");
-		ss_chat msg = *((ss_chat *)packet->msg);
-		pkt_type type = pkt_type::pt_chat_alarm;
-		memcpy(packet->msg, &type, sizeof(short));
-		chatServer->roomManager.FindRoom(msg.room_num)->BroadcastMsg(packet->msg, msg.length);
-		break;
-	}
-	case ssType::pkt_sync_req:
-	{
-		MakeSync();
-		break;
-	}
-	default:
-	//	this->Disconnect();
-		break;
+		case ssType::pkt_destroy:
+		{
+			PRINTF("destroy call by other server\n");
+			ss_destroy msg = *((ss_destroy *)packet->msg);
+			/*CPlayer* p = FindPlayerBySocket(msg.client_socket);
+			if (p == NULL)
+			{
+				PRINTF("not available!\n");
+				break;
+			}*/
+			if ((chatServer->roomManager.DestroyRoom(msg.room_num)) == -1){
+				if (chatServer->agentServer->socket->isConnected)
+					chatServer->agentServer->socket->RoomInfoSend(false, msg.room_num, false);
+			}
+			break;
+		}
+		case ssType::pkt_join:
+		{
+			PRINTF("join call by other server\n");
+			ss_join msg = *((ss_join *)packet->msg);
+			CPlayer* p = FindPlayerBySocket(msg.client_socket);
+
+			if (p == NULL)
+			{
+				PRINTF("not available!\n");
+				break;
+			}
+			p->nickname = msg.nickname;
+			chatServer->roomManager.EnterRoom(p, msg.room_num);
+			break;
+		}
+		case ssType::pkt_leave:
+		{
+			PRINTF("leave call by other server\n");
+			ss_leave msg = *((ss_leave *)packet->msg);
+			CPlayer* p = FindPlayerBySocket(msg.client_socket);
+
+			if (p == NULL)
+			{
+				PRINTF("%d not available!\n", msg.client_socket);
+				break;
+			}
+			p->nickname = msg.nickname;
+			chatServer->roomManager.LeaveRoom(p, msg.room_num);
+			break;
+		}
+		case ssType::pkt_chat:
+		{
+			PRINTF("chat call by other server\n");
+			ss_chat msg = *((ss_chat *)packet->msg);
+			pkt_type type = pkt_type::pt_chat_alarm;
+			memcpy(packet->msg, &type, sizeof(short));
+			chatServer->roomManager.FindRoom(msg.room_num)->BroadcastMsg(packet->msg, msg.length);
+			break;
+		}
+		case ssType::pkt_sync_req:
+		{
+			MakeSync();
+			break;
+		}
+		default:
+		//	this->Disconnect();
+			break;
 	}
 
 	if (!this->poolManager->Free((msg_buffer *)packet->msg)) PRINTF("free error!\n");;

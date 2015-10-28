@@ -38,9 +38,7 @@ void Tokenize(const std::string& str,
 
 void ChatServer::Init(){
 	isEnd = false;
-
-	
-
+	heartbeatTime = 10;
 	identifierSeed = 0;
 
 	std::ifstream inFile("ServerInfo.txt");
