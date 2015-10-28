@@ -10,10 +10,6 @@ public:
 	TcpInterServer* interServer_;
 	int serverNum;
 	bool isConnect;
-
-	int position;
-	int remainBytes;
-	bool isVar;
 	bool isUse;
 
 	MemPooler<msg_buffer> *poolManager;
@@ -47,4 +43,9 @@ private:
 	} mswsock;
 
 	BOOL LoadMswsock(void);
+
+private:
+	int position;
+	int remainBytes;
+	bool isVar;
 };

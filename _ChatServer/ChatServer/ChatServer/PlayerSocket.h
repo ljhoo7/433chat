@@ -19,10 +19,6 @@ public:
 	// token ( it has the other meaning )
 	int identifier;
 
-	int position;
-	int remainBytes;
-	bool isVar;
-
 	MemPooler<msg_buffer> *poolManager;
 	MemPooler<CPacket> *packetPoolManager;
 
@@ -43,5 +39,10 @@ public:
 
 	void RemovePlayer();
 	void EscapePlayer(bool first, int i);
+
+private:
+	int position;
+	int remainBytes;
+	bool isVar;
 };
 

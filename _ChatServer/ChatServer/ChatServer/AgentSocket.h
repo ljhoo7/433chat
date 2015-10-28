@@ -10,11 +10,6 @@ public:
 
 public:
 	int serverNum;
-
-	int position;
-	int remainBytes;
-	bool isVar;
-
 	bool isConnected;
 
 	MemPooler<msg_buffer> *poolManager;
@@ -48,4 +43,10 @@ private:
 	} mswsock;
 
 	BOOL LoadMswsock(void);
+
+private:
+	int position;
+	int remainBytes;
+	bool isVar;
+
 };
