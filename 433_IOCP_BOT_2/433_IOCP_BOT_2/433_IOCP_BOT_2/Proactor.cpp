@@ -7,6 +7,8 @@ CProactor::CProactor(DWORD p_dwIp, int p_nPort, int p_nBotCnt, int p_nThreadCnt)
 {
 	int t_nRetval;
 
+	m_hEventForAllJoin = new HANDLE[m_nBotCnt];
+
 	//----------------------------------------------------
 
 	SOCKET t_cSock;
@@ -82,7 +84,9 @@ bool CProactor::Init()
 	CBot *t_pBot;
 	for (int k = 0; k < m_nBotCnt; ++k)
 	{
-		t_pBot = new CBot();
+		m_hEventForAllJoin[k] = CreateEvent(NULL, TRUE, FALSE, NULL);
+
+		t_pBot = new CBot(k, k % PLAYER_MAX);
 		m_vBot.push_back(t_pBot);
 		t_nRetval = t_pBot->Init(m_pConnector, m_pDisconnector, m_pReceiver, m_pSender);
 		if (!t_nRetval)
@@ -124,7 +128,7 @@ bool CProactor::Init()
 			std::string tmpStr("bot_" + std::to_string(k));
 			t_pBot->SendJoinMessage(t_nValue, const_cast<char*>(tmpStr.c_str()));
 		}
-		Sleep(3);
+		Sleep(10);
 	}
 
 	return true;

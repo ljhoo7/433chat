@@ -14,9 +14,6 @@ bool CreateSuccessFunc(PVOID p_pParam)
 
 	t_pBot->SendJoinMessage(t_pBot->m_nTmpRoomNum, t_pBot->m_szTmpNick);
 
-	t_pBot->SetTmpNickName("");
-	t_pBot->m_nTmpRoomNum = -1;
-
 	return true;
 }
 
@@ -77,6 +74,11 @@ bool JoinSuccessFunc(PVOID p_pParam)
 	t_pBot->GetStateMachine()->ChangeState(CRoom::Instance());
 
 	g_pLog->myWprintf("Join Successeded !\n");
+
+	SetEvent(g_pProactor->m_hEventForAllJoin[t_pBot->m_nBotNum]);
+
+	t_pBot->SetTmpNickName("");
+	t_pBot->m_nTmpRoomNum = -1;
 
 	return true;
 }

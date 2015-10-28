@@ -46,6 +46,18 @@ int _tmain(int argc, _TCHAR* argv[])
 	g_pProactor = new CProactor(t_dwIp, t_nPort, t_nBotCnt, t_nThreadCnt);
 	g_pProactor->Init();
 
+	WaitForMultipleObjects(t_nBotCnt, g_pProactor->m_hEventForAllJoin, TRUE, INFINITE);
+
+	g_pLog->myWprintf("all done !!!\n");
+
+	for (std::vector<CBot*>::iterator iter = g_pProactor->m_vBot.begin(); iter != g_pProactor->m_vBot.end()
+		; ++iter)
+	{
+		(*iter)->BeginChatThread();
+	}
+
+	//g_pProactor->m_vBot[99]->SendChatMessage("hihi");
+
 	Sleep(INFINITE);
 
 	WSACleanup();

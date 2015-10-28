@@ -4,15 +4,15 @@ class CProactor
 {
 public:
 	mswsock_s					m_cMswsock;
-private:
-	std::vector<CBot*>			m_vBot;
+	int							m_nBotCnt;
+	HANDLE						m_hIOCP, *m_hEventForAllJoin;
 
+	std::vector<CBot*>			m_vBot;
+private:
 	DWORD						m_dwIp;
 	int							m_nPort;
-	int							m_nBotCnt;
+	
 	int							m_nThreadCnt;
-
-	HANDLE						m_hIOCP;
 
 	CReceiver					*m_pReceiver;
 	CSender						*m_pSender;
@@ -22,8 +22,8 @@ private:
 public:
 	CProactor(DWORD p_dwIp, int p_nPort, int p_nBotCnt, int p_nThreadCnt);
 	~CProactor();
-
-	static UINT WINAPI ThreadFunc(PVOID p_pParam);
+static UINT WINAPI ThreadFunc(PVOID p_pParam);
+	
 
 	bool ProcEvent();
 	bool Register(HANDLE m_hHandle);

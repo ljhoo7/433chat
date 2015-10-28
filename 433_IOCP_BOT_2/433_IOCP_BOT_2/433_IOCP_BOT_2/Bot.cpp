@@ -1,6 +1,37 @@
 #include "stdafx.h"
 
+std::string tmp_str[PLAYER_MAX] = { "hihi !!!!", "4:33 interns !", "ljh !", "good ~", "byebye !~"
+, "shit !!!!!!!!!!!!!!", "server programming", "chat chat !", "kkkkk", "hahaha" };
+
 extern CLogWriter		*g_pLog;
+
+CBot::CBot(int p_nBotNum, int p_nWaitTime)
+: m_bIsEscaping(false), m_nRoomNum(-1), m_nTmpRoomNum(-1), m_nToken(-1), m_hNewSock(NULL)
+, m_nRecvPosition(0), m_nRecvRemain(HEADER_SIZE), m_bIsVar(false), m_eType(pkt_type::pt_default)
+, m_nBotNum(p_nBotNum), m_nWaitTime(p_nWaitTime)
+{
+	for (int k = 0; k < ACT_CNT; ++k)
+		m_vActs[0] = NULL;
+
+	// Initialize The State Machine
+	m_pStateMachine = new StateMachine<CBot>(this);
+	GetStateMachine()->SetCurrentState(CLobby::Instance());
+}
+
+void CBot::BeginChatThread()
+{
+	m_fRandSend = std::thread(&CBot::RandomChatSend, this);
+}
+
+void CBot::RandomChatSend( )
+{
+	while (true)
+	{
+		std::this_thread::sleep_for(std::chrono::seconds(m_nWaitTime));
+
+		SendChatMessage("hihi");
+	}
+}
 
 bool CBot::BindBeforeConnectEx()
 {

@@ -46,18 +46,13 @@ public:
 
 	bool						m_bIsVar;
 	pkt_type					m_eType;
-public:
-	CBot()
-		: m_bIsEscaping(false), m_nRoomNum(-1), m_nTmpRoomNum(-1), m_nToken(-1), m_hNewSock(NULL)
-		, m_nRecvPosition(0), m_nRecvRemain(HEADER_SIZE), m_bIsVar(false), m_eType(pkt_type::pt_default)
-	{
-		for (int k = 0; k < ACT_CNT; ++k)
-			m_vActs[0] = NULL;
 
-		// Initialize The State Machine
-		m_pStateMachine = new StateMachine<CBot>(this);
-		GetStateMachine()->SetCurrentState(CLobby::Instance());
-	}
+	int							m_nBotNum;
+	int							m_nWaitTime;
+
+	std::thread					m_fRandSend;
+public:
+	CBot(int p_nBotNum, int p_nWaitTime);
 	~CBot(){}
 
 	bool Init(CConnector *p_pConnector, CDisconnector *p_pDisconnector, CReceiver *p_pReceiver, CSender *p_pSender);
@@ -91,5 +86,8 @@ public:
 	bool SendChatMessage(const std::string& p_sStr);
 	bool SendEscapeSuccessMessage();
 	bool SendEscapeFailureMessage();
+
+	void RandomChatSend();
+	void BeginChatThread();
 };
 
