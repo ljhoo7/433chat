@@ -11,7 +11,6 @@ CPlayer::CPlayer(){
 
 CPlayer::CPlayer(int serverNum)
 {
-	InitializeCriticalSectionAndSpinCount(&disconnectLock, 4000);
 	this->socket_ = NULL;
 
 	this->serverNum = serverNum;
@@ -39,7 +38,6 @@ CPlayer::CPlayer(int serverNum)
 }
 
 CPlayer::~CPlayer(){
-	DeleteCriticalSection(&disconnectLock);
 }
 
 void CPlayer::RecvProcess(bool isError, Act* act, DWORD bytes_transferred){

@@ -137,3 +137,49 @@ bool CRoomManager::LeaveRoom(CPlayer* p, int roomNumber)
 
 	return true;
 }
+
+void CRoomManager::TotalRoomInfo(sag_total_room_info* msg, int* size_)
+{
+	msg->type = sag_pkt_type::pt_total_room_info;
+
+	EnterCriticalSection(&roomLock);
+	msg->roomCnt = rooms.size();
+
+	int i = 0;
+	*size_ = sizeof(msg->type) + sizeof(msg->roomCnt);
+	std::list<CRoom*>::iterator iter;
+	for (iter = rooms.begin(); iter != rooms.end(); iter++)
+	{
+		CRoom *p = (*iter);
+		msg->roomInfoList[i].roomNum = p->roomNumber;
+		i++;
+
+		*size_ += sizeof(SAGRoomInfo);
+	}
+	LeaveCriticalSection(&roomLock);
+}
+
+void CRoomManager::TotalRoomInfo(char* buf, int* position, unsigned short* roomCnt){
+	EnterCriticalSection(&roomLock);
+	std::list<CRoom*>::iterator iter;
+	for (iter = rooms.begin(); iter != rooms.end(); iter++)
+	{
+		CRoom *p = (*iter);
+
+		room_info info;
+		info.room_num = p->roomNumber;
+
+		memcpy(buf + *position, &info, sizeof(info));
+		*position += sizeof(info);
+	}
+	*roomCnt = rooms.size();
+	LeaveCriticalSection(&roomLock);
+}
+
+int CRoomManager::GetRoomCnt(){
+	int ret = 0;
+	EnterCriticalSection(&roomLock);
+	ret = rooms.size();
+	LeaveCriticalSection(&roomLock);
+	return ret;
+}

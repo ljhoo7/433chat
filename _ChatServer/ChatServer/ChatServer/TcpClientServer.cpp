@@ -28,12 +28,12 @@ TcpClientServer::TcpClientServer(WORD Port, int ThreadPoolSize, int SocketPoolSi
 	threadPoolSize_ = ThreadPoolSize;
 	socketPoolSize_ = SocketPoolSize;
 
-	InitializeCriticalSectionAndSpinCount(&playerLock, 4000);
+	InitializeCriticalSectionAndSpinCount(&playerlistLock, 4000);
 }
 
 TcpClientServer::~TcpClientServer()
 {
-	DeleteCriticalSection(&playerLock);
+	DeleteCriticalSection(&playerlistLock);
 }
 
 void TcpClientServer::Start()
@@ -74,25 +74,25 @@ void TcpClientServer::Start()
 
 void TcpClientServer::AddUser(CPlayer* player)
 {
-	EnterCriticalSection(&playerLock);
+	EnterCriticalSection(&playerlistLock);
 	playerlist.push_back(player);
-	LeaveCriticalSection(&playerLock);
+	LeaveCriticalSection(&playerlistLock);
 }
 
 int TcpClientServer::DeleteUserAndCnt(CPlayer* player)
 {
 	int ret = 0;
-	EnterCriticalSection(&playerLock);
+	EnterCriticalSection(&playerlistLock);
 	playerlist.remove(player);
 	ret = playerlist.size();
-	LeaveCriticalSection(&playerLock);
+	LeaveCriticalSection(&playerlistLock);
 
 	return ret;
 }
 
 void TcpClientServer::EscapingAllUsers()
 {
-	EnterCriticalSection(&playerLock);
+	EnterCriticalSection(&playerlistLock);
 	int i = 0;
 	for (std::list<CPlayer*>::iterator iter = playerlist.begin();
 		iter != playerlist.end(); ++iter)
@@ -100,7 +100,7 @@ void TcpClientServer::EscapingAllUsers()
 		(*iter)->EscapePlayer(true, i);
 		i++;
 	}
-	LeaveCriticalSection(&playerLock);
+	LeaveCriticalSection(&playerlistLock);
 }
 
 
@@ -108,7 +108,7 @@ void TcpClientServer::EscapingAllUsers()
 void TcpClientServer::HeartbeatCheck()
 {
 	while (!chatServer->isEnd){
-		EnterCriticalSection(&playerLock);
+		EnterCriticalSection(&playerlistLock);
 #ifdef HEARTBEAT
 		PRINT("[ClientServer] **heartbeat check / player cnt : %d\n", playerlist.size());
 #endif
@@ -121,12 +121,12 @@ void TcpClientServer::HeartbeatCheck()
 			msg.type = pkt_type::pt_cs_health_check;
 			(*iter)->Send((char *)&msg, sizeof(msg));
 		}
-		LeaveCriticalSection(&playerLock);
+		LeaveCriticalSection(&playerlistLock);
 
 		std::this_thread::sleep_for(std::chrono::seconds(chatServer->heartbeatTime));
 		if (chatServer->isEnd) return;
 
-		EnterCriticalSection(&playerLock);
+		EnterCriticalSection(&playerlistLock);
 		int cnt = 0;
 		for (std::list<CPlayer*>::iterator iter = playerlist.begin();
 			iter != playerlist.end(); ++iter)
@@ -139,6 +139,47 @@ void TcpClientServer::HeartbeatCheck()
 #ifdef HEARTBEAT
 		PRINT("[ClientServer] **heartbeat check clear / player cnt : %d\n", playerlist.size()-cnt);
 #endif
-		LeaveCriticalSection(&playerLock);
+		LeaveCriticalSection(&playerlistLock);
+	}
+}
+
+void TcpClientServer::TotalUserInfo(sag_total_user_info* msg, int* size_){
+	msg->type = sag_pkt_type::pt_total_user_info;
+
+	EnterCriticalSection(&playerlistLock);
+
+
+	*size_ = sizeof(msg->type) + sizeof(msg->userCnt);
+	int i = 0;
+	std::list<CPlayer*>::iterator iter;
+	for (iter = playerlist.begin(); iter != playerlist.end(); iter++)
+	{
+
+		CPlayer *p = (*iter);
+		msg->userInfoList[i].roomNum = p->roomNum;
+		memcpy(msg->userInfoList[i].userName, p->nickname.c_str(), sizeof(p->nickname));
+		msg->userInfoList[i].userSocket = (int)p->socket_;
+
+		i++;
+
+		*size_ += sizeof(SAGUserInfo);
+	}
+	msg->userCnt = i;
+	LeaveCriticalSection(&playerlistLock);
+
+}
+
+void TcpClientServer::UserOut(int clientSocket){
+	
+	for (std::list<CPlayer*>::iterator iter = playerlist.begin();
+		iter != playerlist.end(); ++iter)
+	{
+		if ((*iter)->socket_ == clientSocket)
+		{
+			t_user_out tmpUserOut;
+			tmpUserOut.type = pkt_type::pt_user_out_client;
+			tmpUserOut.client_socket = clientSocket;
+			(*iter)->Send((char*)&tmpUserOut, sizeof(t_user_out));
+		}
 	}
 }

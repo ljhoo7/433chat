@@ -359,32 +359,15 @@ void InterSocket::SendPlayerInfo()
 	ss_player_info_send msg;
 	msg.type = ssType::pkt_player_info_send;
 
-	EnterCriticalSection(&chatServer->userLock);
+	chatServer->TotalUserInfo(buf, &position, &msg.player_cnt);
 
-	std::list<CPlayer*>::iterator iter;
-	for (iter = chatServer->users.begin(); iter != chatServer->users.end(); iter++)
-	{
-		CPlayer *p = (*iter);
-
-		player_info info;
-		info.server_num = p->serverNum;
-		info.client_socket = static_cast<int>(p->socket_);
-		info.room_num = p->roomNum;
-		memcpy(info.nickname, p->nickname.c_str(), sizeof(info.nickname));
-		info.token = p->identifier;
-
-		memcpy(buf + position, &info, sizeof(info));
-		position += sizeof(info);
-	}
-	msg.player_cnt = chatServer->users.size();
 	msg.length = position + 2;
-
 	memcpy(msgBuf + msgPosition, &msg, sizeof(msg));
 	msgPosition += sizeof(msg);
 	memcpy(msgBuf + msgPosition, buf, position);
 	msgPosition += position;
 
-	LeaveCriticalSection(&chatServer->userLock);
+	
 
 	this->Send(msgBuf, msgPosition);
 
@@ -403,21 +386,7 @@ void InterSocket::SendRoomInfo()
 	ss_room_info_send msg;
 	msg.type = ssType::pkt_room_info_send;
 
-	EnterCriticalSection(&chatServer->roomManager.roomLock);
-	std::list<CRoom*>::iterator iter;
-	for (iter = chatServer->roomManager.rooms.begin(); iter != chatServer->roomManager.rooms.end(); iter++)
-	{
-		CRoom *p = (*iter);
-
-		room_info info;
-		info.room_num = p->roomNumber;
-
-		memcpy(buf + position, &info, sizeof(info));
-		position += sizeof(info);
-	}
-	msg.room_cnt = chatServer->roomManager.rooms.size();
-	LeaveCriticalSection(&chatServer->roomManager.roomLock);
-
+	chatServer->roomManager.TotalRoomInfo(buf, &position, &msg.room_cnt);
 
 	msg.length = position + 2;
 
@@ -534,9 +503,7 @@ void InterSocket::packetHandling(CPacket *packet){
 			PRINT("[InterSocket] room_info_send recieve!\n");
 			ss_room_info_send msg = *((ss_room_info_send *)packet->msg);
 
-			EnterCriticalSection(&chatServer->roomManager.roomLock);
-			int size = chatServer->roomManager.rooms.size();
-			LeaveCriticalSection(&chatServer->roomManager.roomLock);
+			int size = chatServer->roomManager.GetRoomCnt();
 
 			if (msg.room_cnt + size <= ROOM_MAX)
 			{

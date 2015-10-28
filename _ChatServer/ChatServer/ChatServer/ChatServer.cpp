@@ -130,7 +130,7 @@ void ChatServer::Process(){
 		{
 			break;
 		}
-		else if (input.substr(0, 3) == "out")
+		/*else if (input.substr(0, 3) == "out")
 		{
 			int tRoomNum = -1;
 			char nickname[20];
@@ -202,7 +202,7 @@ void ChatServer::Process(){
 					(*tIter)->Send((char*)&tEscape, sizeof(tEscape));
 				}
 			}
-		}
+		}*/
 	}
 
 	// escaping all user to another server
@@ -404,6 +404,28 @@ bool ChatServer::EnterOtherServerUsers(){
 	LeaveCriticalSection(&userLock);
 
 	return check;
+}
+
+void ChatServer::TotalUserInfo(char *buf, int *position, unsigned short *userCnt){
+	EnterCriticalSection(&chatServer->userLock);
+
+	std::list<CPlayer*>::iterator iter;
+	for (iter = chatServer->users.begin(); iter != chatServer->users.end(); iter++)
+	{
+		CPlayer *p = (*iter);
+
+		player_info info;
+		info.server_num = p->serverNum;
+		info.client_socket = static_cast<int>(p->socket_);
+		info.room_num = p->roomNum;
+		memcpy(info.nickname, p->nickname.c_str(), sizeof(info.nickname));
+		info.token = p->identifier;
+
+		memcpy(buf + *position, &info, sizeof(info));
+		*position += sizeof(info);
+	}
+	*userCnt = users.size();
+	LeaveCriticalSection(&chatServer->userLock);
 }
 
 int ChatServer::GetServerNum(unsigned int ip, unsigned short port){

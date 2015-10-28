@@ -19,12 +19,8 @@ public:
 
 	TcpListenSocket	listenSocket_;
 
+
 public:
-	std::vector<InterSocket *> sockets; // connected socket
-	std::vector<InterSocket *> connectSockets; // connecting socket
-	CRITICAL_SECTION socketLock;
-
-
 	void Connect(int num);
 	void Disconnect(int num);
 	void SendAll(char* buf, int size);
@@ -49,4 +45,10 @@ private:
 	WORD			port_;
 	int				threadPoolSize_;
 	int				socketPoolSize_;
+
+
+private:
+	std::vector<InterSocket *> sockets; // connected socket
+	std::vector<InterSocket *> connectSockets; // connecting socket
+	CRITICAL_SECTION socketLock;
 };

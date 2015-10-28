@@ -261,29 +261,9 @@ void AgentSocket::MakeSync(){
 void AgentSocket::UserInfoSend(bool isTotal, CPlayer* player, char connect){
 	if (isTotal){
 		sag_total_user_info msg;
-		msg.type = sag_pkt_type::pt_total_user_info;
+		int size;
 		
-		EnterCriticalSection(&chatServer->clientServer->playerLock);
-		
-
-		int size = sizeof(msg.type) + sizeof(msg.userCnt);
-		int i = 0;
-		std::list<CPlayer*>::iterator iter;
-		for (iter = chatServer->clientServer->playerlist.begin(); iter != chatServer->clientServer->playerlist.end(); iter++)
-		{
-			
-			CPlayer *p = (*iter);
-			msg.userInfoList[i].roomNum = p->roomNum;
-			memcpy(msg.userInfoList[i].userName, p->nickname.c_str(), sizeof(p->nickname));
-			msg.userInfoList[i].userSocket = (int)p->socket_;
-
-			i++;
-
-			size += sizeof(SAGUserInfo);
-		}
-		msg.userCnt = i;
-		LeaveCriticalSection(&chatServer->clientServer->playerLock);
-
+		chatServer->clientServer->TotalUserInfo(&msg, &size);
 		Send((char*)&msg, size);
 	}
 	else{
@@ -301,25 +281,10 @@ void AgentSocket::UserInfoSend(bool isTotal, CPlayer* player, char connect){
 
 void AgentSocket::RoomInfoSend(bool isTotal, int roomNum, bool create){
 	if (isTotal){
+		
 		sag_total_room_info msg;
-		msg.type = sag_pkt_type::pt_total_room_info;
-
-		EnterCriticalSection(&chatServer->roomManager.roomLock);
-		msg.roomCnt = chatServer->roomManager.rooms.size();
-
-		int i = 0;
-		int size = sizeof(msg.type) + sizeof(msg.roomCnt);
-		std::list<CRoom*>::iterator iter;
-		for (iter = chatServer->roomManager.rooms.begin(); iter != chatServer->roomManager.rooms.end(); iter++)
-		{
-			CRoom *p = (*iter);
-			msg.roomInfoList[i].roomNum = p->roomNumber;
-			i++;
-
-			size += sizeof(SAGRoomInfo);
-		}
-
-		LeaveCriticalSection(&chatServer->roomManager.roomLock);
+		int size;
+		chatServer->roomManager.TotalRoomInfo(&msg, &size);
 
 		Send((char*)&msg, size);
 	}
@@ -375,28 +340,16 @@ void AgentSocket::PacketHandling(CPacket *packet){
 	sag_pkt_type _type = (sag_pkt_type)(*packet->msg);
 
 	ags_room_destroy msg;
-	ags_user_out msg4;
+	
 
 
 	switch (_type){
 	case sag_pkt_type::pt_user_out:
 		PRINT("[AgentSocket] user out msg was sent!\n");
-
+		ags_user_out msg4;
 		msg4 = *((ags_user_out *)(packet->msg));
-		for (std::list<CPlayer*>::iterator iter = chatServer->users.begin();
-			iter != chatServer->users.end(); ++iter)
-		{
-			if ((*iter)->serverNum == chatServer->serverNum)
-			{
-				if ((*iter)->socket_ == msg4.userSocket)
-				{
-					t_user_out tmpUserOut;
-					tmpUserOut.type = pkt_type::pt_user_out_client;
-					tmpUserOut.client_socket = msg4.userSocket;
-					(*iter)->Send((char*)&tmpUserOut, sizeof(t_user_out));
-				}
-			}
-		}
+		
+		chatServer->clientServer->UserOut(msg4.userSocket);
 		break;
 	case sag_pkt_type::pt_room_destroy:
 		PRINT("[AgentSocket] room destroy msg was sent!\n");

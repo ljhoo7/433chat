@@ -14,8 +14,6 @@ public:
 	WORD agentPort;
 
 	int identifierSeed;
-	std::list<CPlayer*> users;
-	CRITICAL_SECTION userLock;
 
 	CRoomManager roomManager;
 	CLogicHandle logicHandle;
@@ -32,12 +30,7 @@ public:
 //	bool isVisit[MAXSERVER];
 
 	bool isEnd;
-
-	int connectServerCnt;
-
 	int DecreaseConnectServerAndCnt();
-	CRITICAL_SECTION connectServerLock;
-
 	int heartbeatTime;
 
 public:
@@ -59,9 +52,17 @@ public:
 	int GetServerNum(unsigned int ip, unsigned short port);
 
 	void EndServer();
+	void TotalUserInfo(char *buf, int *position, unsigned short *userCnt);
 
 private:
 	bool isCycle(int i, int parent);
 	void DFS(int i);
 
+	CRITICAL_SECTION connectServerLock;
+	int connectServerCnt;
+
+
+private:
+	std::list<CPlayer*> users;
+	CRITICAL_SECTION userLock;
 };

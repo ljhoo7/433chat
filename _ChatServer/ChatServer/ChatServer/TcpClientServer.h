@@ -21,17 +21,20 @@ public:
 	void AddUser(CPlayer* player);
 	int DeleteUserAndCnt(CPlayer* player);
 	void EscapingAllUsers();
+	void TotalUserInfo(sag_total_user_info* msg, int* size);
+	void UserOut(int clientSocket);
 
-	std::list<CPlayer*> playerlist;
-	CRITICAL_SECTION playerLock;
-
+public:
+	std::thread heartbeatThread;
+	void HeartbeatCheck();
 
 private:
 	WORD			port_;
 	int				threadPoolSize_;
 	int				socketPoolSize_;
 
-public:
-	std::thread heartbeatThread;
-	void HeartbeatCheck();
+	std::list<CPlayer*> playerlist;
+	CRITICAL_SECTION playerlistLock;
+
+
 };

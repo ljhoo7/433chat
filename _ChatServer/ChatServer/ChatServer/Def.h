@@ -52,7 +52,9 @@ class AgentSocket;
 class TcpAgentServer;
 
 #include "ClientProtocol.h"
+#include "AgentProtocol.h"
 #include "InterProtocol.h"
+
 #include "MemPooler.h"
 
 #include "Acceptor.h"
@@ -76,8 +78,6 @@ class TcpAgentServer;
 
 #include "InterSocket.h"
 #include "TcpInterServer.h"
-
-#include "AgentProtocol.h"
 
 #include "AgentSocket.h"
 #include "TcpAgentServer.h"

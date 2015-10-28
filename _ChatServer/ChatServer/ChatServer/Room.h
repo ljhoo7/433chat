@@ -11,11 +11,12 @@ public:
 	void BroadcastMsg(char* msg, int size);
 
 	int roomNumber;
-	std::list<CPlayer*> players;
-	CRITICAL_SECTION playerLock;
-
 	int GetPlayerSize();
 	bool NickNameCheck(const char* nick);
 	void KickAllPlayer();
+
+private:
+	std::list<CPlayer*> players;
+	CRITICAL_SECTION playerLock;
 };
 
