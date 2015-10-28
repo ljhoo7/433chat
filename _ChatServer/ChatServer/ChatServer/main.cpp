@@ -27,8 +27,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		return 0;
 	}
 
-	WORD agentPORT = _wtoi(argv[2]);
-	WORD serverNum = _wtoi(argv[1]);
+	WORD agentPORT = atoi(argv[2]);
+	WORD serverNum = atoi(argv[1]);
 	chatServer = new ChatServer(serverNum, agentPORT);
 
 	chatServer->Start();

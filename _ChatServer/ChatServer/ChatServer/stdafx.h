@@ -28,7 +28,7 @@ struct ServerInfo;
 class ChatServer;
 
 extern ChatServer* chatServer;
-#define PRINTF printf
+#define PRINTF chatServer->logWriter->myPRINTF
 
 #include "LogAct.h"
 #include "LogWriter.h"

@@ -33,6 +33,11 @@ public:
 
 	bool isEnd;
 
+	int connectServerCnt;
+
+	int DecreaseConnectServerAndCnt();
+	CRITICAL_SECTION connectServerLock;
+
 public:
 	ChatServer(int serverNum, WORD port);
 	void Init();

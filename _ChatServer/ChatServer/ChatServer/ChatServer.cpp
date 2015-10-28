@@ -5,11 +5,15 @@
 ChatServer::ChatServer(int serverNum, WORD port){
 	this->serverNum = serverNum;
 	this->agentPort = port;
+	
+	InitializeCriticalSectionAndSpinCount(&userLock, 4000);
+	InitializeCriticalSectionAndSpinCount(&connectServerLock, 4000);
 	Init();
 }
 
 ChatServer::~ChatServer(){
 	DeleteCriticalSection(&userLock);
+	DeleteCriticalSection(&connectServerLock);
 }
 
 void Tokenize(const std::string& str,
@@ -35,7 +39,7 @@ void Tokenize(const std::string& str,
 void ChatServer::Init(){
 	isEnd = false;
 
-	InitializeCriticalSectionAndSpinCount(&userLock, 4000);
+	
 
 	identifierSeed = 0;
 
@@ -67,7 +71,7 @@ void ChatServer::Init(){
 
 	inFile.close();
 
-	logWriter = new CLogWriter(L"ServerLog.log", 2);
+	logWriter = new CLogWriter("ServerLog.log", 2);
 
 	interServer = new TcpInterServer(serverInfo[serverNum].inter_port, 10, 10);
 	clientServer = new TcpClientServer(serverInfo[serverNum].client_port, 10, 3000);
@@ -218,17 +222,12 @@ void ChatServer::Start(){
 	agentServer->Start();
 	
 	//std::thread new_thread(&ChatServer::Process, this);
+	connectServerCnt = serverInfo.size()-1;
 
 	for (unsigned int i = 0; i < serverInfo.size(); i++){
 		if (i == chatServer->serverNum) continue;
 		interServer->Connect(i);
 	}
-
-	Sleep(1000);
-
-	agentServer->Connect("127.0.0.1", agentPort);
-	
-
 	/*if (interServer->sockets.size() != 0){
 		PRINTF("%d server on!", interServer->sockets.size());
 		
@@ -410,6 +409,15 @@ int ChatServer::GetServerNum(unsigned int ip, unsigned short port){
 		}
 	}
 	return -1;
+}
+
+int ChatServer::DecreaseConnectServerAndCnt(){
+	int ret = 0;
+	EnterCriticalSection(&connectServerLock);
+	connectServerCnt--;
+	ret = connectServerCnt;
+	LeaveCriticalSection(&connectServerLock);
+	return ret;
 }
 
 /*

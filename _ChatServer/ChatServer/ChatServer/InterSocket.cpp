@@ -199,7 +199,7 @@ void InterSocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred)
 			chatServer->agentServer->socket->InterServerInfoSend(false, serverNum, true);*/
 		
 		isUse = true;
-		interServer_->AddSocket(this);
+		interServer_->AddSocket(this, false);
 
 		PRINTF("connect with %d server\n", serverNum);
 
@@ -257,7 +257,7 @@ void InterSocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
 			chatServer->agentServer->socket->InterServerInfoSend(false, serverNum, true);*/
 
 		isUse = true;
-		interServer_->AddConnectSocket(this);
+		interServer_->AddSocket(this,true);
 		PRINTF("connect with %d server\n", serverNum);
 
 
@@ -269,12 +269,16 @@ void InterSocket::ConnProcess(bool isError, Act* act, DWORD bytes_transferred){
 		}
 		//MakeSync();
 		Recv(recvBuf_, HEADER_SIZE);
-
 		//	heartThread = std::thread(&TcpInterServer::heartbeatCheck, this);
 	}
 	else{
 		serverNum = -1;
 		PRINTF("interServer connect error\n");
+	}
+
+	if (chatServer->DecreaseConnectServerAndCnt() == 0){
+		PRINTF("all server connect try end\n");
+		chatServer->agentServer->Connect("127.0.0.1", chatServer->agentPort);
 	}
 }
 

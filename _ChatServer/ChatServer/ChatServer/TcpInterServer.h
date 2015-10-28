@@ -32,8 +32,7 @@ public:
 	InterSocket* GetSocketWithNum(int serverNum);
 	InterSocket* GetConnectSocketWithNum(int serverNum);
 
-	void AddSocket(InterSocket* socket);
-	void AddConnectSocket(InterSocket* socket);
+	void AddSocket(InterSocket* socket, bool isConnect);
 	void DeleteSocket(InterSocket* socket);
 	int DeleteSocketAndCnt(InterSocket* socket);
 

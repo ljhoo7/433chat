@@ -160,15 +160,16 @@ InterSocket* TcpInterServer::GetConnectSocketWithNum(int serverNum){
 	return ret;
 }
 
-void TcpInterServer::AddSocket(InterSocket* socket){
+void TcpInterServer::AddSocket(InterSocket* socket, bool isConnect){
 	EnterCriticalSection(&socketLock);
-	sockets.push_back(socket);
-	LeaveCriticalSection(&socketLock);
-}
 
-void TcpInterServer::AddConnectSocket(InterSocket* socket){
-	EnterCriticalSection(&socketLock);
-	connectSockets.push_back(socket);
+	if (!isConnect){
+		sockets.push_back(socket);
+	}
+	else{
+		connectSockets.push_back(socket);
+	}
+	
 	LeaveCriticalSection(&socketLock);
 }
 
