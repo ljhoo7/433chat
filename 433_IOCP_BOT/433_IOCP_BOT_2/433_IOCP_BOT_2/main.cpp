@@ -8,17 +8,26 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	int t_nRetval;
 
+	SYSTEM_INFO si;
+	GetSystemInfo(&si);
+
+	int t_nCPUs = (int)si.dwNumberOfProcessors;
+
 	g_pLog = new CLogWriter("BotLog.log", 2);
 
-	if (5 != argc)
+	if (6 != argc)
 	{
-		g_pLog->myWprintf("(usage error) usage : (program_name) (server_ip) (server_port) (bot_cnt) (thread_cnt)\n");
+		g_pLog->myWprintf("(usage error) usage : (program_name) (server_ip) (server_port) (bot_cnt) (chat_interval_min) (chat_interval_max)\n");
+
+		return 1;
 	}
 
 	DWORD		t_dwIp			= inet_addr(argv[1]);
 	int			t_nPort			= atoi(argv[2]);
 	int			t_nBotCnt		= atoi(argv[3]);
-	int			t_nThreadCnt	= atoi(argv[4]);
+	int			t_nIntervalMin	= atoi(argv[4]);
+	int			t_nIntervalMax  = atoi(argv[5]);
+
 
 	if (TOTAL_PLAYER < t_nBotCnt)
 	{
@@ -43,7 +52,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		return 1;
 	}
 
-	g_pProactor = new CProactor(t_dwIp, t_nPort, t_nBotCnt, t_nThreadCnt);
+	g_pProactor = new CProactor(t_dwIp, t_nPort, t_nBotCnt, t_nCPUs << 1, t_nIntervalMin, t_nIntervalMax);
 	g_pProactor->Init();
 
 	WaitForMultipleObjects(t_nBotCnt, g_pProactor->m_hEventForAllJoin, TRUE, INFINITE);

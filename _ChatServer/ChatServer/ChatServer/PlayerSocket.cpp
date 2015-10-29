@@ -321,9 +321,15 @@ bool CPlayer::ValidPacket(CPacket *packet)
 
 	case pkt_type::pt_chat:
 		memcpy(&tmpChat, packet->msg, 30);
-		if (this->roomNum == -1) return false;
-		if (this->identifier != tmpChat.token) return false;
-		if (this->roomNum != tmpChat.room_num) return false;
+		if (this->roomNum == -1){
+			return false;
+		}
+		if (this->identifier != tmpChat.token){
+			return false;
+		}
+		if (this->roomNum != tmpChat.room_num){
+			return false;
+		}
 	}
 	return true;
 }
