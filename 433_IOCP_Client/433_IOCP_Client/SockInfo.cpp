@@ -82,7 +82,7 @@ bool CSockInfo::Connect(DWORD ip, int port)
 	}
 	else
 	{
-		g_pLog->myWprintf(L"CConnector::Register has been succeeded immediately !\n");
+		//g_pLog->myWprintf(L"CConnector::Register has been succeeded immediately !\n");
 
 		return false;
 	}

@@ -322,20 +322,20 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 
 			if (pkt_type::pt_user_out == t_eType)
 			{
-				g_pLog->myWprintf(L"pt_user_out\n");
+				//g_pLog->myWprintf(L"pt_user_out\n");
 				t_nRemain = sizeof(t_user_out) - HEADER_SIZE;
 				p_pAct->m_eType = pkt_type::pt_user_out;
 			}
 			else if (pkt_type::pt_escape_server == t_eType)
 			{
-				g_pLog->myWprintf(L"pt_escape_server\n");
+				//g_pLog->myWprintf(L"pt_escape_server\n");
 				t_nRemain = sizeof(t_escape_server) - HEADER_SIZE;
 				p_pAct->m_eType = pkt_type::pt_escape_server;
 				//g_pClient->m_hOldSock = p_pAct->m_pSock->m_hSock;
 			}
 			else if (pkt_type::pt_cs_health_check == t_eType)
 			{
-				g_pLog->myWprintf(L"pt_health_check\n");
+				//g_pLog->myWprintf(L"pt_health_check\n");
 				t_nRemain = sizeof(t_health_check)-HEADER_SIZE;
 				p_pAct->m_eType = pkt_type::pt_cs_health_check;
 				//g_pClient->m_hOldSock = p_pAct->m_pSock->m_hSock;
@@ -345,12 +345,12 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 				switch (t_eType)
 				{
 				case pkt_type::pt_create_success:
-					g_pLog->myWprintf(L"pt_create_success\n");
+					//g_pLog->myWprintf(L"pt_create_success\n");
 					t_nRemain = sizeof(t_create_success)-HEADER_SIZE;
 					p_pAct->m_eType = pkt_type::pt_create_success;
 					break;
 				case pkt_type::pt_create_failure:
-					g_pLog->myWprintf(L"pt_create_failure\n");
+					//g_pLog->myWprintf(L"pt_create_failure\n");
 					t_nRemain = sizeof(t_create_failure)-HEADER_SIZE;
 					p_pAct->m_eType = pkt_type::pt_create_failure;
 					break;
@@ -363,12 +363,12 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 				switch (t_eType)
 				{
 				case pkt_type::pt_destroy_success:
-					g_pLog->myWprintf(L"pt_destroy_success\n");
+					//g_pLog->myWprintf(L"pt_destroy_success\n");
 					t_nRemain = sizeof(t_destroy_success)-HEADER_SIZE;
 					p_pAct->m_eType = pkt_type::pt_destroy_success;
 					break;
 				case pkt_type::pt_destroy_failure:
-					g_pLog->myWprintf(L"pt_destroy_failure\n");
+					//g_pLog->myWprintf(L"pt_destroy_failure\n");
 					t_nRemain = sizeof(t_destroy_failure)-HEADER_SIZE;
 					p_pAct->m_eType = pkt_type::pt_destroy_failure;
 					break;
@@ -410,24 +410,24 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 				switch (t_eType)
 				{
 				case pkt_type::pt_join_alarm:
-					g_pLog->myWprintf(L"pt_join_alarm\n");
+					//g_pLog->myWprintf(L"pt_join_alarm\n");
 					t_nRemain = sizeof(t_join_alarm) - HEADER_SIZE;
 					p_pAct->m_eType = pkt_type::pt_join_alarm;
 					break;
 				case pkt_type::pt_leave_alarm:
-					g_pLog->myWprintf(L"pt_leave_alarm\n");
+					//g_pLog->myWprintf(L"pt_leave_alarm\n");
 					t_nRemain = sizeof(t_leave_alarm) - HEADER_SIZE;
 					p_pAct->m_eType = pkt_type::pt_leave_alarm;
 					break;
 				case pkt_type::pt_kick:
-					g_pLog->myWprintf(L"pt_kick\n");
+					//g_pLog->myWprintf(L"pt_kick\n");
 					t_nRemain = sizeof(t_kick) - HEADER_SIZE;
 					p_pAct->m_eType = pkt_type::pt_kick;
 					break;
 //---------------------------------------------------------------------------------
 				// * notice : the character of ASCII whitch number is 12 can't be inputed by keyboard on console !
 				case pkt_type::pt_chat_alarm:
-					g_pLog->myWprintf(L"pt_chat_alarm\n");
+					//g_pLog->myWprintf(L"pt_chat_alarm\n");
 					t_hSock.m_bIsVar = true;
 					t_nRemain = sizeof(unsigned short);
 					p_pAct->m_eType = pkt_type::pt_chat_alarm;
