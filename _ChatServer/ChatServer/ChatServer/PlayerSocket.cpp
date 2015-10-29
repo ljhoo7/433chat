@@ -22,14 +22,14 @@ CPlayer::CPlayer(int serverNum)
 	this->remainBytes = HEADER_SIZE;
 	this->isVar = false;
 
-	poolManager = new MemPooler<msg_buffer>(10);
+	poolManager = new MemPooler<msg_buffer>(50);
 	if (!poolManager){
 		PRINT("[PlayerSocket] MemPooler<msg_buffer> error\n");
 		/* error handling */
 		return;
 	}
 
-	packetPoolManager = new MemPooler<CPacket>(10);
+	packetPoolManager = new MemPooler<CPacket>(50);
 	if (!packetPoolManager){
 		PRINT("[PlayerSocket] MemPooler<CPacket> error\n");
 		/* error handling */

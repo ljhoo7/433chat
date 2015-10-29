@@ -238,7 +238,7 @@ void ChatServer::Start(){
 		PRINT("first server on!\n");
 	}*/
 
-#ifdef MYDEF
+#ifdef HEARTBEAT
 	Process();
 #endif
 	
