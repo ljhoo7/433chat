@@ -20,7 +20,7 @@ void SASocket::HeartbeatCheck() {
 		if (!inUse) return;
 		beatCheck = false;
 
-		PRINTF("*** hearth check send!\n");
+		PRINTF("*** health check send!\n");
 		ags_health_check msg;
 		msg.type = sag_pkt_type::pt_health_check;
 		Send((char *)&msg, sizeof(msg));
@@ -33,7 +33,7 @@ void SASocket::HeartbeatCheck() {
 			break;
 		}
 	}
-	PRINTF("*** hearth thread end!\n");
+	PRINTF("*** health thread end!\n");
 }
 
 void SASocket::PacketHandling(char* buf)
