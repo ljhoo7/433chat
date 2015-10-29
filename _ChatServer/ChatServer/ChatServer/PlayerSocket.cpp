@@ -409,11 +409,6 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpCreateSuccess.type = pkt_type::pt_create_success;
 			Send((char *)&tmpCreateSuccess, sizeof(t_create_success));
 			PRINT("[PlayerSocket] create message has been sent.\n");
-
-			if (chatServer->agentServer->socket->isConnected)
-				chatServer->agentServer->socket->RoomInfoSend(false, tmpCreate->room_num, true);
-			
-			
 		}
 		else if (result == fail_signal::fs_overflow)
 		{
@@ -449,8 +444,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			Send((char *)&tmpDestroySuccess, sizeof(t_destroy_success));
 			PRINT("[PlayerSocket] destroy success message has been sent.\n");
 
-			if (chatServer->agentServer->socket->isConnected)
-				chatServer->agentServer->socket->RoomInfoSend(false, tmpDestroy->room_num, false);
+			
 		}
 		else if (result == fail_signal::fs_no_exist)
 		{
@@ -562,6 +556,9 @@ void CPlayer::PacketHandling(CPacket *packet){
 		PRINT("[PlayerSocket] chat alarm message has been sent.\n");		break;
 	
 	case pkt_type::pt_cs_health_ack:
+#ifdef HEARTBEAT
+		PRINT("[PlayerSocket] heartbeat ack receive\n");
+#endif
 		beatCheck = true;
 		break;
 	}

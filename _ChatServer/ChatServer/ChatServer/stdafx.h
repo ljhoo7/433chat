@@ -9,7 +9,7 @@
 #define MAXSERVER 100
 
 #ifdef _DEBUG
-#define MYDEF
+	#define MYDEF
 #else
 
 #endif
