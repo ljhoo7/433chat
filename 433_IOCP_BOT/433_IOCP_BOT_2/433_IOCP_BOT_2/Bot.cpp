@@ -1,9 +1,7 @@
 #include "stdafx.h"
 
-std::string tmp_str[PLAYER_MAX] = { "hihi !!!!", "4:33 interns !", "ljh !", "good ~", "byebye !~"
-, "shit !!!!!!!!!!!!!!", "server programming", "chat chat !", "kkkkk", "hahaha" };
-
 extern CLogWriter		*g_pLog;
+extern CProactor		*g_pProactor;
 
 CBot::CBot(int p_nBotNum, int p_nWaitTime)
 : m_bIsEscaping(false), m_nRoomNum(-1), m_nTmpRoomNum(-1), m_nToken(-1), m_hNewSock(NULL)
@@ -25,11 +23,16 @@ void CBot::BeginChatThread()
 
 void CBot::RandomChatSend( )
 {
+	static std::string tmp_str[PLAYER_MAX] = { "hihi !!!!", "4:33 interns !", "ljh !", "good ~", "byebye !~"
+		, "shit !!!!!!!!!!!!!!", "server programming", "chat chat !", "kkkkk", "hahaha" };
+
+	int t_nRand = (*g_pProactor->m_pUd)(*g_pProactor->m_pRandGen);
+
 	while (true)
 	{
-		std::this_thread::sleep_for(std::chrono::seconds(m_nWaitTime));
+		std::this_thread::sleep_for(std::chrono::seconds(t_nRand));
 
-		SendChatMessage("hihi");
+		SendChatMessage(tmp_str[m_nWaitTime].c_str());
 	}
 }
 

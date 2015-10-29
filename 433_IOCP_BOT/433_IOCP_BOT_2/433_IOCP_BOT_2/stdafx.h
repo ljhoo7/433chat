@@ -18,6 +18,7 @@
 #include <winnt.h>
 #include <MSWSock.h>
 #include <thread>
+#include <random>
 
 #include <vector>
 

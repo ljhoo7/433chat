@@ -335,7 +335,7 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 			}
 			else if (pkt_type::pt_cs_health_check == t_eType)
 			{
-				g_pLog->myWprintf(L"pt_health_check\n");
+				//g_pLog->myWprintf(L"pt_health_check\n");
 				t_nRemain = sizeof(t_health_check)-HEADER_SIZE;
 				p_pAct->m_eType = pkt_type::pt_cs_health_check;
 				//g_pClient->m_hOldSock = p_pAct->m_pSock->m_hSock;

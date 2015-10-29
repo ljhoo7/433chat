@@ -54,6 +54,9 @@ int CRoomManager::CreateRoom(int roomNumber){
 
 		PrintInfo();
 
+
+		if (chatServer->agentServer->socket->isConnected)
+			chatServer->agentServer->socket->RoomInfoSend(false, roomNumber, true);
 		return -1;
 	}
 }
@@ -118,6 +121,9 @@ int CRoomManager::DestroyRoom(int roomNumber)
 	rooms.remove(room);
 	LeaveCriticalSection(&roomLock);
 
+
+	if (chatServer->agentServer->socket->isConnected)
+		chatServer->agentServer->socket->RoomInfoSend(false, roomNumber, false);
 	PrintInfo();
 
 	return -1;

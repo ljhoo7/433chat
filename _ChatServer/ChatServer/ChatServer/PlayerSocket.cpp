@@ -22,14 +22,14 @@ CPlayer::CPlayer(int serverNum)
 	this->remainBytes = HEADER_SIZE;
 	this->isVar = false;
 
-	poolManager = new MemPooler<msg_buffer>(10);
+	poolManager = new MemPooler<msg_buffer>(50);
 	if (!poolManager){
 		PRINT("[PlayerSocket] MemPooler<msg_buffer> error\n");
 		/* error handling */
 		return;
 	}
 
-	packetPoolManager = new MemPooler<CPacket>(10);
+	packetPoolManager = new MemPooler<CPacket>(50);
 	if (!packetPoolManager){
 		PRINT("[PlayerSocket] MemPooler<CPacket> error\n");
 		/* error handling */
@@ -169,7 +169,6 @@ void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 		this->nickname = "";
 		this->roomNum = -1;
-		this->identifier = -1;
 		this->beatCheck = true;
 		this->position = 0;
 		this->remainBytes = HEADER_SIZE;
@@ -321,9 +320,15 @@ bool CPlayer::ValidPacket(CPacket *packet)
 
 	case pkt_type::pt_chat:
 		memcpy(&tmpChat, packet->msg, 30);
-		if (this->roomNum == -1) return false;
-		if (this->identifier != tmpChat.token) return false;
-		if (this->roomNum != tmpChat.room_num) return false;
+		if (this->roomNum == -1){
+			return false;
+		}
+		if (this->identifier != tmpChat.token){
+			return false;
+		}
+		if (this->roomNum != tmpChat.room_num){
+			return false;
+		}
 	}
 	return true;
 }
@@ -403,11 +408,6 @@ void CPlayer::PacketHandling(CPacket *packet){
 			tmpCreateSuccess.type = pkt_type::pt_create_success;
 			Send((char *)&tmpCreateSuccess, sizeof(t_create_success));
 			PRINT("[PlayerSocket] create message has been sent.\n");
-
-			if (chatServer->agentServer->socket->isConnected)
-				chatServer->agentServer->socket->RoomInfoSend(false, tmpCreate->room_num, true);
-			
-			
 		}
 		else if (result == fail_signal::fs_overflow)
 		{
@@ -443,8 +443,7 @@ void CPlayer::PacketHandling(CPacket *packet){
 			Send((char *)&tmpDestroySuccess, sizeof(t_destroy_success));
 			PRINT("[PlayerSocket] destroy success message has been sent.\n");
 
-			if (chatServer->agentServer->socket->isConnected)
-				chatServer->agentServer->socket->RoomInfoSend(false, tmpDestroy->room_num, false);
+			
 		}
 		else if (result == fail_signal::fs_no_exist)
 		{
@@ -556,6 +555,9 @@ void CPlayer::PacketHandling(CPacket *packet){
 		PRINT("[PlayerSocket] chat alarm message has been sent.\n");		break;
 	
 	case pkt_type::pt_cs_health_ack:
+#ifdef HEARTBEAT
+		PRINT("[PlayerSocket] heartbeat ack receive\n");
+#endif
 		beatCheck = true;
 		break;
 	}

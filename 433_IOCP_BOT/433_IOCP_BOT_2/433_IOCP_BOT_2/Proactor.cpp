@@ -2,12 +2,15 @@
 
 extern CLogWriter		*g_pLog;
 
-CProactor::CProactor(DWORD p_dwIp, int p_nPort, int p_nBotCnt, int p_nThreadCnt)
-: m_dwIp(p_dwIp), m_nPort(p_nPort), m_nBotCnt(p_nBotCnt), m_nThreadCnt(p_nThreadCnt)
+CProactor::CProactor(DWORD p_dwIp, int p_nPort, int p_nBotCnt, int p_nThreadCnt, int p_nIntervalMin, int p_nIntervalMax)
+: m_dwIp(p_dwIp), m_nPort(p_nPort), m_nBotCnt(p_nBotCnt), m_nThreadCnt(p_nThreadCnt), m_nIntervalMin(p_nIntervalMin), m_nIntervalMax(p_nIntervalMax)
 {
 	int t_nRetval;
 
 	m_hEventForAllJoin = new HANDLE[m_nBotCnt];
+
+	m_pUd = new std::uniform_int_distribution<>(m_nIntervalMin, m_nIntervalMax);
+	m_pRandGen = new std::knuth_b();
 
 	//----------------------------------------------------
 
@@ -128,7 +131,7 @@ bool CProactor::Init()
 			std::string tmpStr("bot_" + std::to_string(k));
 			t_pBot->SendJoinMessage(t_nValue, const_cast<char*>(tmpStr.c_str()));
 		}
-		Sleep(10);
+		Sleep(40);
 	}
 
 	return true;

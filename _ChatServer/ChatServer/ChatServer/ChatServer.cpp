@@ -71,9 +71,13 @@ void ChatServer::Init(){
 
 	logWriter = new CLogWriter("ServerLog.log", 2);
 
-	interServer = new TcpInterServer(serverInfo[serverNum].inter_port, 10, 10);
-	clientServer = new TcpClientServer(serverInfo[serverNum].client_port, 10, 3000);
-	agentServer = new TcpAgentServer(serverInfo[serverNum].inter_port + 1, 10);
+	SYSTEM_INFO si;
+	GetSystemInfo(&si);
+	int nCPUs = (int)si.dwNumberOfProcessors;
+
+	interServer = new TcpInterServer(serverInfo[serverNum].inter_port, nCPUs*2, 10);
+	clientServer = new TcpClientServer(serverInfo[serverNum].client_port, nCPUs*2, 3000);
+	agentServer = new TcpAgentServer(serverInfo[serverNum].inter_port + 1, nCPUs*2);
 }
 
 void ChatServer::Process(){
@@ -234,7 +238,7 @@ void ChatServer::Start(){
 		PRINT("first server on!\n");
 	}*/
 
-#ifdef MYDEF
+#ifdef HEARTBEAT
 	Process();
 #endif
 	
