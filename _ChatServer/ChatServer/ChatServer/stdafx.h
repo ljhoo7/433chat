@@ -9,13 +9,10 @@
 #define MAXSERVER 100
 
 #ifdef _DEBUG
-	#define MYDEF
+#define MYDEF
 #else
 
 #endif
-
-#define HEARTBEAT
-
 class Actor;
 class Proactor;
 class TcpAct;
