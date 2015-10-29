@@ -556,6 +556,9 @@ void CPlayer::PacketHandling(CPacket *packet){
 		PRINT("[PlayerSocket] chat alarm message has been sent.\n");		break;
 	
 	case pkt_type::pt_cs_health_ack:
+#ifdef HEARTBEAT
+		PRINT("[PlayerSocket] heartbeat ack receive\n");
+#endif
 		beatCheck = true;
 		break;
 	}
