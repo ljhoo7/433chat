@@ -276,7 +276,6 @@ void AgentSocket::UserInfoSend(bool isTotal, CPlayer* player, char connect){
 
 		Send((char *)&msg, sizeof(msg));
 	}
-	
 }
 
 void AgentSocket::RoomInfoSend(bool isTotal, int roomNum, bool create){
@@ -363,9 +362,6 @@ void AgentSocket::PacketHandling(CPacket *packet){
 			msg_.client_socket = socket_;
 			msg_.room_num = msg.roomNum;
 			chatServer->interServer->SendAll((char *)&msg_, sizeof(msg_));
-
-			if (chatServer->agentServer->socket->isConnected)
-				chatServer->agentServer->socket->RoomInfoSend(false, msg.roomNum, false);
 		}
 		else{
 			PRINT("[AgentSocket] fail delete\n");
