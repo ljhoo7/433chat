@@ -116,7 +116,6 @@ void AgentApp::Run()
 	else if (input == "quit")
 	{
 
-
 	}
 
 }
@@ -244,11 +243,16 @@ void AgentApp::AddServer(SASocket* pSocket)
 	LeaveCriticalSection(&serverLock);
 }
 
-void AgentApp::DeleteServer(SASocket* pSocket)
+int AgentApp::DeleteServerAndReturnCount(SASocket* pSocket)
 {
 	EnterCriticalSection(&serverLock);
 	mServerSocketList.remove(pSocket);
+
+	int serverCount = mServerSocketList.size();
+	
 	LeaveCriticalSection(&serverLock);
+
+	return serverCount;
 }
 SASocket* AgentApp::FindServer(int serverNum)
 {
@@ -267,6 +271,17 @@ SASocket* AgentApp::FindServer(int serverNum)
 
 	LeaveCriticalSection(&serverLock);
 	return NULL;
+}
+
+int AgentApp::GetServerCount()
+{
+	EnterCriticalSection(&serverLock);
+
+	int serverCount = mServerSocketList.size();
+
+	LeaveCriticalSection(&serverLock);
+
+	return serverCount;
 }
 
 
@@ -348,7 +363,7 @@ void AgentApp::SaveDeltaRoomInfo(unsigned short roomNum, bool isState)
 			mTotalInfoData->roomInfoList.remove_if([&](RoomInfo& room){
 				return room.roomNum == roomNum;
 			});
-		}
+		} 
 	}
 
 	LeaveCriticalSection(&serverLock);
@@ -566,7 +581,16 @@ void AgentApp::SaveTotalInterServerInfo(unsigned short serverCnt, unsigned short
 
 	LeaveCriticalSection(&serverLock);
 }
+void AgentApp::ResetRoomInfo()
+{
+	EnterCriticalSection(&serverLock);
+	
+	mTotalInfoData->roomCnt = 0;
+	mTotalInfoData->roomInfoList.clear();
 
+	LeaveCriticalSection(&serverLock);
+
+}
 bool AgentApp::DeleteServerInfo(int serverNum)
 {
 	EnterCriticalSection(&serverLock);
