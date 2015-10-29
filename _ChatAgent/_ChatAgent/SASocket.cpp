@@ -15,29 +15,29 @@ SASocket::~SASocket()
 
 }
 
-void SASocket::HeartbeatCheck() 
+void SASocket::HeartbeatCheck()
 {
 	while (true)
 	{
 		if (!inUse) return;
-		  
+
 		beatCheck = false;
 
-		PRINTF("*** hearth check send!\n");		ags_health_check msg;
+		ags_health_check msg;
 		msg.type = sag_pkt_type::pt_health_check;
 		Send((char *)&msg, sizeof(msg));
 
 		std::this_thread::sleep_for(std::chrono::seconds(5));
 
 		if (!inUse) return;
-		
+
 		if (beatCheck == false)
 		{
 			Disconnect();
 			break;
 		}
 	}
-	PRINTF("*** hearth thread end!\n");}
+}
 
 void SASocket::PacketHandling(char* buf)
 {
