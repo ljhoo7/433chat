@@ -24,8 +24,6 @@ struct CClient
 	int				m_nRoom_num;
 	unsigned int	m_nToken;
 
-	bool			m_bIsEscaping;
-
 	//------------------------------------------------------------
 
 	CClient(int p_nThreadPoolSize, int p_nSocketPoolSize = 1);

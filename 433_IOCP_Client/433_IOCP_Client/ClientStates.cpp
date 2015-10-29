@@ -167,30 +167,30 @@ void CCreate_Response_Wait::Execute(CClient *client, long long elapsed)
 
 //---------------------------------------------
 
-//CEscaping* CEscaping::Instance()
-//{
-//	static CEscaping instance;
-//
-//	return &instance;
-//}
-//
-//void CEscaping::Enter(CClient *client)
-//{
-//	g_pLog->myWprintf(L"Entered Escaping State");
-//	client->m_llAccumTime = 0;
-//}
-//
-//void CEscaping::Exit(CClient *client)
-//{
-//}
-//
-//void CEscaping::Execute(CClient *client, long long elapsed)
-//{
-//	client->m_llAccumTime += elapsed;
-//	if (client->m_llAccumTime > ELAPSED_DEST)
-//	{
-//		//client->SendEscapeMessage();
-//
-//		client->m_llAccumTime = 0;
-//	}
-//}
+CEscaping* CEscaping::Instance()
+{
+	static CEscaping instance;
+
+	return &instance;
+}
+
+void CEscaping::Enter(CClient *client)
+{
+	g_pLog->myWprintf(L"Entered Escaping State");
+	client->m_llAccumTime = 0;
+}
+
+void CEscaping::Exit(CClient *client)
+{
+}
+
+void CEscaping::Execute(CClient *client, long long elapsed)
+{
+	client->m_llAccumTime += elapsed;
+	if (client->m_llAccumTime > ELAPSED_DEST)
+	{
+		//client->SendEscapeMessage();
+
+		client->m_llAccumTime = 0;
+	}
+}

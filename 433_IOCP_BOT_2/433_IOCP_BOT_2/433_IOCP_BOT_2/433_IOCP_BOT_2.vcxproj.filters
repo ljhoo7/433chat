@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="소스 파일\main">
+      <UniqueIdentifier>{05dcb7d8-3753-4403-8e2a-123a41738878}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\ProActor">
+      <UniqueIdentifier>{243806e3-f80c-4362-af96-0938b9da12b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\ProActor">
+      <UniqueIdentifier>{d5db8949-e97c-407c-bfc8-1bb10f5c1f60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Act">
+      <UniqueIdentifier>{84ae0c23-4d70-4603-afa7-ec2d36b9753c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Act">
+      <UniqueIdentifier>{f0bf15e2-1a9e-4d2c-8b32-54e0d25aed39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\ProActor\TheCildrenOfActor">
+      <UniqueIdentifier>{cb149206-11a2-498a-a16c-eaa87c21eb68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\ProActor\TheChildrenOfActor">
+      <UniqueIdentifier>{b5574984-4f91-427b-b3f1-96fbc4267d7f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Bot">
+      <UniqueIdentifier>{17e27fe5-4bcc-447c-b975-be71219b1648}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Bot">
+      <UniqueIdentifier>{fca58975-10be-430a-8322-cdb03850f2e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LogWriter">
+      <UniqueIdentifier>{cf2343ea-f12e-438f-ba78-49ea93f40d35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\LogWriter">
+      <UniqueIdentifier>{8ddf3303-8849-4690-b1ca-cdda21a5bb8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Protocol">
+      <UniqueIdentifier>{9ef7c69e-5d15-4699-8134-d67301b93dac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\StatePattern">
+      <UniqueIdentifier>{6481edcf-498e-4578-a11e-7cfec8e0f93d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Receiver.h">
+      <Filter>헤더 파일\ProActor\TheChildrenOfActor</Filter>
+    </ClInclude>
+    <ClInclude Include="Disconnector.h">
+      <Filter>헤더 파일\ProActor\TheChildrenOfActor</Filter>
+    </ClInclude>
+    <ClInclude Include="Connector.h">
+      <Filter>헤더 파일\ProActor\TheChildrenOfActor</Filter>
+    </ClInclude>
+    <ClInclude Include="Sender.h">
+      <Filter>헤더 파일\ProActor\TheChildrenOfActor</Filter>
+    </ClInclude>
+    <ClInclude Include="Act.h">
+      <Filter>헤더 파일\Act</Filter>
+    </ClInclude>
+    <ClInclude Include="Actor.h">
+      <Filter>헤더 파일\ProActor</Filter>
+    </ClInclude>
+    <ClInclude Include="Bot.h">
+      <Filter>헤더 파일\Bot</Filter>
+    </ClInclude>
+    <ClInclude Include="LogWriter.h">
+      <Filter>헤더 파일\LogWriter</Filter>
+    </ClInclude>
+    <ClInclude Include="Proactor.h">
+      <Filter>헤더 파일\ProActor</Filter>
+    </ClInclude>
+    <ClInclude Include="LogAct.h">
+      <Filter>헤더 파일\LogWriter</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocol.h">
+      <Filter>헤더 파일\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="State.h">
+      <Filter>헤더 파일\StatePattern</Filter>
+    </ClInclude>
+    <ClInclude Include="StateMachine.h">
+      <Filter>헤더 파일\StatePattern</Filter>
+    </ClInclude>
+    <ClInclude Include="BotStates.h">
+      <Filter>헤더 파일\Bot</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>소스 파일\main</Filter>
+    </ClCompile>
+    <ClCompile Include="Receiver.cpp">
+      <Filter>소스 파일\ProActor\TheCildrenOfActor</Filter>
+    </ClCompile>
+    <ClCompile Include="Connector.cpp">
+      <Filter>소스 파일\ProActor\TheCildrenOfActor</Filter>
+    </ClCompile>
+    <ClCompile Include="Disconnector.cpp">
+      <Filter>소스 파일\ProActor\TheCildrenOfActor</Filter>
+    </ClCompile>
+    <ClCompile Include="Sender.cpp">
+      <Filter>소스 파일\ProActor\TheCildrenOfActor</Filter>
+    </ClCompile>
+    <ClCompile Include="Act.cpp">
+      <Filter>Act</Filter>
+    </ClCompile>
+    <ClCompile Include="Actor.cpp">
+      <Filter>소스 파일\ProActor</Filter>
+    </ClCompile>
+    <ClCompile Include="Bot.cpp">
+      <Filter>Bot</Filter>
+    </ClCompile>
+    <ClCompile Include="LogWriter.cpp">
+      <Filter>LogWriter</Filter>
+    </ClCompile>
+    <ClCompile Include="Proactor.cpp">
+      <Filter>소스 파일\ProActor</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MessageSendFunctions.cpp">
+      <Filter>Act</Filter>
+    </ClCompile>
+    <ClCompile Include="BotStates.cpp">
+      <Filter>Bot</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
