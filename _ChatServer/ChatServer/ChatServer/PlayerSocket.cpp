@@ -22,14 +22,14 @@ CPlayer::CPlayer(int serverNum)
 	this->remainBytes = HEADER_SIZE;
 	this->isVar = false;
 
-	poolManager = new MemPooler<msg_buffer>(10);
+	poolManager = new MemPooler<msg_buffer>(50);
 	if (!poolManager){
 		PRINT("[PlayerSocket] MemPooler<msg_buffer> error\n");
 		/* error handling */
 		return;
 	}
 
-	packetPoolManager = new MemPooler<CPacket>(10);
+	packetPoolManager = new MemPooler<CPacket>(50);
 	if (!packetPoolManager){
 		PRINT("[PlayerSocket] MemPooler<CPacket> error\n");
 		/* error handling */
@@ -321,9 +321,15 @@ bool CPlayer::ValidPacket(CPacket *packet)
 
 	case pkt_type::pt_chat:
 		memcpy(&tmpChat, packet->msg, 30);
-		if (this->roomNum == -1) return false;
-		if (this->identifier != tmpChat.token) return false;
-		if (this->roomNum != tmpChat.room_num) return false;
+		if (this->roomNum == -1){
+			return false;
+		}
+		if (this->identifier != tmpChat.token){
+			return false;
+		}
+		if (this->roomNum != tmpChat.room_num){
+			return false;
+		}
 	}
 	return true;
 }
