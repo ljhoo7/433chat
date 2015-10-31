@@ -169,7 +169,6 @@ void CPlayer::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred){
 
 		this->nickname = "";
 		this->roomNum = -1;
-		this->identifier = -1;
 		this->beatCheck = true;
 		this->position = 0;
 		this->remainBytes = HEADER_SIZE;

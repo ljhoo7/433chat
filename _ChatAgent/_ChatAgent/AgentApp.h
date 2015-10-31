@@ -57,10 +57,10 @@ public:
 
 	/************** Socket List Managed Function ****************/
 	void				   AddServer(SASocket* pSocket);
-	void				   DeleteServer(SASocket* pSocket);
+	int					   DeleteServerAndReturnCount(SASocket* pSocket);
 	SASocket*			   FindServer(int serverNum);
 	
-	int					   GetServerCount() { return mServerSocketList.size(); }
+	int					   GetServerCount();
 	std::list<SASocket*>&  GetServerSocketList() { return mServerSocketList; }
 public:
 	
@@ -73,6 +73,7 @@ public:
 	void				   SaveTotalServerUserInfo(unsigned int serverNum ,unsigned short userCnt, UserInfo* userInfoList);
 	void				   SaveTotalInterServerInfo(unsigned short serverCnt, unsigned short* serverNumList);
 						   
+	void				   ResetRoomInfo();
 	bool				   DeleteServerInfo(int serverNum);
 
 	bool				   IsSearchUser(int serverNum, int userSocket);
@@ -81,23 +82,23 @@ public:
 
 
 private:
-	bool				   mIsExit;
-						   
-	DWORD				   mMonitoringServerIP;
-	unsigned int		   mMonitoringServerPort;
-	unsigned short		   mAgentNumber;
-						   
-						   
-	TotalInfo*			   mTotalInfoData;
-						   
-	ServerAgent*		   mServerAgent;
-	MServerAgent*		   mMonitoringServerAgent;
-						   
-	std::list<SASocket*>     mServerSocketList;
-	std::vector<std::thread> mTimeWaitThreads;
+	bool							  mIsExit;
+									  
+	DWORD							  mMonitoringServerIP;
+	unsigned int					  mMonitoringServerPort;
+	unsigned short					  mAgentNumber;
+									  
+									  
+	TotalInfo*						  mTotalInfoData;
+									  
+	ServerAgent*					  mServerAgent;
+	MServerAgent*					  mMonitoringServerAgent;
+						   			  
+	std::list<SASocket*>			  mServerSocketList;
+	std::vector<std::thread>		  mTimeWaitThreads;
 
 
 	std::list<std::pair<int, bool>>   mConnectCheckList;
 						   
-	CRITICAL_SECTION	   serverLock;
+	CRITICAL_SECTION				  serverLock;
 };
