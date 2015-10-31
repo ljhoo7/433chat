@@ -205,15 +205,13 @@ bool UserOutFunc(PVOID p_pParam)
 
 bool EscapeServerFunc(PVOID p_pParam)
 {
-	CAct *t_pAct = (CAct*)p_pParam;
-
-	CSockInfo &t_sMysock = *t_pAct->m_pSock;
+	CSockInfo *t_sMysock = (CSockInfo*)p_pParam;
 
 	g_pClient->GetStateMachine()->ChangeState(CEscaping::Instance());
 
-	t_escape_server *t_sEscapingServer = (t_escape_server*)t_pAct->m_pSock->m_szReceiveBuf;
+	t_escape_server *t_sEscapingServer = (t_escape_server*)t_sMysock->m_szReceiveBuf;
 
-	t_sMysock.Connect(t_sEscapingServer->dest_ip, t_sEscapingServer->port);
+	t_sMysock->Connect(t_sEscapingServer->dest_ip, t_sEscapingServer->port);
 
 	return true;
 }
@@ -338,6 +336,7 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 				//g_pLog->myWprintf(L"pt_health_check\n");
 				t_nRemain = sizeof(t_health_check)-HEADER_SIZE;
 				p_pAct->m_eType = pkt_type::pt_cs_health_check;
+
 				//g_pClient->m_hOldSock = p_pAct->m_pSock->m_hSock;
 			}
 			else if (CCreate_Response_Wait::Instance() == t_pState)
@@ -484,7 +483,7 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 				}
 				else if (NULL != PacketHandlingFunc[p_pAct->m_eType])
 				{
-					PacketHandlingFunc[p_pAct->m_eType]((PVOID)p_pAct);
+					PacketHandlingFunc[p_pAct->m_eType]((PVOID)p_pAct->m_pSock);
 
 					t_hSock.m_nRecvRemain = HEADER_SIZE;
 					t_hSock.m_nRecvPosition = 0;
