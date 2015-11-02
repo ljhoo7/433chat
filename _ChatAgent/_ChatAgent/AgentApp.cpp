@@ -45,6 +45,19 @@ void AgentApp::Destroy()
 	if (mServerAgent)			delete mServerAgent;
 	if (mMonitoringServerAgent) delete mMonitoringServerAgent;
 
+	if (!mServerSocketList.empty())
+	{
+		for (auto& socket : mServerSocketList)
+		{
+			if (socket)
+			{
+				delete socket;
+				socket = nullptr;
+			}
+		}
+		mServerSocketList.clear();
+	}
+
 	for (auto& waitThreads : mTimeWaitThreads)
 	{
 		if (waitThreads.joinable())
@@ -115,7 +128,7 @@ void AgentApp::Run()
 	}
 	else if (input == "quit")
 	{
-
+		mIsExit = true;
 	}
 
 }
@@ -147,7 +160,7 @@ bool AgentApp::GenerateServerProcess()
 	{
 		fin >> PROCESS_NAME >> SERVER_NUM >> AGENT_PORT;
 		
-		AddCheck(atoi(SERVER_NUM.c_str()), false);
+		//AddCheck(atoi(SERVER_NUM.c_str()), false,);
 
 
 		SASocket* pSocket = FindServer(atoi(SERVER_NUM.c_str()));
@@ -194,6 +207,7 @@ bool AgentApp::GenerateServerProcess()
 									 NULL, NULL,
 									 &si,
 									 &pi);
+
 									 
 		if (isGenerate == 0)
 		{
@@ -203,6 +217,11 @@ bool AgentApp::GenerateServerProcess()
 			LeaveCriticalSection(&serverLock);
 			return false;
 		}
+
+		CloseHandle(pi.hThread);
+
+		/// Add ProcessInfo 
+		AddProcessInfo(atoi(SERVER_NUM.c_str()), false, pi.hProcess);
 		
 	}
 	else
@@ -243,16 +262,11 @@ void AgentApp::AddServer(SASocket* pSocket)
 	LeaveCriticalSection(&serverLock);
 }
 
-int AgentApp::DeleteServerAndReturnCount(SASocket* pSocket)
+void AgentApp::DeleteServer(SASocket* pSocket)
 {
 	EnterCriticalSection(&serverLock);
 	mServerSocketList.remove(pSocket);
-
-	int serverCount = mServerSocketList.size();
-	
 	LeaveCriticalSection(&serverLock);
-
-	return serverCount;
 }
 SASocket* AgentApp::FindServer(int serverNum)
 {
@@ -273,31 +287,20 @@ SASocket* AgentApp::FindServer(int serverNum)
 	return NULL;
 }
 
-int AgentApp::GetServerCount()
+
+bool AgentApp::IsProcessConnected(int serverNum)
 {
 	EnterCriticalSection(&serverLock);
 
-	int serverCount = mServerSocketList.size();
+	std::list<ProcessInfo>::iterator iter;
 
-	LeaveCriticalSection(&serverLock);
-
-	return serverCount;
-}
-
-
-bool AgentApp::IsConnected(int serverNum)
-{
-	EnterCriticalSection(&serverLock);
-
-	std::list<std::pair<int, bool>>::iterator iter;
-
-	for (iter = mConnectCheckList.begin(); iter != mConnectCheckList.end(); iter++)
+	for (iter = mProcessCheckList.begin(); iter != mProcessCheckList.end(); iter++)
 	{
 
-		if (iter->first == serverNum)
+		if (iter->serverNum == serverNum)
 		{
 			LeaveCriticalSection(&serverLock);
-			return iter->second;
+			return iter->isConnected;
 		}
 	}
 
@@ -306,18 +309,60 @@ bool AgentApp::IsConnected(int serverNum)
 
 }
 
-void AgentApp::SetConnected(int serverNum, bool connected)
+void AgentApp::DeleteProcessInfo(int serverNum)
 {
 	EnterCriticalSection(&serverLock);
 
-	std::list<std::pair<int,bool>>::iterator iter;
+	auto findProcessIter = std::find_if(mProcessCheckList.begin(),
+		mProcessCheckList.end(),
+		[&](ProcessInfo& processInfo){ return processInfo.serverNum == serverNum; });
 
-	for (iter = mConnectCheckList.begin(); iter != mConnectCheckList.end(); iter++)
+
+	if (findProcessIter == mProcessCheckList.end())
+	{
+		PRINTF("Failed Search Process Info \n");
+		LeaveCriticalSection(&serverLock);
+		return;
+	}
+
+	PRINTF("Success Delete Process Info \n");
+	mProcessCheckList.remove((*findProcessIter));
+
+	LeaveCriticalSection(&serverLock);
+
+	return;
+
+}
+HANDLE&	AgentApp::GetProcessInfoHandle(int serverNum)
+{
+	EnterCriticalSection(&serverLock);
+
+	std::list<ProcessInfo>::iterator iter;
+
+	for (iter = mProcessCheckList.begin(); iter != mProcessCheckList.end(); iter++)
+	{
+
+		if (iter->serverNum == serverNum)
+		{
+			LeaveCriticalSection(&serverLock);
+			return iter->processHandle;
+		}
+	}
+
+	LeaveCriticalSection(&serverLock);
+}
+void AgentApp::SetProcessConnected(int serverNum, bool connected)
+{
+	EnterCriticalSection(&serverLock);
+
+	std::list<ProcessInfo>::iterator iter;
+
+	for (iter = mProcessCheckList.begin(); iter != mProcessCheckList.end(); iter++)
 	{
 		
-		if (iter->first == serverNum)
+		if (iter->serverNum == serverNum)
 		{
-			iter->second = connected;
+			iter->isConnected = connected;
 			LeaveCriticalSection(&serverLock);
 			return;
 		}
@@ -327,11 +372,11 @@ void AgentApp::SetConnected(int serverNum, bool connected)
 
 }
 
-void AgentApp::AddCheck(int serverNum, bool connected)
+void AgentApp::AddProcessInfo(int serverNum, bool connected, HANDLE hProcess)
 {
 	EnterCriticalSection(&serverLock);
 	
-	mConnectCheckList.push_back(std::pair<int,bool>(serverNum,connected));
+	mProcessCheckList.push_back(ProcessInfo(serverNum, connected, hProcess));
 	
 	LeaveCriticalSection(&serverLock);
 }
@@ -363,7 +408,7 @@ void AgentApp::SaveDeltaRoomInfo(unsigned short roomNum, bool isState)
 			mTotalInfoData->roomInfoList.remove_if([&](RoomInfo& room){
 				return room.roomNum == roomNum;
 			});
-		} 
+		}
 	}
 
 	LeaveCriticalSection(&serverLock);
@@ -581,16 +626,7 @@ void AgentApp::SaveTotalInterServerInfo(unsigned short serverCnt, unsigned short
 
 	LeaveCriticalSection(&serverLock);
 }
-void AgentApp::ResetRoomInfo()
-{
-	EnterCriticalSection(&serverLock);
-	
-	mTotalInfoData->roomCnt = 0;
-	mTotalInfoData->roomInfoList.clear();
 
-	LeaveCriticalSection(&serverLock);
-
-}
 bool AgentApp::DeleteServerInfo(int serverNum)
 {
 	EnterCriticalSection(&serverLock);
@@ -686,18 +722,23 @@ void AgentApp::GenerateTimeWait(int serverNum)
 
 		std::chrono::duration<double> sec = end - start;
 
-		if (IsConnected(serverNum))
+		if (IsProcessConnected(serverNum))
 		{
 			agms_generate_server_success pkt;
 			pkt.type = msag_pkt_type::pkt_generate_server_success;
 
 			mMonitoringServerAgent->m_pSock->Send((char*)&pkt, sizeof(agms_generate_server_success));
 			
+
+			HANDLE hProcess = GetProcessInfoHandle(serverNum);
+
+			CloseHandle(hProcess);
+
 			PRINTF("Generate Real Success\n");
 			break;
 		}
 
-		if (sec.count() >= 60.0)
+		if (sec.count() >= WAIT_TIME)
 		{
 			agms_generate_server_fail pkt;
 			pkt.type = msag_pkt_type::pkt_generate_server_fail;
@@ -706,12 +747,21 @@ void AgentApp::GenerateTimeWait(int serverNum)
 			mMonitoringServerAgent->m_pSock->Send((char*)&pkt, sizeof(agms_generate_server_fail));
 
 			PRINTF("ERROR : Generate Failed \n");
+			PRINTF("TerminateProcess !! \n");
+
+			HANDLE hProcess = GetProcessInfoHandle(serverNum);
+
+			TerminateProcess(hProcess, NULL);
+
+			CloseHandle(hProcess);
+
+			DeleteProcessInfo(serverNum);
+
+			
 			break;
 		}
 
 	}
 
 	PRINTF("Exit Wait\n");
-
-
 }

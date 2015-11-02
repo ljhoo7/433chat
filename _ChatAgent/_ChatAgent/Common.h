@@ -6,6 +6,9 @@
 #define MAX_TOTAL_ROOM 100
 #define MAX_TOTAL_USER 1000
 #define MAX_CONNECTED_SERVER 5
+#define WAIT_TIME 60
+
+
 
 struct RoomInfo
 {
@@ -53,6 +56,26 @@ struct TotalInfo
 
 	TotalInfo() : roomCnt(0),serverCnt(0){}
 	~TotalInfo(){}
+};
+
+struct ProcessInfo
+{
+	int serverNum;
+	bool isConnected;
+	HANDLE processHandle;
+
+	ProcessInfo(int serverNum, bool isConnected, HANDLE processHandle)
+	{
+		this->serverNum = serverNum;
+		this->isConnected = isConnected;
+		this->processHandle = processHandle;
+	}
+
+	bool operator==(const ProcessInfo& other)
+	{
+		return (this->serverNum == other.serverNum) &&
+			(this->processHandle == other.processHandle);
+	}
 };
 
 

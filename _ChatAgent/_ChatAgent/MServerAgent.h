@@ -48,7 +48,6 @@ public:
 	void SendServerCount();
 	void SendServerInfo();
 	void SendRoomInfo();
-	//void SendInterServerInfo();
 
 	void Connect(DWORD ip, WORD port);
 

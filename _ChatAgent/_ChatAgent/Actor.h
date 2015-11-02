@@ -4,7 +4,7 @@
 class Actor
 {
 protected:
-	Proactor		*mProactor;
+	Proactor*		mProactor;
 public:
 	Actor();
 	virtual ~Actor();
