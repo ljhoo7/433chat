@@ -21,6 +21,12 @@ ServerAgent::ServerAgent(WORD port, int ThreadPoolSize, int SocketPoolSize)
 
 ServerAgent::~ServerAgent()
 {
+	if (mProactor)		delete mProactor;
+	if (mAcceptor)		delete mAcceptor;
+	if (mDisconnector)  delete mDisconnector;
+	if (mReceiver)		delete mReceiver;
+	if (mSender)		delete mSender;
+	if (mListenSocket)  delete mListenSocket;
 }
 
 void ServerAgent::Run()
@@ -39,7 +45,6 @@ void ServerAgent::Run()
 	mAcceptor->Init(mListenSocket, mProactor);
 
 	// Create Socket Pool
-
 	for (int i = 0; i < mSocketPoolSize; ++i)
 	{
 		SASocket* pSocket = new SASocket;

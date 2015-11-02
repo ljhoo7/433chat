@@ -25,13 +25,13 @@ public:
 	void				   Init(unsigned short agentPort, DWORD ip, unsigned int port);
 	void				   Run();
 	void				   Destroy();
-
+	
+	bool				   IsExit() { return mIsExit; }
 
 public:
 	/**************** Control Server Process *******************/
 	bool				   GenerateServerProcess();
 	void				   GenerateTimeWait(int serverNum);
-
 
 public:					 
 	/*********************** Set & Get *************************/
@@ -45,25 +45,22 @@ public:
 	
 
 public:
-	bool				   IsConnected(int serverNum);
-
-	void				   SetConnected(int serverNum, bool connected);
-	
-	void				   AddCheck(int serverNum, bool connected);
-
-
+	bool				   IsProcessConnected(int serverNum);
+	HANDLE&				   GetProcessInfoHandle(int serverNum);
+	void				   SetProcessConnected(int serverNum, bool connected);
+	void				   AddProcessInfo(int serverNum, bool connected, HANDLE hProcess);
+	void				   DeleteProcessInfo(int serverNum);
 
 public:					 
-
 	/************** Socket List Managed Function ****************/
 	void				   AddServer(SASocket* pSocket);
-	int					   DeleteServerAndReturnCount(SASocket* pSocket);
+	void				   DeleteServer(SASocket* pSocket);
 	SASocket*			   FindServer(int serverNum);
 	
-	int					   GetServerCount();
+	int					   GetServerCount() { return mServerSocketList.size(); }
 	std::list<SASocket*>&  GetServerSocketList() { return mServerSocketList; }
+
 public:
-	
 	/************** Total Data Managed Function ****************/
 	void				   SaveDeltaRoomInfo(unsigned short roomNum, bool isState);
 	void				   SaveDeltaUserInfo(unsigned int serverNum, int clientSocket, unsigned short roomNum, char* nickName, char isConnected);
@@ -73,32 +70,28 @@ public:
 	void				   SaveTotalServerUserInfo(unsigned int serverNum ,unsigned short userCnt, UserInfo* userInfoList);
 	void				   SaveTotalInterServerInfo(unsigned short serverCnt, unsigned short* serverNumList);
 						   
-	void				   ResetRoomInfo();
 	bool				   DeleteServerInfo(int serverNum);
 
 	bool				   IsSearchUser(int serverNum, int userSocket);
 	bool				   IsSearchRoom(unsigned short roomNum);
 
-
-
 private:
-	bool							  mIsExit;
-									  
-	DWORD							  mMonitoringServerIP;
-	unsigned int					  mMonitoringServerPort;
-	unsigned short					  mAgentNumber;
-									  
-									  
-	TotalInfo*						  mTotalInfoData;
-									  
-	ServerAgent*					  mServerAgent;
-	MServerAgent*					  mMonitoringServerAgent;
-						   			  
-	std::list<SASocket*>			  mServerSocketList;
-	std::vector<std::thread>		  mTimeWaitThreads;
-
-
-	std::list<std::pair<int, bool>>   mConnectCheckList;
+	bool				     mIsExit;
+			
+	DWORD				     mMonitoringServerIP;
+	unsigned int		     mMonitoringServerPort;
+	unsigned short		     mAgentNumber;
+						     
+	TotalInfo*			     mTotalInfoData;
+						     
+	ServerAgent*		     mServerAgent;
+	MServerAgent*		     mMonitoringServerAgent;
 						   
-	CRITICAL_SECTION				  serverLock;
+	std::list<SASocket*>     mServerSocketList;
+
+	std::vector<std::thread> mTimeWaitThreads;
+
+	std::list<ProcessInfo>   mProcessCheckList;
+						   
+	CRITICAL_SECTION	     serverLock;
 };

@@ -6,6 +6,8 @@ class TcpListenSocket
 {
 public:
 	TcpListenSocket();
+	~TcpListenSocket(){};
+
 	void Init(WORD port, int backlogsize = 0);
 	void Listen(Proactor* proactor);
 
