@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import kr.co.ftt.ManageServer_receiver.util.ByteArrayToInt;
 import kr.co.ftt.ManageServer_receiver.util.JDBCConnect;
 
 public class WebLinkServer implements Runnable {
@@ -26,7 +27,7 @@ public class WebLinkServer implements Runnable {
 
 	public WebLinkServer() {
 		JDBCConnect.getInstance().insertDateTime(InputCommandHandler.setTimestamp());
-		System.out.println("web 모듈 접속대기");
+		System.out.println("WebLinkServer Accept Wait..");
 	}
 
 	public void run() {
@@ -37,31 +38,67 @@ public class WebLinkServer implements Runnable {
 			is=socket.getInputStream();
 			
 			while(true){				
-				System.out.println("web-receive서버: 입력대기");
+				//System.out.println("web-receive server: Input Wait...");
 				byte[] byteArrServerNum = null ;
 				byte[] byteArrRoomNum =null;
 				byte[] agentNum =null;
 				byte[] input = new byte[2];
-				is.read(input, 0, 2);
+				is.read(input, 0, 2);//input type
 				short type = input[0];
 				
-				System.out.println("[웹->리시버 부분 inputType]"+input[0]);
 				switch(type){
+				case 1:
+					//room_destroy
+					byteArrRoomNum = new byte[2];
+					is.read(byteArrRoomNum, 0, 2);//input room number
+					short roomNum=byteArrRoomNum[0];
+					OutputCommandHandler.getInstance().room_destroy(roomNum, ServerThreadPool.arrayList.get(0).getOutputStream());
+					break;
+				case 2:
+					//kill_server
+					agentNum = new byte[2];
+					is.read(agentNum, 0, 2);//input agent number
+					byteArrServerNum = new byte[4];
+					is.read(byteArrServerNum, 0, 4); //input server number
+					int serverNum=ByteArrayToInt.byteArrayToInt(byteArrServerNum);
+					OutputCommandHandler.getInstance().kill_server(serverNum, ServerThreadPool.getServerThread(agentNum[0]+"").getOutputStream());
+					break;
+				case 3:
+					//request
+					JDBCConnect.getInstance().insertDateTime(InputCommandHandler.setTimestamp());
+					
+					for(int i=0;i<ServerThreadPool.arrayList.size();i++){ //to all serverthread in threadpool
+						OutputCommandHandler.getInstance().request(ServerThreadPool.arrayList.get(i).getOutputStream());
+						try {
+							Thread.sleep(500);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+					break;
+				case 4:
+					//generate case
+					agentNum = new byte[2];
+					is.read(agentNum, 0, 2);//input agent number
+					OutputCommandHandler.getInstance().generate(ServerThreadPool.getServerThread(agentNum[0]+"").getOutputStream());
+					break;
 				case 5:
-					int serverNum = 0,clientSocket = 0;
+					//user_out case
+					serverNum = 0;
+					int clientSocket = 0;
 					agentNum = new byte[2];
 					byteArrServerNum = new byte[4];
 					try {
-						is.read(agentNum, 0, 2);
-						is.read(byteArrServerNum, 0, 4);
-						serverNum=byteArrayToInt(byteArrServerNum);
+						is.read(agentNum, 0, 2);//input agnet number
+						is.read(byteArrServerNum, 0, 4); //input server number
+						serverNum=ByteArrayToInt.byteArrayToInt(byteArrServerNum);
 						byteArrServerNum = new byte[4];
-						is.read(byteArrServerNum, 0, 4);
-						clientSocket=byteArrayToInt(byteArrServerNum);
+						is.read(byteArrServerNum, 0, 4); //input client number
+						clientSocket=ByteArrayToInt.byteArrayToInt(byteArrServerNum);
 					} catch (IOException e2) {
 						e2.printStackTrace();
 					}
-					for(int i=0;i<ServerThreadPool.arrayList.size();i++){
+					for(int i=0;i<ServerThreadPool.arrayList.size();i++){  //to all serverthread in threadpool
 						OutputCommandHandler.getInstance().user_out(serverNum, clientSocket, ServerThreadPool.arrayList.get(i).getOutputStream());
 						try {
 							Thread.sleep(200);
@@ -69,38 +106,6 @@ public class WebLinkServer implements Runnable {
 							e.printStackTrace();
 						}
 					}
-					break;
-				case 1:
-					byteArrRoomNum = new byte[2];
-					is.read(byteArrRoomNum, 0, 2);
-					short roomNum=byteArrRoomNum[0];
-					OutputCommandHandler.getInstance().room_destroy(roomNum, ServerThreadPool.arrayList.get(0).getOutputStream());
-					break;
-				case 2:
-					agentNum = new byte[2];
-					is.read(agentNum, 0, 2);
-					byteArrServerNum = new byte[4];
-					is.read(byteArrServerNum, 0, 4);
-					serverNum=byteArrayToInt(byteArrServerNum);
-					OutputCommandHandler.getInstance().kill_server(serverNum, ServerThreadPool.getServerThread(agentNum[0]+"").getOutputStream());
-					break;
-				case 3:					
-					JDBCConnect.getInstance().insertDateTime(InputCommandHandler.setTimestamp());
-					
-					for(int i=0;i<ServerThreadPool.arrayList.size();i++){
-						OutputCommandHandler.getInstance().request(ServerThreadPool.arrayList.get(i).getOutputStream());
-						try {
-							System.out.println("Thread.sleep(1000);");
-							Thread.sleep(1000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-					}
-					break;
-				case 4:
-					agentNum = new byte[2];
-					is.read(agentNum, 0, 2);
-					OutputCommandHandler.getInstance().generate(ServerThreadPool.getServerThread(agentNum[0]+"").getOutputStream());
 					break;
 				default:
 					byte[] b=new byte[20];
@@ -110,20 +115,5 @@ public class WebLinkServer implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-	private static int byteArrayToInt(byte[] bytes) {
-		final int size = Integer.SIZE / 8;
-		ByteBuffer buff = ByteBuffer.allocate(size);
-		final byte[] newBytes = new byte[size];
-		for (int i = 0; i < size; i++) {
-			if (i + bytes.length < size) {
-				newBytes[i] = (byte) 0x00;
-			} else {
-				newBytes[i] = bytes[i + bytes.length - size];
-			}
-		}
-		buff = ByteBuffer.wrap(newBytes);
-		buff.order(ByteOrder.LITTLE_ENDIAN); // Endian에 맞게 세팅
-		return buff.getInt();
 	}
 }

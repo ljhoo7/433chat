@@ -5,9 +5,9 @@ import kr.co.ftt.ManageServer_receiver.ManageServer;
 import kr.co.ftt.ManageServer_receiver.OutputCommandHandler;
 import kr.co.ftt.ManageServer_receiver.ServerThreadPool;
 
-public class AutoReceiver implements Runnable {
+public class AutoRequester implements Runnable {
 
-	public AutoReceiver() {
+	public AutoRequester() {
 
 	}
 

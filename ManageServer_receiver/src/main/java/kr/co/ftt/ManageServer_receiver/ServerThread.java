@@ -15,7 +15,7 @@ public class ServerThread implements Runnable {
 
 	public ServerThread(Socket socket) {
 		this.socket = socket;
-		System.out.println(socket.getInetAddress().getHostAddress() + " agent 연결");
+		System.out.println(socket.getInetAddress().getHostAddress() + " agent Connected");
 		try {
 			is = socket.getInputStream();
 			os = socket.getOutputStream();
@@ -39,7 +39,7 @@ public class ServerThread implements Runnable {
 			setAgentName(ServerThreadPool.getNextAgnetNum()+"");
 
 			while (true) {
-				System.out.println(getAgentName()+"agent 입력대기");
+				//System.out.println(getAgentName()+"Agent input wait...");
 				input = new byte[2];
 				is.read(input, 0, 2);
 
@@ -48,14 +48,14 @@ public class ServerThread implements Runnable {
 				InputCommandHandler.getInstance().typeInput(type, this);
 			}
 		} catch (SocketException e){
-			System.out.println(getAgentName() + "agent 연결 끊김");
+			System.out.println(getAgentName() + "Agent Disconnected");
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			System.out.println(getAgentName()+"agent 해제");
 			if (socket != null) {
 				try {
 					socket.close();
+					System.out.println(getAgentName()+"Agent closed");
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
