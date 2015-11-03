@@ -33,11 +33,9 @@ public class ServerThread implements Runnable {
 	}
 	
 	public void run() {
+		byte[] input;
+		setAgentName(ServerThreadPool.getNextAgnetNum()+"");
 		try {
-			byte[] input;
-			
-			setAgentName(ServerThreadPool.getNextAgnetNum()+"");
-
 			while (true) {
 				//System.out.println(getAgentName()+"Agent input wait...");
 				input = new byte[2];
@@ -49,7 +47,7 @@ public class ServerThread implements Runnable {
 			}
 		} catch (SocketException e){
 			System.out.println(getAgentName() + "Agent Disconnected");
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			if (socket != null) {
@@ -62,8 +60,7 @@ public class ServerThread implements Runnable {
 			}
 			ServerThreadPool.remove(this);
 		}
-	}
-	
+	}	
 	public InputStream getInputStream(){
 		return is;
 	}

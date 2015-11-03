@@ -18,22 +18,11 @@ public class AutoRequester implements Runnable {
 			ManageServer.toggleRecvFlag();
 			JDBCConnect.getInstance().updateRecvState(ManageServer.getRecvFlag());
 			
-			for (int i = 0; i < ServerThreadPool.arrayList.size(); i++) {
-				OutputCommandHandler.getInstance().request(ServerThreadPool.arrayList.get(i).getOutputStream());
-				try {
-					Thread.sleep(300);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+			for (int i = 0; i < ServerThreadPool.threadList.size(); i++) {
+				OutputCommandHandler.getInstance().request(ServerThreadPool.threadList.get(i).getOutputStream());
 			}
-			try {
-				Thread.sleep(100);
-				ManageServer.toggleRecvFlag();
-				JDBCConnect.getInstance().updateRecvState(ManageServer.getRecvFlag());
-				Thread.sleep(3500);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			ManageServer.toggleRecvFlag();
+			JDBCConnect.getInstance().updateRecvState(ManageServer.getRecvFlag());
 		}
 	}
 

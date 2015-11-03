@@ -18,19 +18,19 @@ public class ManageServer {
     public static int getGenButtonFlag() {
 		return genButtonFlag;
 	}
+    
 	public static void main(String[] args) {		
-        ServerSocket serverSocket = null;        
-       
-        //ManageServer_Web과 Socket으로 연결 되는 부분
-        WebLinkServer webLink = new WebLinkServer();
-       
-        Thread thread = new Thread(webLink);
+              
+        Thread thread = new Thread(WebLinkServer.getInstance());
         thread.start();
         
         try {
-            serverSocket = new ServerSocket(7000);
+            //init flag state to DB
             JDBCConnect.getInstance().updateGenState(genButtonFlag);
             JDBCConnect.getInstance().updateRecvState(recvFlag);
+
+            ServerSocket serverSocket = new ServerSocket(7000);
+            
             while(true){
         		System.out.println("Agent Accept Wait..");
         		
