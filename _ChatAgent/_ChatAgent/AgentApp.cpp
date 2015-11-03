@@ -29,11 +29,13 @@ void AgentApp::Init(unsigned short agentPort, DWORD ip, unsigned int port)
 	SYSTEM_INFO si;
 	GetSystemInfo(&si);
 
+
 	int nCPUs = (int)si.dwNumberOfProcessors;
+	int threadPoolSize = nCPUs * 2;
 
 	mTotalInfoData			= new TotalInfo;
-	mServerAgent			= new ServerAgent(agentPort, nCPUs * 2, 100);
-	mMonitoringServerAgent  = new MServerAgent(nCPUs * 2, 1);
+	mServerAgent		    = new ServerAgent(agentPort, threadPoolSize, 100);
+	mMonitoringServerAgent  = new MServerAgent(threadPoolSize, 1);
 
 	mServerAgent->Run();
 }
@@ -122,15 +124,10 @@ void AgentApp::Run()
 
 		PRINTF("\n");
 	}
-	else if (input == "ms-disconnect")
-	{
-
-	}
 	else if (input == "quit")
 	{
 		mIsExit = true;
 	}
-
 }
 bool AgentApp::GenerateServerProcess()
 {
@@ -160,9 +157,6 @@ bool AgentApp::GenerateServerProcess()
 	{
 		fin >> PROCESS_NAME >> SERVER_NUM >> AGENT_PORT;
 		
-		//AddCheck(atoi(SERVER_NUM.c_str()), false,);
-
-
 		SASocket* pSocket = FindServer(atoi(SERVER_NUM.c_str()));
 		if (pSocket)
 		{
@@ -271,18 +265,18 @@ void AgentApp::DeleteServer(SASocket* pSocket)
 SASocket* AgentApp::FindServer(int serverNum)
 {
 	EnterCriticalSection(&serverLock);
-	std::list<SASocket*>::iterator iter;
-	for (iter = mServerSocketList.begin(); iter != mServerSocketList.end(); iter++)
+
+	for (auto& socket : mServerSocketList)
 	{
-		SASocket* pSocket = *(iter);
-		/// 일단 서버넘버로만 판단
-		if (pSocket->mServerNum == serverNum)
+		if (socket)
 		{
-			LeaveCriticalSection(&serverLock);
-			return pSocket;
+			if (socket->mServerNum == serverNum)
+			{
+				LeaveCriticalSection(&serverLock);
+				return socket;
+			}
 		}
 	}
-
 	LeaveCriticalSection(&serverLock);
 	return NULL;
 }
@@ -292,16 +286,14 @@ bool AgentApp::IsProcessConnected(int serverNum)
 {
 	EnterCriticalSection(&serverLock);
 
-	std::list<ProcessInfo>::iterator iter;
-
-	for (iter = mProcessCheckList.begin(); iter != mProcessCheckList.end(); iter++)
+	for (auto& processInfo : mProcessCheckList)
 	{
-
-		if (iter->serverNum == serverNum)
+		if (processInfo.serverNum == serverNum)
 		{
 			LeaveCriticalSection(&serverLock);
-			return iter->isConnected;
+			return processInfo.isConnected;
 		}
+
 	}
 
 	LeaveCriticalSection(&serverLock);
@@ -337,15 +329,13 @@ HANDLE&	AgentApp::GetProcessInfoHandle(int serverNum)
 {
 	EnterCriticalSection(&serverLock);
 
-	std::list<ProcessInfo>::iterator iter;
-
-	for (iter = mProcessCheckList.begin(); iter != mProcessCheckList.end(); iter++)
+	for (auto& processInfo : mProcessCheckList)
 	{
-
-		if (iter->serverNum == serverNum)
+		if (processInfo.serverNum == serverNum)
 		{
 			LeaveCriticalSection(&serverLock);
-			return iter->processHandle;
+			return processInfo.processHandle;
+
 		}
 	}
 
@@ -355,21 +345,19 @@ void AgentApp::SetProcessConnected(int serverNum, bool connected)
 {
 	EnterCriticalSection(&serverLock);
 
-	std::list<ProcessInfo>::iterator iter;
 
-	for (iter = mProcessCheckList.begin(); iter != mProcessCheckList.end(); iter++)
+	for (auto& processInfo : mProcessCheckList)
 	{
-		
-		if (iter->serverNum == serverNum)
+		if (processInfo.serverNum == serverNum)
 		{
-			iter->isConnected = connected;
+			processInfo.isConnected = connected;
+
 			LeaveCriticalSection(&serverLock);
 			return;
 		}
 	}
 
 	LeaveCriticalSection(&serverLock);
-
 }
 
 void AgentApp::AddProcessInfo(int serverNum, bool connected, HANDLE hProcess)
@@ -385,7 +373,7 @@ void AgentApp::SaveDeltaRoomInfo(unsigned short roomNum, bool isState)
 {
 	EnterCriticalSection(&serverLock);
 
-	if (isState == 1)
+	if (TRANSLATE_STATE::ROOM_STATE::CREATED == isState)
 	{
 		/// Created
 		mTotalInfoData->roomCnt++;
@@ -395,10 +383,10 @@ void AgentApp::SaveDeltaRoomInfo(unsigned short roomNum, bool isState)
 		mTotalInfoData->roomInfoList.push_back(room);
 
 	}
-	else
+	else if (TRANSLATE_STATE::ROOM_STATE::DESTROYED == isState)
 	{
 		/// Destroyed
-		if (mTotalInfoData->roomCnt == 0)
+		if (0 == mTotalInfoData->roomCnt)
 		{
 			PRINTF("ERROR : already room count is zero");
 		}
@@ -409,6 +397,10 @@ void AgentApp::SaveDeltaRoomInfo(unsigned short roomNum, bool isState)
 				return room.roomNum == roomNum;
 			});
 		}
+	}
+	else
+	{
+		PRINTF("ERROR : Not Valid State Number\n");
 	}
 
 	LeaveCriticalSection(&serverLock);
@@ -426,6 +418,7 @@ void AgentApp::SaveDeltaUserInfo(unsigned int serverNum, int clientSocket, unsig
 		return serverInfo.serverNum == serverNum;
 	});
 
+
 	if (serverInfoIter == serverInfoList.end())
 	{
 		PRINTF("ERROR : Not Exist Server Number \n");
@@ -435,10 +428,13 @@ void AgentApp::SaveDeltaUserInfo(unsigned int serverNum, int clientSocket, unsig
 		return;
 	}
 	
-	if (isConnected == 0)
+
+
+
+
+	if (TRANSLATE_STATE::USER_STATE::DISCONNECTED == isConnected)
 	{
-		/// Disconnected
-		if (serverInfoIter->userCount == 0)
+		if (0 == serverInfoIter->userCount)
 		{
 			PRINTF("ERROR : already user count is zero \n");
 		}
@@ -456,9 +452,8 @@ void AgentApp::SaveDeltaUserInfo(unsigned int serverNum, int clientSocket, unsig
 		}
 
 	}
-	else if (isConnected == 1)
+	else if (TRANSLATE_STATE::USER_STATE::CONNECTED == isConnected)
 	{
-		// Connected
 		PRINTF("User Connect! \n ");
 		serverInfoIter->userCount++;
 
@@ -470,9 +465,8 @@ void AgentApp::SaveDeltaUserInfo(unsigned int serverNum, int clientSocket, unsig
 		serverInfoIter->userInfoList.push_back(user);
 
 	}
-	else if (isConnected == 2)
+	else if (TRANSLATE_STATE::USER_STATE::JOIN == isConnected)
 	{
-		// Join
 		PRINTF("User Join! \n ");
 		auto userIter = std::find_if(serverInfoIter->userInfoList.begin(),
 			serverInfoIter->userInfoList.end(),
@@ -484,9 +478,8 @@ void AgentApp::SaveDeltaUserInfo(unsigned int serverNum, int clientSocket, unsig
 		memcpy(userIter->userName, nickName, NICK_SIZE);
 
 	}
-	else if (isConnected == 3)
+	else if (TRANSLATE_STATE::USER_STATE::LEAVE == isConnected)
 	{
-		// Leave
 		PRINTF("User Leave! \n ");
 
 		auto userIter = std::find_if(serverInfoIter->userInfoList.begin(),
@@ -504,38 +497,11 @@ void AgentApp::SaveDeltaUserInfo(unsigned int serverNum, int clientSocket, unsig
 		PRINTF("ERROR : NOT VALID\n");
 	}
 
-	LeaveCriticalSection(&serverLock);
-}
-
-void AgentApp::SaveDeltaInterSeverInfo(unsigned short serverNum, bool isConnected)
-{
-	EnterCriticalSection(&serverLock);
-
-	if (isConnected == 0)
-	{
-		/// Disconnected
-		if (mTotalInfoData->serverCnt == 0)
-		{
-			PRINTF("ERROR : already server count is zero\n");
-		}
-		else
-		{
-			mTotalInfoData->serverCnt--;
-			mTotalInfoData->serverNumList.remove(serverNum);
-		}
-	}
-	else if (isConnected == 1)
-	{
-		
-		// Connected
-		mTotalInfoData->serverCnt++;
-		mTotalInfoData->serverNumList.push_back(serverNum);
-
-	}
 
 
 	LeaveCriticalSection(&serverLock);
 }
+
 void AgentApp::SaveTotalRoomInfo(unsigned short roomCnt, RoomInfo* roomInfoList)
 {
 	EnterCriticalSection(&serverLock);
@@ -573,7 +539,7 @@ void AgentApp::SaveTotalServerUserInfo(unsigned int serverNum, unsigned short us
 	bool isExist = false;
 	for (auto& serverInfo : mTotalInfoData->serverUserInfoList)
 	{
-		if ((serverInfo.serverNum == serverNum))
+		if (serverInfo.serverNum == serverNum)
 		{
 			isExist = true;
 			if (serverInfo.userCount != userCnt)
@@ -600,32 +566,6 @@ void AgentApp::SaveTotalServerUserInfo(unsigned int serverNum, unsigned short us
 	LeaveCriticalSection(&serverLock);
 }
 
-void AgentApp::SaveTotalInterServerInfo(unsigned short serverCnt, unsigned short* serverNumList)
-{
-	EnterCriticalSection(&serverLock);
-
-	if (mTotalInfoData->serverCnt == serverCnt)
-	{
-		LeaveCriticalSection(&serverLock);
-		return;
-	}
-	else
-	{
-		if (!mTotalInfoData->serverNumList.empty())
-			mTotalInfoData->serverNumList.clear();
-
-		mTotalInfoData->serverCnt = serverCnt;
-
-		for (int i = 0; i < serverCnt; ++i)
-		{
-
-			mTotalInfoData->serverNumList.push_back(serverNumList[i]);
-
-		}
-	}
-
-	LeaveCriticalSection(&serverLock);
-}
 
 bool AgentApp::DeleteServerInfo(int serverNum)
 {
@@ -659,8 +599,9 @@ bool AgentApp::IsSearchUser(int serverNum, int userSocket)
 	std::list<ServerInfo>& serverInfoList = mTotalInfoData->serverUserInfoList;
 
 	auto findServerIter = std::find_if(serverInfoList.begin(), 
-									serverInfoList.end(),
-									[&](ServerInfo& serverInfo){ return serverInfo.serverNum == serverNum; });
+									   serverInfoList.end(),
+									   [&](ServerInfo& serverInfo){ return serverInfo.serverNum == serverNum; });
+	
 	if (findServerIter == serverInfoList.end())
 	{
 		PRINTF("Failed Search Server Number \n");
@@ -729,16 +670,14 @@ void AgentApp::GenerateTimeWait(int serverNum)
 
 			mMonitoringServerAgent->m_pSock->Send((char*)&pkt, sizeof(agms_generate_server_success));
 			
-
 			HANDLE hProcess = GetProcessInfoHandle(serverNum);
-
 			CloseHandle(hProcess);
 
 			PRINTF("Generate Real Success\n");
 			break;
 		}
 
-		if (sec.count() >= WAIT_TIME)
+		if (WAIT_TIME <= sec.count())
 		{
 			agms_generate_server_fail pkt;
 			pkt.type = msag_pkt_type::pkt_generate_server_fail;

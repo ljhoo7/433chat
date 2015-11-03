@@ -15,8 +15,11 @@ SASocket::~SASocket()
 
 }
 
-void SASocket::HeartbeatCheck() {
-	while (true){
+void SASocket::HeartbeatCheck() 
+{
+	
+	while (true)
+	{
 		if (!inUse) return;
 		beatCheck = false;
 
@@ -27,11 +30,15 @@ void SASocket::HeartbeatCheck() {
 
 		std::this_thread::sleep_for(std::chrono::seconds(5));
 
+		
 		if (!inUse) return;
-		if (beatCheck == false){
+		
+		if (beatCheck == false)
+		{
 			Disconnect();
 			break;
 		}
+	
 	}
 	PRINTF("*** hearth thread end!\n");
 }
@@ -42,11 +49,9 @@ void SASocket::PacketHandling(char* buf)
 
 	sag_room_info_changed			 roomInfoChangedPkt;
 	sag_user_info_changed			 userInfoChangedPkt;
-	//sag_server_info_changed			 serverInfoChangedPkt;
 	sag_total_room_info*			 totalRoomInfoPkt;
 	sag_total_user_info*			 totalUserInfoPkt;
 	sag_health_ack					 healthAckPkt;
-	//sag_total_interserver_info*		 totalInterServerInfoPkt;
 
 	switch (eType)
 	{
@@ -70,14 +75,6 @@ void SASocket::PacketHandling(char* buf)
 
 
 		break;
-	/*case sag_pkt_type::pt_server_info_changed:
-		PRINTF("sag_pkt_type::pt_server_info_changed \n");
-
-		serverInfoChangedPkt = *((sag_server_info_changed*)(buf));
-
-		AgentApp::Instance()->SaveDeltaInterSeverInfo(serverInfoChangedPkt.serverNum, serverInfoChangedPkt.isConnected);
-
-		break;*/
 	case sag_pkt_type::pt_total_room_info:
 		PRINTF("sag_pkt_type::pt_total_room_info \n");
 
@@ -96,18 +93,11 @@ void SASocket::PacketHandling(char* buf)
 		PRINTF("sag_pkt_type::pt_health_ack \n");
 
 		healthAckPkt = *((sag_health_ack*)(buf));
-		//AgentApp::Instance()->SaveTotalServerUserInfo(mServerNum, totalUserInfoPkt->userCnt, totalUserInfoPkt->userInfoList);
 
 		beatCheck = true;
 		break;
 
-	/*case sag_pkt_type::pt_total_interserver_info:
-		PRINTF("sag_pkt_type::pt_total_interserver_info \n");
-
-		totalInterServerInfoPkt = (sag_total_interserver_info*)(buf);
-		AgentApp::Instance()->SaveTotalInterServerInfo(totalInterServerInfoPkt->serverCnt, totalInterServerInfoPkt->serverNumList);
-
-		break;*/
+	
 
 	}
 
@@ -129,8 +119,6 @@ void SASocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred)
 
 	mPosition += bytes_transferred;
 	mRemainBytes -= bytes_transferred;
-
-	//PRINTF("Server to Agent Packet Received %d bytes! \n",m_nRemainBytes);
 
 	char *buf = this->recvBuf_;
 
@@ -156,14 +144,9 @@ void SASocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred)
 				mRemainBytes = sizeof(sag_user_info_changed)-HEADER_SIZE;
 
 				break;
-			//case sag_pkt_type::pt_server_info_changed:
-			//	PRINTF("pt_server_info_changed\n");
-			//	mRemainBytes = sizeof(sag_server_info_changed)-HEADER_SIZE;
-			//
-			//	break;
+			
 			case sag_pkt_type::pt_total_room_info:
 			case sag_pkt_type::pt_total_user_info:
-			//case sag_pkt_type::pt_total_interserver_info:
 				mIsVar = true;
 				mRemainBytes = sizeof(short);
 				break;
@@ -188,22 +171,14 @@ void SASocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred)
 				switch (eType)
 				{
 				case sag_pkt_type::pt_total_room_info:
+					mRemainBytes = cnt * sizeof(RoomInfo);
 					
-					//PRINTF("m_nRemainBytes %d /sag_pkt_type::pt_total_room_info \n", mRemainBytes);
-					mRemainBytes = cnt*sizeof(RoomInfo);
 					break;
 				case sag_pkt_type::pt_total_user_info:
-					
-					//PRINTF("m_nRemainBytes %d /sag_pkt_type::pt_total_user_info \n", mRemainBytes);
-					mRemainBytes = cnt*sizeof(UserInfo);
+					mRemainBytes = cnt * sizeof(UserInfo);
 
 					break;
-				//case sag_pkt_type::pt_total_interserver_info:
-				//	
-				//	//PRINTF("m_nRemainBytes %d /sag_pkt_type::pt_total_interserver_info \n", mRemainBytes);
-				//	mRemainBytes = cnt * sizeof(unsigned short);
-				//
-				//	break;
+			
 				}
 				mIsVar = false;
 
@@ -223,18 +198,14 @@ void SASocket::RecvProcess(bool isError, Act* act, DWORD bytes_transferred)
 			}
 		}
 		this->Recv(buf + mPosition, mRemainBytes);
-
 	}
 }
 void SASocket::AcceptProcess(bool isError, Act* act, DWORD bytes_transferred)
 {
-	
 	if (!isError)
 	{
 		inUse = true;
 		PRINTF("Connect Server Success, %d\n", this->socket_);
-
-		
 
 		memcpy(&mServerNum, this->acceptBuf_, sizeof(mServerNum));
 		PRINTF("Server Number : %d \n", mServerNum);

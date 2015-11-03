@@ -1,12 +1,8 @@
 
-#define CRTDBG_MAP_ALLOC 
+//#define CRTDBG_MAP_ALLOC 
 #include "stdafx.h"
-#include <crtdbg.h>
+//#include <crtdbg.h>
 
-#ifdef _DEBUG
-#define new new( _NORMAL_BLOCK, __FILE__, __LINE__ )   
-
-#endif
 int _tmain(int argc, _TCHAR* argv[])
 {
 	if (argc != 4)
@@ -37,7 +33,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 	
 	AgentApp::Instance()->Destroy();
-	_CrtDumpMemoryLeaks();
+	
+	//_CrtDumpMemoryLeaks();
 	return 0;
 }
 

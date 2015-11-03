@@ -41,7 +41,6 @@ public:
 	unsigned int		   GetMServerPort() { return mMonitoringServerPort; }
 	DWORD				   GetMServerIP()   { return mMonitoringServerIP; }
 						   
-	TotalInfo*			   GetTotalInfoData(); 
 	
 
 public:
@@ -64,16 +63,16 @@ public:
 	/************** Total Data Managed Function ****************/
 	void				   SaveDeltaRoomInfo(unsigned short roomNum, bool isState);
 	void				   SaveDeltaUserInfo(unsigned int serverNum, int clientSocket, unsigned short roomNum, char* nickName, char isConnected);
-	void				   SaveDeltaInterSeverInfo(unsigned short serverNum, bool isConnected);
 						   
 	void				   SaveTotalRoomInfo(unsigned short roomCnt, RoomInfo* roomInfoList);
 	void				   SaveTotalServerUserInfo(unsigned int serverNum ,unsigned short userCnt, UserInfo* userInfoList);
-	void				   SaveTotalInterServerInfo(unsigned short serverCnt, unsigned short* serverNumList);
 						   
 	bool				   DeleteServerInfo(int serverNum);
 
 	bool				   IsSearchUser(int serverNum, int userSocket);
 	bool				   IsSearchRoom(unsigned short roomNum);
+	
+	TotalInfo*			   GetTotalInfoData(); 
 
 private:
 	bool				     mIsExit;

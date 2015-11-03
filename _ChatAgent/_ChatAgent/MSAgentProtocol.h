@@ -25,10 +25,10 @@ enum msag_pkt_type
 	pkt_generate_server
 };
 
+
 /*
 * Agent -> Monitoring Server
 */
-
 #pragma pack(1)
 typedef struct{
 	unsigned short type;
@@ -94,10 +94,10 @@ typedef struct{
 	unsigned short failSignal;
 }agms_generate_server_fail;
 
+
 /*
 * Monitoring Server -> Agent
 */
-
 #pragma pack(1)
 typedef struct{
 	unsigned short type;

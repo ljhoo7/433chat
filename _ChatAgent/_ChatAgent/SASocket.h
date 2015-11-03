@@ -24,7 +24,6 @@ public:
 	void HeartbeatCheck();
 
 public:
-
 	int			 mServerNum;
 	int			 mPosition;
 	int			 mRemainBytes;

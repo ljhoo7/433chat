@@ -3,24 +3,22 @@
 
 MServerAgent::MServerAgent(int p_nThreadPoolSize, int p_nSocketPoolSize)
 :WinSockBase(),
-m_nThreadPoolSize(p_nThreadPoolSize),
-m_nSocketPoolSize(p_nSocketPoolSize),
-isUse(false),
-isVar(false)
+ m_nThreadPoolSize(p_nThreadPoolSize),
+ m_nSocketPoolSize(p_nSocketPoolSize),
+ m_nPosition(0),
+ m_nRemainBytes(HEADER_SIZE),
+ isUse(false),
+ isVar(false)
 {
 	InitializeCriticalSectionAndSpinCount(&IOLock, 4000);
 
+	mProactor				= new Proactor(p_nThreadPoolSize);
+	mConnector			    = new Connector(mProactor);
+	mDisconnector			= new Disconnector(mProactor);
+	mReceiver			    = new Receiver(mProactor);
+	mSender					= new Sender(mProactor);
 
-	mProactor = new Proactor(p_nThreadPoolSize);
-	mConnector = new Connector(mProactor);
-	mDisconnector = new Disconnector(mProactor);
-	mReceiver = new Receiver(mProactor);
-	mSender = new Sender(mProactor);
-
-	m_pSock = new MSASocket(static_cast<MServerAgent*>(this));
-
-	m_nPosition = 0;
-	m_nRemainBytes = HEADER_SIZE;
+	m_pSock					= new MSASocket(static_cast<MServerAgent*>(this));
 
 	m_pSock->Init();
 	m_pSock->InitAct(mProactor,
@@ -61,8 +59,6 @@ void MServerAgent::PacketHandling(char* buf)
 	msag_generate_server			 generateServerPkt;
 	msag_kill_server				 killServerPkt;
 	
-	// after received AGENT -> MONITORING SERVER
-
 	switch (eType)
 	{
 	case msag_pkt_type::pkt_user_out:
@@ -88,7 +84,7 @@ void MServerAgent::PacketHandling(char* buf)
 	case msag_pkt_type::pkt_total_request:
 		PRINTF("Send Total Data\n");
 		SendTotalData();
-		/// MS가 TOTAL을 요청할때
+		
 		break;
 
 	}
@@ -99,7 +95,7 @@ void MServerAgent::SendUserOut(int serverNum, int userSocket)
 
 	if (isSearch)
 	{
-		// 성공시 서버로 Send 
+		// Success, Send Server
 		ags_user_out serverPkt;
 		serverPkt.type = sag_pkt_type::pt_user_out;
 		serverPkt.userSocket = userSocket;
@@ -112,12 +108,13 @@ void MServerAgent::SendUserOut(int serverNum, int userSocket)
 
 		agms_user_out_success mserverPkt;
 		mserverPkt.type = msag_pkt_type::pkt_user_out_success;
+		
 		PRINTF("Send to Monitoring Server User Out Success Packet\n");
 		m_pSock->Send((char*)&mserverPkt, sizeof(agms_user_out_success));
 	}
 	else
 	{
-		// 실패시 모니터링 서버로 리턴
+		// Failed, Return Monitoring Server
 		agms_user_out_fail pkt;
 		pkt.type = msag_pkt_type::pkt_user_out_fail;
 		pkt.failSignal = fail_signal::fs_no_exist;
@@ -134,7 +131,7 @@ void MServerAgent::SendRoomDestroy(int roomNum)
 
 	if (isSearch)
 	{
-		// 성공시 서버로 Send 
+		// Success, Send Server
 		ags_room_destroy serverPkt;
 		serverPkt.type = sag_pkt_type::pt_room_destroy;
 		serverPkt.roomNum = roomNum;
@@ -151,8 +148,8 @@ void MServerAgent::SendRoomDestroy(int roomNum)
 	}
 	else
 	{
+		// Failed, Return Monitoring Server
 		agms_room_destroy_fail pkt;
-		// 실패시 모니터링 서버로 리턴
 		
 		pkt.type = msag_pkt_type::pkt_room_destroy_fail;
 		pkt.failSignal = fail_signal::fs_no_exist;
@@ -167,20 +164,19 @@ void MServerAgent::SendGenerateServer()
 {
 	unsigned int serverCount = AgentApp::Instance()->GetServerCount();
 
-	if (serverCount == 0)
+	if (0 == serverCount)
 	{
 		bool isGenerate = AgentApp::Instance()->GenerateServerProcess();
 
 		if (isGenerate)
 		{
-			//PRINTF("Generate Server Success\n");
+			PRINTF("Real Generate Server Success\n");
 
 		}
 		else
 		{
-			//PRINTF("Generate Server Failed\n");
+			PRINTF("Real Generate Server Failed\n");
 		}
-
 	}
 	else
 	{
@@ -202,7 +198,7 @@ void MServerAgent::SendKillServer(int serverNum)
 
 	if (pServerSocket)
 	{
-		// 성공시 서버로 Send, MS로 Success 패킷 리턴
+		// Success, Send Server
 		PRINTF("Success Find Server \n");
 		
 		ags_kill_server serverPkt;
@@ -214,7 +210,7 @@ void MServerAgent::SendKillServer(int serverNum)
 	}
 	else
 	{
-		// 실패시 MS로 Fail 패킷 리턴
+		// Failed, Send Monitoring Server
 		PRINTF("Failed Find Server \n");
 
 		agms_kill_server_fail pkt;
