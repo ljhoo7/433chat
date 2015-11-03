@@ -54,7 +54,6 @@ public class CommandController {
 	@RequestMapping(value = "/destroy/{roomNum}", method = RequestMethod.GET)
 	public String destroyRoom(ModelAndView mav, @PathVariable String roomNum, HttpServletRequest request) {
 		Client.getInstance().msag_room_destroy((short) 1, Short.parseShort(roomNum));
-		System.out.println(roomNum);
 
 		return "return";
 	}
