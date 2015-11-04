@@ -317,6 +317,11 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 			pkt_type t_eType = (pkt_type)((unsigned short)(*buf));
 			
 			State<CClient> *t_pState = g_pClient->GetStateMachine()->CurrentState();
+			if (NULL == t_pState)
+			{
+				g_pLog->myWprintf(L"t_pState is NULL in Recevier's ProcEvent !\n");
+				exit(1);
+			}
 
 			if (pkt_type::pt_user_out == t_eType)
 			{
@@ -507,5 +512,5 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 }
 void CReceiver::ProcError(CAct *p_pAct, DWORD p_dwError)
 {
-
+	g_pLog->myWprintf(L"error! Receiver's ProError!\n");
 }

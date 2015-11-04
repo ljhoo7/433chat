@@ -14,17 +14,30 @@ int _tmain(int argc, _TCHAR* argv[])
 	g_bExitSignal = false;
 
 	SYSTEM_INFO si;
+	memset((void*)&si, 0, sizeof(SYSTEM_INFO));
 	GetSystemInfo(&si);
 
 	int t_nCPUs = (int)si.dwNumberOfProcessors;
 
+	if (0 == t_nCPUs)
+	{
+		g_pLog->myWprintf(L"error ! t_nCPUs is zero in main !!!\n");
+		return 1;
+	}
+
 	g_pLog = new CLogWriter(L"ClientLog.log", t_nCPUs);
+
+	if (NULL == g_pLog)
+	{
+		g_pLog->myWprintf(L"g_pLog is NULL in main !\n");
+		return 1;
+	}
 
 	if (argc != 3)
 	{
 		g_pLog->myWprintf(L"The Number of Parameters is error !\n");
 
-		exit(0);
+		return 1;
 	}
 
 	t_nPort = _wtoi(argv[2]);
@@ -33,10 +46,17 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		g_pLog->myWprintf(L"The port number is invalid !\n");
 
-		exit(0);
+		return 1;
 	}
 
 	g_dwIp = _tinet_addr(argv[1]);
+
+	if (INADDR_NONE == g_dwIp)
+	{
+		g_pLog->myWprintf(L"g_dwIp is invalid !!\n");
+
+		return 1;
+	}
 
 	WSADATA wsaData;
 
@@ -82,7 +102,18 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	g_pClient = new CClient(t_nCPUs * 2);
 
-	g_pClient->Init();
+	if (NULL == g_pClient)
+	{
+		g_pLog->myWprintf(L"g_pClient is NULL in main !\n");
+		return 1;
+	}
+
+	bool t_bRetval = g_pClient->Init();
+	if (!t_bRetval)
+	{
+		g_pLog->myWprintf(L"g_pClient->Init return value is false in main !\n");
+		return 1;
+	}
 
 	std::string tmpStr, subStr;
 	int t_nTmpRoomNum, t_nRetVal;
