@@ -18,9 +18,6 @@
     <Filter Include="헤더 파일\ProActor">
       <UniqueIdentifier>{d5db8949-e97c-407c-bfc8-1bb10f5c1f60}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Act">
-      <UniqueIdentifier>{84ae0c23-4d70-4603-afa7-ec2d36b9753c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="헤더 파일\Act">
       <UniqueIdentifier>{f0bf15e2-1a9e-4d2c-8b32-54e0d25aed39}</UniqueIdentifier>
     </Filter>
@@ -30,14 +27,8 @@
     <Filter Include="헤더 파일\ProActor\TheChildrenOfActor">
       <UniqueIdentifier>{b5574984-4f91-427b-b3f1-96fbc4267d7f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Bot">
-      <UniqueIdentifier>{17e27fe5-4bcc-447c-b975-be71219b1648}</UniqueIdentifier>
-    </Filter>
     <Filter Include="헤더 파일\Bot">
       <UniqueIdentifier>{fca58975-10be-430a-8322-cdb03850f2e2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="LogWriter">
-      <UniqueIdentifier>{cf2343ea-f12e-438f-ba78-49ea93f40d35}</UniqueIdentifier>
     </Filter>
     <Filter Include="헤더 파일\LogWriter">
       <UniqueIdentifier>{8ddf3303-8849-4690-b1ca-cdda21a5bb8d}</UniqueIdentifier>
@@ -47,6 +38,15 @@
     </Filter>
     <Filter Include="헤더 파일\StatePattern">
       <UniqueIdentifier>{6481edcf-498e-4578-a11e-7cfec8e0f93d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Act">
+      <UniqueIdentifier>{84ae0c23-4d70-4603-afa7-ec2d36b9753c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Bot">
+      <UniqueIdentifier>{17e27fe5-4bcc-447c-b975-be71219b1648}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\LogWriter">
+      <UniqueIdentifier>{cf2343ea-f12e-438f-ba78-49ea93f40d35}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -122,16 +122,16 @@
       <Filter>소스 파일\ProActor\TheCildrenOfActor</Filter>
     </ClCompile>
     <ClCompile Include="Act.cpp">
-      <Filter>Act</Filter>
+      <Filter>소스 파일\Act</Filter>
     </ClCompile>
     <ClCompile Include="Actor.cpp">
       <Filter>소스 파일\ProActor</Filter>
     </ClCompile>
     <ClCompile Include="Bot.cpp">
-      <Filter>Bot</Filter>
+      <Filter>소스 파일\Bot</Filter>
     </ClCompile>
     <ClCompile Include="LogWriter.cpp">
-      <Filter>LogWriter</Filter>
+      <Filter>소스 파일\LogWriter</Filter>
     </ClCompile>
     <ClCompile Include="Proactor.cpp">
       <Filter>소스 파일\ProActor</Filter>
@@ -140,10 +140,10 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="MessageSendFunctions.cpp">
-      <Filter>Act</Filter>
+      <Filter>소스 파일\Act</Filter>
     </ClCompile>
     <ClCompile Include="BotStates.cpp">
-      <Filter>Bot</Filter>
+      <Filter>소스 파일\Bot</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

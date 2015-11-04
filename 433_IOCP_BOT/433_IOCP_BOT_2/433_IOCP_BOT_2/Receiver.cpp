@@ -25,7 +25,7 @@ bool CreateFailureFunc(PVOID p_pParam)
 	t_create_failure *t_sCreateFail = (t_create_failure*)t_pBot->m_szReceiveBuf;
 
 	t_pBot->GetStateMachine()->ChangeState(CLobby::Instance());
-
+	 
 	g_pLog->myWprintf("[error] Room Creation Failed !\n");
 	PrintFailSignal((fail_signal)t_sCreateFail->fail_signal);
 
@@ -313,6 +313,12 @@ void CReceiver::ProcError(CAct *p_pAct, DWORD p_dwError)
 
 void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 {
+	if (NULL == p_pAct)
+	{
+		g_pLog->myWprintf("Error! the p_pAct is NULL in ProcEvent function ! \n");
+		exit(1);
+	}
+
 	CBot	&t_cBot = *p_pAct->m_pBot;
 	SOCKET	&t_hSock = p_pAct->m_pBot->m_hSock;
 	if (0 == p_dwTransferredBytes)
@@ -337,6 +343,10 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 			pkt_type t_eType = (pkt_type)((unsigned short)(*buf));
 
 			State<CBot> *t_pState = t_cBot.GetStateMachine()->CurrentState();
+			if (NULL == t_pState)
+			{
+				g_pLog->myWprintf("error! t_pState is NULL in the ProcEvent of CReceiver !\n");
+			}
 
 			if (pkt_type::pt_user_out == t_eType)
 			{
@@ -353,7 +363,7 @@ void CReceiver::ProcEvent(CAct *p_pAct, DWORD p_dwTransferredBytes)
 			}
 			else if (pkt_type::pt_cs_health_check == t_eType)
 			{
-				g_pLog->myWprintf("pt_health_check\n");
+				//g_pLog->myWprintf("pt_health_check\n");
 				t_nRemain = sizeof(t_health_check)-HEADER_SIZE;
 				t_cBot.m_eType = pkt_type::pt_cs_health_check;
 				//g_pClient->m_hOldSock = p_pAct->m_pSock->m_hSock;
