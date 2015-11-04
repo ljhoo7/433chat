@@ -62,5 +62,4 @@ public:
 	Sender*			sender_;
 	Receiver*		receiver_;
 	Connector*		connector_;
-
 };

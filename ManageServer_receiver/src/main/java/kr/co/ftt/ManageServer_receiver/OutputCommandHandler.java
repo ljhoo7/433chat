@@ -23,9 +23,7 @@ public class OutputCommandHandler {
 	byte[] byteArrUser=new byte[22];
 	byte[] byteArrInterserver=new byte[8];
 	byte[] byteArrAgentNum=new byte[2];
-	////
 	
-	short obj_cnt;
 	CPacket msg=new CPacket();
 	
 	private static OutputCommandHandler instance;
@@ -40,12 +38,12 @@ public class OutputCommandHandler {
 		return instance;
 	}
 	
-	public void user_out(int server_num,int client_socket,OutputStream os){
+	public void user_out(int serverNum,int clientSocket,OutputStream os){
 		msg=new CPacket();
 		msg.push(user_out);
 
-		msg.push(server_num);
-		msg.push(client_socket);
+		msg.push(serverNum);
+		msg.push(clientSocket);
 		try {
 			os.write(msg.buffer,0,TYPE_SIZE+INT_SIZE+INT_SIZE);
 			os.flush();
@@ -54,10 +52,10 @@ public class OutputCommandHandler {
 		}
 	}
 	
-	public void room_destroy (short room_num,OutputStream os){
+	public void room_destroy (short roomNum,OutputStream os){
 		msg=new CPacket();
 		msg.push(room_destroy);
-		msg.push(room_num);
+		msg.push(roomNum);
 		try {
 			for(int i=0;i<TYPE_SIZE+SHORT_SIZE;i++){
 				System.out.println(msg.buffer[i]);
@@ -69,10 +67,10 @@ public class OutputCommandHandler {
 		}
 	}
 	
-	public void kill_server (int server_num,OutputStream os){
+	public void kill_server (int serverNum,OutputStream os){
 		msg=new CPacket();
 		msg.push(kill_server);
-		msg.push(server_num);
+		msg.push(serverNum);
 		try {
 			os.write(msg.buffer,0,TYPE_SIZE+INT_SIZE);
 			os.flush();

@@ -10,6 +10,7 @@
 
 #ifdef _DEBUG
 #define MYDEF
+#define HEARTBEAT
 #else
 
 #endif

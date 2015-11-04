@@ -23,7 +23,6 @@ public:
 	bool							isUse;
 	bool							isVar;
 
-	long long						m_llAccumTime;
 
 
 	CRITICAL_SECTION		        IOLock;
@@ -32,24 +31,24 @@ public:
 	MServerAgent(int p_nThreadPoolSize, int p_nSocketPoolSize = 1);
 	virtual ~MServerAgent();
 
+public:
 	void RecvProcess(bool isError, Act* act, DWORD bytes_transferred);
 	void SendProcess(bool isError, Act* act, DWORD bytes_transferred);
 	void DisconnProcess(bool isError, Act* act, DWORD bytes_transferred);
 	void ConnProcess(bool isError, Act* act, DWORD bytes_transferred);
-
+		 
 	void PacketHandling(char* buf);
-
+		 
 	void SendUserOut(int serverNum, int userSocket);
 	void SendRoomDestroy(int roomNum);
 	void SendGenerateServer();
 	void SendKillServer(int serverNum);
-
+		 
 	void SendTotalData();
 	void SendServerCount();
 	void SendServerInfo();
 	void SendRoomInfo();
-	//void SendInterServerInfo();
-
+		 
 	void Connect(DWORD ip, WORD port);
 
 };

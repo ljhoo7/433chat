@@ -34,9 +34,8 @@ public class IndexController {
 		
 		DataManager.getInstance().setTemplate(template);
 		
-		while(true){
+		while(true){ //wait for gettable state
 			String recvState=DataManager.getInstance().selectToRecvState("select * from state");
-
 			if(Integer.parseInt(recvState)==0){
 				try {
 					Thread.sleep(50);
@@ -46,6 +45,8 @@ public class IndexController {
 				break;
 			}
 		}
+		
+		//get detailed data
 		
 		String serverCnt = DataManager.getInstance().selectToCount("select count(*) from (SELECT * FROM manage.serverinfo where serverinfo_timestamp =(SELECT timestampinfo_date FROM timestampinfo ORDER BY timestampinfo_date DESC LIMIT 1) group by serverinfo_servernum)a;");
 		String userCnt = DataManager.getInstance().selectToCount("select count(*) from manage.userinfo where userinfo_timestamp =(SELECT timestampinfo_date FROM timestampinfo ORDER BY timestampinfo_date DESC LIMIT 1)");
@@ -64,45 +65,45 @@ public class IndexController {
 		overview[2]=roomCnt;//room
 		overview[3]=agentCnt;//Agent
 		
-		//agentName
+		//for each agentName
 		List<Map<String, Object>> agentNameList = DataManager.getInstance().selectToList("SELECT agentinfo_agentnum FROM manage.agentinfo where agentinfo_timestamp =(SELECT timestampinfo_date FROM timestampinfo ORDER BY timestampinfo_date DESC LIMIT 1) group by agentinfo_agentnum");
 		for(int i=0;i<Integer.parseInt(agentCnt);i++){
 			agentName[i]=agentNameList.get(i).get("agentinfo_agentnum").toString();			
 			
-			//serverList
+			//get serverList
 			List<Map<String, Object>> serverNameList = DataManager.getInstance().selectToList("SELECT serverinfo_servernum FROM manage.serverinfo where serverinfo_timestamp =(SELECT timestampinfo_date FROM timestampinfo ORDER BY timestampinfo_date DESC LIMIT 1) and serverinfo_agentname = "+agentName[i]+" group by serverinfo_servernum");
-			int j=1; //0은 총 숫자
+			int j=1; //serverList[i][0] is total count number
 			for(Map<String, Object> server : serverNameList){
 				serverList[i][j++]=server.get("serverinfo_servernum").toString();
 			}
 			serverList[i][0]=(j-1)+"";
 
-			//userList
+			//get userList
 			List<Map<String, Object>> userNameList = DataManager.getInstance().selectToList("SELECT userinfo_nickname FROM manage.userinfo where userinfo_timestamp =(SELECT timestampinfo_date FROM timestampinfo ORDER BY timestampinfo_date DESC LIMIT 1) and userinfo_agent_num = "+agentName[i]);
-			j=1; //0은 총 숫자
+			j=1; //userList[i][0] is total count number
 			for(Map<String, Object> user : userNameList){
 				userList[i][j++]=user.get("userinfo_nickname").toString();
 			}
 			userList[i][0]=(j-1)+"";
 
-			//clientSocket
+			//get clientSocket
 			List<Map<String, Object>> clientSocketList = DataManager.getInstance().selectToList("SELECT userinfo_client_socket FROM manage.userinfo where userinfo_timestamp =(SELECT timestampinfo_date FROM timestampinfo ORDER BY timestampinfo_date DESC LIMIT 1) and userinfo_agent_num = "+agentName[i]);
-			j=1; //0은 총 숫자
+			j=1; //clientSocket[i][0] is total count number
 			for(Map<String, Object> user : clientSocketList){
 				clientSocket[i][j++]=user.get("userinfo_client_socket").toString();
 			}
 			clientSocket[i][0]=(j-1)+"";
 
-			//clientServer
+			//get clientServer
 			List<Map<String, Object>> clientServerList = DataManager.getInstance().selectToList("SELECT userinfo_server_num FROM manage.userinfo where userinfo_timestamp =(SELECT timestampinfo_date FROM timestampinfo ORDER BY timestampinfo_date DESC LIMIT 1) and userinfo_agent_num = "+agentName[i]);
-			j=1; //0은 총 숫자
+			j=1; //clientServer[i][0] is total count number
 			for(Map<String, Object> user : clientServerList){
 				clientServer[i][j++]=user.get("userinfo_server_num").toString();
 			}
 			clientServer[i][0]=(j-1)+"";
 		}
 
-		// 전체정보 받아오는 부분
+		//get total data
 		String[] allServer = new String[Integer.parseInt(serverCnt)];
 		String[] allRoomname = new String[Integer.parseInt(roomCnt)];
 		String[][] allUser = new String[Integer.parseInt(roomCnt)][Integer.parseInt(userCnt)+1];
@@ -114,6 +115,7 @@ public class IndexController {
 		}
 		List<Map<String, Object>> allRoomList = DataManager.getInstance().selectToList("SELECT roominfo_room_num FROM manage.roominfo where roominfo_timestamp =(SELECT timestampinfo_date FROM timestampinfo ORDER BY timestampinfo_date DESC LIMIT 1) group by roominfo_room_num");
 		
+		//for each roomname
 		for(int roomIndex=0;roomIndex<Integer.parseInt(roomCnt);roomIndex++){
 			allRoomname[roomIndex]=allRoomList.get(roomIndex).get("roominfo_room_num")+"";
 			
@@ -125,7 +127,7 @@ public class IndexController {
 			allUser[roomIndex][0]=(userIndex-1)+"";			
 		}
 		
-		//notify
+		//get notify
 		List<Map<String, Object>> notifyList = DataManager.getInstance().selectToList("SELECT * FROM notification ORDER BY notification_timestamp DESC LIMIT 10");
 		
 		String[][] notify = new String[11][3];

@@ -1,4 +1,7 @@
+
+//#define CRTDBG_MAP_ALLOC 
 #include "stdafx.h"
+//#include <crtdbg.h>
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -24,13 +27,14 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	AgentApp::Instance()->Init(agentPort, gMonitoringServerIP, gMonitoringServerPort);
 	
-	while (TRUE)
+	while (!(AgentApp::Instance()->IsExit()))
 	{
 		AgentApp::Instance()->Run();
 	}
 	
 	AgentApp::Instance()->Destroy();
-
+	
+	//_CrtDumpMemoryLeaks();
 	return 0;
 }
 

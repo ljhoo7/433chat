@@ -251,6 +251,8 @@ void ChatServer::Start(){
 }
 
 void ChatServer::EndServer(){
+	closesocket(clientServer->listenSocket_.socket_);
+	closesocket(interServer->listenSocket_.socket_);
 	if (GetUserCnt(serverNum) > 0){
 		PRINT("Escaping All Users to other Server...\n");
 		clientServer->EscapingAllUsers();

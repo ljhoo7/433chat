@@ -16,15 +16,14 @@ public:
 	void DisconnProcess(bool isError, Act* act, DWORD bytes_transferred);
 	void ConnProcess(bool isError, Act* act, DWORD bytes_transferred);
 
+	
+public:
+	bool inUse;
+	std::thread heartbeatThread;
+	bool beatCheck;
 	void HeartbeatCheck();
 
 public:
-	bool		 inUse;
-	std::thread	 heartbeatThread;
-	bool		 beatCheck;
-	
-public:
-
 	int			 mServerNum;
 	int			 mPosition;
 	int			 mRemainBytes;

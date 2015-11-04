@@ -1,7 +1,7 @@
 package kr.co.ftt.ManageServer_receiver;
- 
- 
-import java.util.ArrayList;
+
+import java.util.LinkedList;
+import java.util.List;
  
 public class ServerThreadPool {
 	private static int agentNum=0;
@@ -10,18 +10,18 @@ public class ServerThreadPool {
 		return ++agentNum;
 	}
 	
-    public static ArrayList<ServerThread> arrayList = new ArrayList<ServerThread>();
+    public static List<ServerThread> threadList = new LinkedList<ServerThread>();
      
     public static void add(ServerThread thread){
-        arrayList.add(thread);
+    	threadList.add(thread);
     }
      
     public static void remove(ServerThread thread){
-            arrayList.remove(thread);
+    	threadList.remove(thread);
     }
     
     public static ServerThread getServerThread(String agentName){
-    	for(ServerThread thread: arrayList){
+    	for(ServerThread thread: threadList){
     		if(thread.getAgentName().equals(agentName)){
     			return thread;
     		}
