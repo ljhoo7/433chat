@@ -21,6 +21,7 @@ AgentApp::~AgentApp()
 	DeleteCriticalSection(&serverLock);
 }
 
+
 void AgentApp::Init(unsigned short agentPort, DWORD ip, unsigned int port)
 {
 	mMonitoringServerIP   = ip;
@@ -39,6 +40,7 @@ void AgentApp::Init(unsigned short agentPort, DWORD ip, unsigned int port)
 
 	mServerAgent->Run();
 }
+
 
 void AgentApp::Destroy()
 {
@@ -68,6 +70,7 @@ void AgentApp::Destroy()
 		}
 	}
 }
+
 
 void AgentApp::Run()
 {
@@ -129,6 +132,8 @@ void AgentApp::Run()
 		mIsExit = true;
 	}
 }
+
+
 bool AgentApp::GenerateServerProcess()
 {
 	bool isAllAlive = false;
@@ -243,6 +248,7 @@ TotalInfo* AgentApp::GetTotalInfoData()
 	else				return nullptr;
 }
 
+
 void AgentApp::AddServer(SASocket* pSocket)
 {
 	EnterCriticalSection(&serverLock);
@@ -256,12 +262,17 @@ void AgentApp::AddServer(SASocket* pSocket)
 	LeaveCriticalSection(&serverLock);
 }
 
+
 void AgentApp::DeleteServer(SASocket* pSocket)
 {
 	EnterCriticalSection(&serverLock);
+
 	mServerSocketList.remove(pSocket);
+
 	LeaveCriticalSection(&serverLock);
 }
+
+
 SASocket* AgentApp::FindServer(int serverNum)
 {
 	EnterCriticalSection(&serverLock);
@@ -286,7 +297,7 @@ bool AgentApp::IsProcessConnected(int serverNum)
 {
 	EnterCriticalSection(&serverLock);
 
-	for (auto& processInfo : mProcessCheckList)
+	for (const auto& processInfo : mProcessCheckList)
 	{
 		if (processInfo.serverNum == serverNum)
 		{
@@ -307,7 +318,7 @@ void AgentApp::DeleteProcessInfo(int serverNum)
 
 	auto findProcessIter = std::find_if(mProcessCheckList.begin(),
 		mProcessCheckList.end(),
-		[&](ProcessInfo& processInfo){ return processInfo.serverNum == serverNum; });
+		[&](const ProcessInfo& processInfo){ return processInfo.serverNum == serverNum; });
 
 
 	if (findProcessIter == mProcessCheckList.end())
@@ -325,11 +336,11 @@ void AgentApp::DeleteProcessInfo(int serverNum)
 	return;
 
 }
-HANDLE&	AgentApp::GetProcessInfoHandle(int serverNum)
+const HANDLE& AgentApp::GetProcessInfoHandle(int serverNum)
 {
 	EnterCriticalSection(&serverLock);
 
-	for (auto& processInfo : mProcessCheckList)
+	for (const auto& processInfo : mProcessCheckList)
 	{
 		if (processInfo.serverNum == serverNum)
 		{
@@ -345,7 +356,6 @@ void AgentApp::SetProcessConnected(int serverNum, bool connected)
 {
 	EnterCriticalSection(&serverLock);
 
-
 	for (auto& processInfo : mProcessCheckList)
 	{
 		if (processInfo.serverNum == serverNum)
@@ -360,7 +370,7 @@ void AgentApp::SetProcessConnected(int serverNum, bool connected)
 	LeaveCriticalSection(&serverLock);
 }
 
-void AgentApp::AddProcessInfo(int serverNum, bool connected, HANDLE hProcess)
+void AgentApp::AddProcessInfo(int serverNum, bool connected, const HANDLE& hProcess)
 {
 	EnterCriticalSection(&serverLock);
 	
@@ -393,7 +403,7 @@ void AgentApp::SaveDeltaRoomInfo(unsigned short roomNum, bool isState)
 		else
 		{
 			mTotalInfoData->roomCnt--;
-			mTotalInfoData->roomInfoList.remove_if([&](RoomInfo& room){
+			mTotalInfoData->roomInfoList.remove_if([&](const RoomInfo& room){
 				return room.roomNum == roomNum;
 			});
 		}
@@ -414,7 +424,7 @@ void AgentApp::SaveDeltaUserInfo(unsigned int serverNum, int clientSocket, unsig
 
 	auto serverInfoIter = std::find_if(serverInfoList.begin(), 
 		serverInfoList.end(), 
-		[&](ServerInfo& serverInfo){
+		[&](const ServerInfo& serverInfo){
 		return serverInfo.serverNum == serverNum;
 	});
 
@@ -444,7 +454,7 @@ void AgentApp::SaveDeltaUserInfo(unsigned int serverNum, int clientSocket, unsig
 			serverInfoIter->userCount--;
 
 		
-			serverInfoIter->userInfoList.remove_if([&](UserInfo& user){
+			serverInfoIter->userInfoList.remove_if([&](const UserInfo& user){
 				//PRINTF("Room Number : (%d, %d) / Socket Number : (%d, %d)\n", user.roomNum, roomNum, user.userSocket, clientSocket);
 				return (user.userSocket == clientSocket);
 			
@@ -470,7 +480,7 @@ void AgentApp::SaveDeltaUserInfo(unsigned int serverNum, int clientSocket, unsig
 		PRINTF("User Join! \n ");
 		auto userIter = std::find_if(serverInfoIter->userInfoList.begin(),
 			serverInfoIter->userInfoList.end(),
-			[&](UserInfo& user) {
+			[&](const UserInfo& user) {
 			return user.userSocket == clientSocket;
 		});
 
@@ -484,7 +494,7 @@ void AgentApp::SaveDeltaUserInfo(unsigned int serverNum, int clientSocket, unsig
 
 		auto userIter = std::find_if(serverInfoIter->userInfoList.begin(),
 			serverInfoIter->userInfoList.end(),
-			[&](UserInfo& user) {
+			[&](const UserInfo& user) {
 			return user.userSocket == clientSocket;
 		});
 
@@ -575,7 +585,7 @@ bool AgentApp::DeleteServerInfo(int serverNum)
 
 	auto findServerIter = std::find_if(serverInfoList.begin(),
 		serverInfoList.end(),
-		[&](ServerInfo& serverInfo){ return serverInfo.serverNum == serverNum; });
+		[&](const ServerInfo& serverInfo){ return serverInfo.serverNum == serverNum; });
 
 	if (findServerIter == serverInfoList.end())
 	{
@@ -600,7 +610,7 @@ bool AgentApp::IsSearchUser(int serverNum, int userSocket)
 
 	auto findServerIter = std::find_if(serverInfoList.begin(), 
 									   serverInfoList.end(),
-									   [&](ServerInfo& serverInfo){ return serverInfo.serverNum == serverNum; });
+									   [&](const ServerInfo& serverInfo){ return serverInfo.serverNum == serverNum; });
 	
 	if (findServerIter == serverInfoList.end())
 	{
@@ -634,7 +644,7 @@ bool AgentApp::IsSearchRoom(unsigned short roomNum)
 	
 	auto findServerIter = std::find_if(roomInfoList.begin(),
 		roomInfoList.end(),
-		[&](RoomInfo& roomInfo){ return roomInfo.roomNum == roomNum; });
+		[&](const RoomInfo& roomInfo){ return roomInfo.roomNum == roomNum; });
 	
 	if (findServerIter == roomInfoList.end())
 	{

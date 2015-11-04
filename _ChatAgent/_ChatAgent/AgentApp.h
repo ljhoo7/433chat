@@ -45,9 +45,9 @@ public:
 
 public:
 	bool				   IsProcessConnected(int serverNum);
-	HANDLE&				   GetProcessInfoHandle(int serverNum);
+	const HANDLE&		   GetProcessInfoHandle(int serverNum);
 	void				   SetProcessConnected(int serverNum, bool connected);
-	void				   AddProcessInfo(int serverNum, bool connected, HANDLE hProcess);
+	void				   AddProcessInfo(int serverNum, bool connected, const HANDLE& hProcess);
 	void				   DeleteProcessInfo(int serverNum);
 
 public:					 
