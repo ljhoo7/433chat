@@ -64,6 +64,7 @@ bool CBot::SendJoinMessage(int p_nNum, char *p_szNick)
 	tmp_packet.type = pkt_type::pt_join;
 
 	m_nTmpRoomNum = p_nNum;
+	
 	if (!SetTmpNickName(p_szNick))
 		std::cout << "SetNickName() length error" << std::endl;
 

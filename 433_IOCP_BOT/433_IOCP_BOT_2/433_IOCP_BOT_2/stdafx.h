@@ -46,9 +46,9 @@ class State;
 #define HEADER_SIZE			2
 #define BUFSIZE				8192
 #define ELAPSED_DEST		1500
-#define ROOM_MAX			100
+#define ROOM_MAX			1000
 #define PLAYER_MAX			10
-#define TOTAL_PLAYER		1000
+#define TOTAL_PLAYER		10000
 
 #ifdef _DEBUG
 #define MYDEF

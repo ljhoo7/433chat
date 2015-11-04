@@ -168,7 +168,7 @@ bool CBot::Recv(char *p_pBuf, int p_nBufSize)
 		}
 	}
 
-	g_pLog->myWprintf("%d bytes were received !\n", recvbytes);
+	//g_pLog->myWprintf("%d bytes were received !\n", recvbytes);
 
 	return true;
 }
@@ -203,7 +203,7 @@ bool CBot::Send(char *p_pBuf, int p_nBufLen)
 		}
 	}
 
-	g_pLog->myWprintf("%d bytes were sent !\n", sentbytes);
+	//g_pLog->myWprintf("%d bytes were sent !\n", sentbytes);
 
 	return true;
 }

@@ -14,8 +14,8 @@
 #include <Windows.h>
 #include <process.h>
 
-#define ROOM_MAX 100
-#define TOTAL_PLAYER 1000
+#define ROOM_MAX 1000
+#define TOTAL_PLAYER 10000
 #define MAX_CONNECTED_SERVER 5
 
 // one room

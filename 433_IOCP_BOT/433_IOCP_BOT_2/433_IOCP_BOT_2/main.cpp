@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
-CProactor					*g_pProactor;
-CLogWriter					*g_pLog;
+CProactor					*g_pProactor = NULL;
+CLogWriter					*g_pLog = NULL;
 
 // The Entry Point Function
 int _tmain(int argc, _TCHAR* argv[])
@@ -9,11 +9,23 @@ int _tmain(int argc, _TCHAR* argv[])
 	int t_nRetval;
 
 	SYSTEM_INFO si;
+	memset((void*)&si, 0, sizeof(SYSTEM_INFO));
 	GetSystemInfo(&si);
 
 	int t_nCPUs = (int)si.dwNumberOfProcessors;
 
+	if (0 == t_nCPUs)
+	{
+		g_pLog->myWprintf("t_nCPUs is zero in main !!!\n");
+	}
+
 	g_pLog = new CLogWriter("BotLog.log", 2);
+
+	if (NULL == g_pLog)
+	{
+		g_pLog->myWprintf("Error! the allocated CLogWriter is NULL in main function ! \n");
+		exit(1);
+	}
 
 	if (6 != argc)
 	{
@@ -53,7 +65,22 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 
 	g_pProactor = new CProactor(t_dwIp, t_nPort, t_nBotCnt, t_nCPUs << 1, t_nIntervalMin, t_nIntervalMax);
-	g_pProactor->Init();
+
+	if (NULL == g_pProactor)
+	{
+		g_pLog->myWprintf("Error! the allocated CProactor is NULL in main function ! \n");
+		exit(1);
+	}
+
+	bool p_bCheck = true;
+	if (NULL != g_pProactor)
+		p_bCheck = g_pProactor->Init();
+
+	if (!p_bCheck)
+	{
+		g_pLog->myWprintf("Error! g_pProactor->Init() return value is false in main function\n");
+		exit(1);
+	}
 
 	WaitForMultipleObjects(t_nBotCnt, g_pProactor->m_hEventForAllJoin, TRUE, INFINITE);
 
@@ -64,8 +91,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		(*iter)->BeginChatThread();
 	}
-
-	//g_pProactor->m_vBot[99]->SendChatMessage("hihi");
 
 	Sleep(INFINITE);
 
