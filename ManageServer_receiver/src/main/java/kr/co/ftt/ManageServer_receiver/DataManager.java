@@ -1,7 +1,5 @@
 package kr.co.ftt.ManageServer_receiver;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -71,16 +69,15 @@ public class DataManager {
 			msg="Server Generate Fail";
 			break;
 			//servergen_f
+		case 4:
+			msg="ManageServer_web Start";
+			break;
 		}
 
-		JDBCConnect.getInstance().insertNotify(InputCommandHandler.getTimestamp(), i, msg);
-		
+		JDBCConnect.getInstance().insertNotify(InputCommandHandler.getTimestamp(), i, msg);		
 	}
 
 	public static void addAgentInfo(String agentName) {
-		JDBCConnect.getInstance().insertAgentInfo(InputCommandHandler.getTimestamp(), agentName);
-		
+		JDBCConnect.getInstance().insertAgentInfo(InputCommandHandler.getTimestamp(), agentName);		
 	}
-
-
 }

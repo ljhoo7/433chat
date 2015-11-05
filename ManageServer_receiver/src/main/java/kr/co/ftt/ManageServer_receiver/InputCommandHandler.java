@@ -34,9 +34,6 @@ public class InputCommandHandler {
 
 	private static InputCommandHandler instance;
 
-	private InputCommandHandler() {
-	}
-
 	public static InputCommandHandler getInstance() {
 		if (instance == null) {
 			instance = new InputCommandHandler();
@@ -49,7 +46,7 @@ public class InputCommandHandler {
 		case 0:
 			byteArrCnt = new byte[2];
 			try {
-				serverThread.getInputStream().read(byteArrCnt, 0, 2);
+				serverThread.is.read(byteArrCnt, 0, 2);
 			} catch (IOException e2) {
 				e2.printStackTrace();
 			}
@@ -57,7 +54,7 @@ public class InputCommandHandler {
 			//System.out.println("input total_room_info cnt:" + objCnt);
 			for (int i = 0; i < objCnt; i++) {
 				try {
-					serverThread.getInputStream().read(byteArrRoom, 0, 2);
+					serverThread.is.read(byteArrRoom, 0, 2);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -68,14 +65,14 @@ public class InputCommandHandler {
 		case 1:
 			byteArrCnt = new byte[2];
 			try {
-				serverThread.getInputStream().read(byteArrCnt, 0, 2);
+				serverThread.is.read(byteArrCnt, 0, 2);
 			} catch (IOException e2) {
 				e2.printStackTrace();
 			}
 			objCnt = byteArrCnt[0];
 
 			//System.out.println("input total_server_count cnt:" + objCnt);
-			DataManager.addAgentInfo(serverThread.getAgentName());
+			DataManager.addAgentInfo(serverThread.agentName);
 
 			// total_server_count
 			break;
@@ -84,14 +81,14 @@ public class InputCommandHandler {
 			byteArrServerNum = new byte[4];
 			byteArrUser = new byte[28];
 			try {
-				serverThread.getInputStream().read(byteArrServerNum, 0, 4);
+				serverThread.is.read(byteArrServerNum, 0, 4);
 			} catch (IOException e2) {
 				e2.printStackTrace();
 			}
-			DataManager.addServerInfo(byteArrServerNum, serverThread.getAgentName());
+			DataManager.addServerInfo(byteArrServerNum, serverThread.agentName);
 
 			try {
-				serverThread.getInputStream().read(byteArrCnt, 0, 2);
+				serverThread.is.read(byteArrCnt, 0, 2);
 			} catch (IOException e2) {
 				e2.printStackTrace();
 			}
@@ -101,11 +98,11 @@ public class InputCommandHandler {
 
 			for (int i = 0; i < objCnt; i++) {
 				try {
-					serverThread.getInputStream().read(byteArrUser, 0, 28);
+					serverThread.is.read(byteArrUser, 0, 28);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				DataManager.addUserInfo(byteArrServerNum, byteArrUser, serverThread.getAgentName());
+				DataManager.addUserInfo(byteArrServerNum, byteArrUser, serverThread.agentName);
 			}
 			// total_user_info
 			break;
@@ -116,7 +113,7 @@ public class InputCommandHandler {
 		case 4:
 			byteArrFailSignal = new byte[2];
 			try {
-				serverThread.getInputStream().read(byteArrFailSignal, 0, 2);
+				serverThread.is.read(byteArrFailSignal, 0, 2);
 			} catch (IOException e2) {
 				e2.printStackTrace();
 			}
@@ -130,7 +127,7 @@ public class InputCommandHandler {
 		case 6:
 			byteArrFailSignal = new byte[2];
 			try {
-				serverThread.getInputStream().read(byteArrFailSignal, 0, 2);
+				serverThread.is.read(byteArrFailSignal, 0, 2);
 			} catch (IOException e2) {
 				e2.printStackTrace();
 			}
@@ -146,7 +143,7 @@ public class InputCommandHandler {
 			System.out.println("kill_server_fail");
 			byteArrFailSignal = new byte[2];
 			try {
-				serverThread.getInputStream().read(byteArrFailSignal, 0, 2);
+				serverThread.is.read(byteArrFailSignal, 0, 2);
 			} catch (IOException e2) {
 				e2.printStackTrace();
 			}
@@ -157,22 +154,22 @@ public class InputCommandHandler {
 		case 9:
 			System.out.println("generate_server_success");
 			DataManager.addNotify(2);
-			ManageServer.toggleGenbuttonFlag();
-			JDBCConnect.getInstance().updateGenState(ManageServer.getGenButtonFlag());
+			Manager.toggleGenbuttonFlag();
+			JDBCConnect.getInstance().updateGenState(Manager.genButtonFlag);
 			// kill_server_fail
 			break;
 		case 10:
 			System.out.println("generate_server_fail");
 			byteArrFailSignal = new byte[2];
 			try {
-				serverThread.getInputStream().read(byteArrFailSignal, 0, 2);
+				serverThread.is.read(byteArrFailSignal, 0, 2);
 			} catch (IOException e2) {
 				e2.printStackTrace();
 			}
 			System.out.println("generate_server_fail / type:" + byteArrFailSignal[0]);
 			DataManager.addNotify(3);
-			ManageServer.toggleGenbuttonFlag();
-			JDBCConnect.getInstance().updateGenState(ManageServer.getGenButtonFlag());
+			Manager.toggleGenbuttonFlag();
+			JDBCConnect.getInstance().updateGenState(Manager.genButtonFlag);
 
 			// kill_server_fail
 			break;

@@ -9,9 +9,9 @@ import java.net.SocketException;
 public class ServerThread implements Runnable {
 
 	private Socket socket;
-	private String agentName;
-	private InputStream is;
-	private OutputStream os;
+	public String agentName;
+	public InputStream is;
+	public OutputStream os;
 
 	public ServerThread(Socket socket) {
 		this.socket = socket;
@@ -23,18 +23,10 @@ public class ServerThread implements Runnable {
 			e.printStackTrace();
 		}
 	}
-
-	public void setAgentName(String agentName) {
-		this.agentName = agentName;
-	}
-
-	public String getAgentName() {
-		return agentName;
-	}
 	
 	public void run() {
 		byte[] input;
-		setAgentName(ServerThreadPool.getNextAgnetNum()+"");
+		agentName=ServerThreadList.getNextAgnetNum()+"";
 		try {
 			while (true) {
 				//System.out.println(getAgentName()+"Agent input wait...");
@@ -46,25 +38,19 @@ public class ServerThread implements Runnable {
 				InputCommandHandler.getInstance().typeInput(type, this);
 			}
 		} catch (SocketException e){
-			System.out.println(getAgentName() + "Agent Disconnected");
+			System.out.println(agentName + "Agent Disconnected");
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			if (socket != null) {
 				try {
 					socket.close();
-					System.out.println(getAgentName()+"Agent closed");
+					System.out.println(agentName+"Agent closed");
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
-			ServerThreadPool.remove(this);
+			ServerThreadList.getInstance().threadList.remove(this);
 		}
 	}	
-	public InputStream getInputStream(){
-		return is;
-	}
-	public OutputStream getOutputStream(){
-		return os;
-	}
 }

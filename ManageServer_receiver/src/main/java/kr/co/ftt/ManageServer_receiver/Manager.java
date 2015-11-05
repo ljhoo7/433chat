@@ -6,22 +6,16 @@ import java.net.Socket;
 import kr.co.ftt.ManageServer_receiver.util.AutoRequester;
 import kr.co.ftt.ManageServer_receiver.util.JDBCConnect;
  
-public class ManageServer {
+public class Manager {
 
-	private static int genButtonFlag=0; //0:Generate ,1:Generating...
-	private static int recvFlag=0;
-    private static int autoRequesterFlag=0;
-    
-	public static int getRecvFlag() {
-		return recvFlag;
-	}
-    public static int getGenButtonFlag() {
-		return genButtonFlag;
-	}
-    
+	public static int genButtonFlag=0; //0:Generate ,1:Generating...
+	public static int recvFlag=0;
+	public static int autoRequesterFlag=0;
+
 	public static void main(String[] args) {		
               
-        Thread thread = new Thread(WebLinkServer.getInstance());
+		WebLinkServer webLinkServer = new WebLinkServer();
+        Thread thread = new Thread(webLinkServer);
         thread.start();
         
         try {
@@ -40,7 +34,7 @@ public class ManageServer {
                                         
                     thread = new Thread(serverThread);
                     thread.start();
-                    ServerThreadPool.add(serverThread);
+                    ServerThreadList.getInstance().threadList.add(serverThread);
                     
                 }
                 

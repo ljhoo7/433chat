@@ -90,8 +90,8 @@ public class OutputCommandHandler {
 		}
 	}
 	public void generate(OutputStream os){
-		ManageServer.toggleGenbuttonFlag();
-        JDBCConnect.getInstance().updateGenState(ManageServer.getGenButtonFlag());
+		Manager.toggleGenbuttonFlag();
+        JDBCConnect.getInstance().updateGenState(Manager.genButtonFlag);
 		msg=new CPacket();
 		msg.push(generate);
 		try {

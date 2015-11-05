@@ -1,9 +1,9 @@
 package kr.co.ftt.ManageServer_receiver.util;
 
 import kr.co.ftt.ManageServer_receiver.InputCommandHandler;
-import kr.co.ftt.ManageServer_receiver.ManageServer;
+import kr.co.ftt.ManageServer_receiver.Manager;
 import kr.co.ftt.ManageServer_receiver.OutputCommandHandler;
-import kr.co.ftt.ManageServer_receiver.ServerThreadPool;
+import kr.co.ftt.ManageServer_receiver.ServerThreadList;
 
 public class AutoRequester implements Runnable {
 
@@ -15,14 +15,14 @@ public class AutoRequester implements Runnable {
 		while (true) {
 			JDBCConnect.getInstance().insertDateTime(InputCommandHandler.setTimestamp());
 			
-			ManageServer.toggleRecvFlag();
-			JDBCConnect.getInstance().updateRecvState(ManageServer.getRecvFlag());
+			Manager.toggleRecvFlag();
+			JDBCConnect.getInstance().updateRecvState(Manager.recvFlag);
 			
-			for (int i = 0; i < ServerThreadPool.threadList.size(); i++) {
-				OutputCommandHandler.getInstance().request(ServerThreadPool.threadList.get(i).getOutputStream());
+			for (int i = 0; i < ServerThreadList.threadList.size(); i++) {
+				OutputCommandHandler.getInstance().request(ServerThreadList.threadList.get(i).os);
 			}
-			ManageServer.toggleRecvFlag();
-			JDBCConnect.getInstance().updateRecvState(ManageServer.getRecvFlag());
+			Manager.toggleRecvFlag();
+			JDBCConnect.getInstance().updateRecvState(Manager.recvFlag);
 		}
 	}
 

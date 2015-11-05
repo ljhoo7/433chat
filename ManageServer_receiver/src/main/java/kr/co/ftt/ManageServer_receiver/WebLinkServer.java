@@ -10,29 +10,22 @@ import kr.co.ftt.ManageServer_receiver.util.JDBCConnect;
 
 public class WebLinkServer implements Runnable {
 
-	private static WebLinkServer instance;
-	static String ip = "127.0.0.1";
-	static int port = 7001;
+	private static int port = 7001;
 	
-	InputStream is;
-	ServerSocket serverSocket;
+	private InputStream is;
+	private ServerSocket serverSocket;
 
-	public static WebLinkServer getInstance() {
-		if (instance == null)
-			instance = new WebLinkServer();
-		return instance;
-	}
-
-	private WebLinkServer() {
-		JDBCConnect.getInstance().insertDateTime(InputCommandHandler.setTimestamp());
-		System.out.println("WebLinkServer Accept Wait..");
+	public WebLinkServer() {
+		JDBCConnect.getInstance().insertDateTime(InputCommandHandler.setTimestamp());//init TimeStamp
+		DataManager.addNotify(4); //input Notify msg "ManageServer_web Start" to DB
 	}
 
 	public void run() {
-		Socket socket;
 		try {
 			serverSocket = new ServerSocket(port);
-			socket = serverSocket.accept();
+			System.out.println("WebLinkServer Accept Wait..");
+			
+			Socket socket = serverSocket.accept();
 			is=socket.getInputStream();
 			
 			while(true){
@@ -40,10 +33,10 @@ public class WebLinkServer implements Runnable {
 				byte[] input = new byte[2];
 				is.read(input, 0, 2);//input type
 				short type = input[0];
-				
-				typeInput(type);
-				
+
+				typeInput(type);				
 			}
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -55,7 +48,7 @@ public class WebLinkServer implements Runnable {
 		byte[] agentNum =null;
 		switch(type){
 		case 1:
-			//room_destroy
+			//room_destroy case
 			byteArrRoomNum = new byte[2];
 			try {
 				is.read(byteArrRoomNum, 0, 2);//input room number
@@ -63,10 +56,10 @@ public class WebLinkServer implements Runnable {
 				e.printStackTrace();
 			}
 			short roomNum=byteArrRoomNum[0];
-			OutputCommandHandler.getInstance().room_destroy(roomNum, ServerThreadPool.threadList.get(0).getOutputStream());
+			OutputCommandHandler.getInstance().room_destroy(roomNum, ServerThreadList.threadList.get(0).os);
 			break;
 		case 2:
-			//kill_server
+			//kill_server case
 			agentNum = new byte[2];
 			try {
 				is.read(agentNum, 0, 2);//input agent number
@@ -80,13 +73,13 @@ public class WebLinkServer implements Runnable {
 				e.printStackTrace();
 			}
 			int serverNum=ByteArrayToInt.byteArrayToInt(byteArrServerNum);
-			OutputCommandHandler.getInstance().kill_server(serverNum, ServerThreadPool.getServerThread(agentNum[0]+"").getOutputStream());
+			OutputCommandHandler.getInstance().kill_server(serverNum, ServerThreadList.getServerThread(agentNum[0]+"").os);
 			break;
 		case 3:
-			//request
+			//request case
 			JDBCConnect.getInstance().insertDateTime(InputCommandHandler.setTimestamp());
-			for(int i=0;i<ServerThreadPool.threadList.size();i++){ //to all serverthread in threadpool
-				OutputCommandHandler.getInstance().request(ServerThreadPool.threadList.get(i).getOutputStream());
+			for(int i=0;i<ServerThreadList.threadList.size();i++){ //to all serverthread in threadpool
+				OutputCommandHandler.getInstance().request(ServerThreadList.threadList.get(i).os);
 			}
 			break;
 		case 4:
@@ -97,7 +90,7 @@ public class WebLinkServer implements Runnable {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			OutputCommandHandler.getInstance().generate(ServerThreadPool.getServerThread(agentNum[0]+"").getOutputStream());
+			OutputCommandHandler.getInstance().generate(ServerThreadList.getServerThread(agentNum[0]+"").os);
 			break;
 		case 5:
 			//user_out case
@@ -115,8 +108,8 @@ public class WebLinkServer implements Runnable {
 			} catch (IOException e2) {
 				e2.printStackTrace();
 			}
-			for(int i=0;i<ServerThreadPool.threadList.size();i++){  //to all serverthread in threadpool
-				OutputCommandHandler.getInstance().user_out(serverNum, clientSocket, ServerThreadPool.threadList.get(i).getOutputStream());
+			for(int i=0;i<ServerThreadList.threadList.size();i++){ //to all serverthread in threadpool
+				OutputCommandHandler.getInstance().user_out(serverNum, clientSocket, ServerThreadList.threadList.get(i).os);
 			}
 			break;
 		default:
